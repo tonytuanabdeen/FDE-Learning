@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 440" width="100%" height="440" role="img" aria-label="Tuan Abdeen terminal profile card">
+  <title>Tuan Abdeen — Forward Deployed Engineering Lead &amp; Salesforce CTA</title>
+  <style>
+    svg {
+      --bg: #0a0e17;
+      --card-bg: rgba(18, 22, 34, 0.75);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --inset: rgba(0, 0, 0, 0.35);
+      --text: #e6edf3;
+      --muted: #94a3b8;
+      --sub: #8b98a5;
+      --accent: #38bdf8;
+      --pill-bg: rgba(255, 255, 255, 0.06);
+      --pill-border: rgba(56, 189, 248, 0.45);
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: light) {
+      svg {
+        --bg: #eef1f6;
+        --card-bg: rgba(255, 255, 255, 0.8);
+        --card-border: rgba(0, 0, 0, 0.12);
+        --inset: rgba(0, 0, 0, 0.04);
+        --text: #1f2328;
+        --muted: #57606a;
+        --sub: #57606a;
+        --accent: #0969da;
+        --pill-bg: rgba(9, 105, 218, 0.06);
+        --pill-border: rgba(9, 105, 218, 0.4);
+      }
+    }
+
+    .bg { fill: var(--bg); }
+    .card {
+      fill: var(--card-bg);
+      stroke: var(--card-border);
+      stroke-width: 1;
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+    }
+    .inset { fill: var(--inset); stroke: var(--card-border); stroke-width: 1; }
+    .bar { stroke: var(--card-border); stroke-width: 1; }
+    .term-label { fill: var(--muted); font-size: 12px; }
+
+    .ascii {
+      fill: var(--accent);
+      font-size: 11px;
+      line-height: 1.15;
+      white-space: pre;
+      animation: glow 3s ease-in-out infinite;
+    }
+    @keyframes glow {
+      0%, 100% { filter: drop-shadow(0 0 2px rgba(56, 189, 248, 0.3)); }
+      50%      { filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.7)); }
+    }
+
+    .prompt { fill: var(--accent); font-size: 11px; font-weight: 700; }
+    .reveal { transform: scaleX(0); transform-box: fill-box; transform-origin: left center; animation: type 3.2s steps(69) 0.4s forwards; }
+    @keyframes type { to { transform: scaleX(1); } }
+
+    .cursor { fill: var(--accent); animation: blink 1.05s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .key  { fill: var(--text); font-size: 13px; font-weight: 700; }
+    .desc { fill: var(--muted); font-size: 12px; }
+    .dot  { fill: var(--accent); }
+
+    .pill { fill: var(--pill-bg); stroke: var(--pill-border); stroke-width: 1; }
+    .pill-text { fill: var(--accent); font-size: 11px; font-weight: 600; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ascii { animation: none; }
+      .cursor { animation: none; }
+      .reveal { animation: none; transform: scaleX(1); }
+    }
+  </style>
+
+  <defs>
+    <radialGradient id="glowTL" cx="0%" cy="0%" r="75%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35" />
+      <stop offset="60%" stop-color="#1e40af" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowBR" cx="100%" cy="100%" r="75%">
+      <stop offset="0%" stop-color="#d946ef" stop-opacity="0.32" />
+      <stop offset="60%" stop-color="#7c3aed" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#d946ef" stop-opacity="0" />
+    </radialGradient>
+    <clipPath id="cardClip">
+      <rect x="20" y="20" width="810" height="400" rx="18" />
+    </clipPath>
+  </defs>
+
+  <!-- Outer container -->
+  <rect class="bg" x="0" y="0" width="850" height="440" />
+  <rect x="0" y="0" width="850" height="440" fill="url(#glowTL)" />
+  <rect x="0" y="0" width="850" height="440" fill="url(#glowBR)" />
+
+  <!-- Main glass window -->
+  <rect class="card" x="20" y="20" width="810" height="400" rx="18" />
+  <g clip-path="url(#cardClip)">
+    <rect x="0" y="0" width="850" height="440" fill="url(#glowTL)" opacity="0.5" />
+  </g>
+
+  <!-- macOS terminal controls -->
+  <circle cx="46" cy="46" r="6.5" fill="#ff5f56" />
+  <circle cx="68" cy="46" r="6.5" fill="#ffbd2e" />
+  <circle cx="90" cy="46" r="6.5" fill="#27c93f" />
+  <text class="term-label" x="116" y="50">guest@user-terminal:~</text>
+  <line class="bar" x1="20" y1="68" x2="830" y2="68" />
+
+  <!-- Left panel: ASCII art -->
+  <rect class="inset" x="38" y="82" width="286" height="320" rx="12" />
+  <text class="ascii" x="54" y="118" xml:space="preserve"><tspan x="54">::::::::::::::::::::::::::::::</tspan><tspan x="54" dy="13">:::::::::+*#%%%%%%#*+::::::::::</tspan><tspan x="54" dy="13">::::::+#%%%%%%%%%%%%%%#+:::::::</tspan><tspan x="54" dy="13">::::+%%%%%%%%%%%%%%%%%%%%+:::::</tspan><tspan x="54" dy="13">:::#%%%%%%%%%%%%%%%%%%%%%%#::::</tspan><tspan x="54" dy="13">::#%%%%%#*+=----=+*#%%%%%%%#:::</tspan><tspan x="54" dy="13">::%%%%#:   .    .   :#%%%%%%:::</tspan><tspan x="54" dy="13">::%%%%  (o)    (o)   %%%%%%%:::</tspan><tspan x="54" dy="13">::%%%%      /\       %%%%%%:::</tspan><tspan x="54" dy="13">::%%%%%    (__)      %%%%%%:::</tspan><tspan x="54" dy="13">:::#%%%%%:        .:#%%%%%#:::</tspan><tspan x="54" dy="13">::::+%%%%%%#+==+#%%%%%%%%+::::</tspan><tspan x="54" dy="13">:::::::+#%%%%%%%%%%%%%#+::::::</tspan><tspan x="54" dy="13">::::::::::+*#%%%%%#*+:::::::::</tspan><tspan x="54" dy="13">::::::::::::::::::::::::::::::</tspan></text>
+
+  <!-- Right panel: content -->
+  <!-- Typing header -->
+  <g>
+    <g clip-path="url(#typeClip)">
+      <text class="prompt" x="346" y="108">&gt; Hello, World! I build enterprise AI, and sharing it on every stage.</text>
+    </g>
+    <clipPath id="typeClip">
+      <rect class="reveal" x="346" y="96" width="470" height="18" />
+    </clipPath>
+    <rect class="cursor" x="804" y="98" width="6" height="12" />
+  </g>
+
+  <!-- Bullet: Role -->
+  <circle class="dot" cx="350" cy="156" r="3" />
+  <text x="364" y="160"><tspan class="key">Role: </tspan><tspan class="desc">Forward Deployed Engineering Lead &amp; a Salesforce CTA</tspan></text>
+
+  <!-- Bullet: Focus -->
+  <circle class="dot" cx="350" cy="196" r="3" />
+  <text class="key" x="364" y="200">Focus:</text>
+  <text class="desc" x="364" y="222" xml:space="preserve"><tspan x="364">I design and deliver enterprise-grade AI and customer-</tspan><tspan x="364" dy="18">experience solutions on Salesforce — and I love turning</tspan><tspan x="364" dy="18">what I learn into talks for teams, communities and</tspan><tspan x="364" dy="18">conference stages.</tspan></text>
+
+  <!-- Tech badges -->
+  <g>
+    <rect class="pill" x="346" y="356" width="94"  height="26" rx="13" />
+    <text class="pill-text" x="393" y="373" text-anchor="middle">Agentforce</text>
+
+    <rect class="pill" x="450" y="356" width="80"  height="26" rx="13" />
+    <text class="pill-text" x="490" y="373" text-anchor="middle">Data 360</text>
+
+    <rect class="pill" x="540" y="356" width="58"  height="26" rx="13" />
+    <text class="pill-text" x="569" y="373" text-anchor="middle">React</text>
+
+    <rect class="pill" x="608" y="356" width="66"  height="26" rx="13" />
+    <text class="pill-text" x="641" y="373" text-anchor="middle">Python</text>
+
+    <rect class="pill" x="684" y="356" width="96"  height="26" rx="13" />
+    <text class="pill-text" x="732" y="373" text-anchor="middle">TypeScript</text>
+  </g>
+</svg>
