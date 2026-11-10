@@ -2,7 +2,7 @@ Act as a senior frontend engineer and SVG graphic designer.
 
 Write the complete, self-contained SVG code for a trending GitHub Profile README card with terminal glassmorphism, animated ASCII art, typing effects, and dual dark/light theme support.
 
-### 1. File Structure & Canvas
+### 1. File Structure & Canvas 
 - Format: Single SVG file containing a github friendly format.
 - Dimensions: viewBox="0 0 850 440", width="100%", height="440".
 - Compatibility: All styles must be fully encapsulated in an internal <style> block. Do not import external fonts or scripts (must work under GitHub's Camo caching proxy).
