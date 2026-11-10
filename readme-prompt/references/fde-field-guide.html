@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FDE field guide</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#F2F4F1; --surface:#FFFFFF; --ink:#1B252C; --muted:#5B6872; --line:#D5DBD6;
+  --primary:#0B5C8C; --primary-ink:#FFFFFF; --mark:#F3C316; --mark-soft:#FBF0C2; --ok:#1E8A5A;
+  --code-bg:#14232D; --code-ink:#DCE8EE; --code-head:#1D3140;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Charter,Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#10181D; --surface:#17222A; --ink:#E6EDF0; --muted:#93A3AD; --line:#2A3942;
+    --primary:#5DB3E6; --primary-ink:#0B1216; --mark:#F3C316; --mark-soft:#2C2A14; --ok:#4CC38A;
+    --code-bg:#0B1216; --code-ink:#DCE8EE; --code-head:#16242D;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--sans)}
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* header */
+.top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.top-in{max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center}
+.brand{flex:1 1 280px}
+.brand h1{margin:0;font:700 24px/1.2 var(--serif)}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:7px 12px;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink)}
+.search{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:8px 12px;font-size:14px;width:210px}
+.trail{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;height:6px;background:var(--bg)}
+.trail i{display:block;background:var(--line);position:relative}
+.trail i b{position:absolute;inset:0 auto 0 0;background:var(--mark);width:0;transition:width .3s}
+
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:26px 20px 80px;display:grid;grid-template-columns:270px 1fr;gap:34px}
+nav.tabs{position:sticky;top:110px;align-self:start;display:flex;flex-direction:column;gap:8px}
+.tab{text-align:left;background:transparent;border:1px solid transparent;border-left:4px solid var(--line);padding:11px 14px;border-radius:0 6px 6px 0}
+.tab:hover{background:var(--surface)}
+.tab[aria-selected="true"]{background:var(--surface);border-color:var(--line);border-left-color:var(--mark)}
+.tab strong{display:block;font:700 17px/1.25 var(--serif)}
+.tab span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.tab .bar{height:4px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden}
+.tab .bar b{display:block;height:100%;background:var(--ok);width:0}
+
+main h2{font:700 34px/1.15 var(--serif);margin:0 0 8px}
+.lead{color:var(--muted);max-width:68ch;margin:0 0 6px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 6px}
+main h3{font:700 22px/1.25 var(--serif);margin:36px 0 4px}
+.sec-intro{color:var(--muted);margin:0 0 14px;max-width:70ch}
+.tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:1px 8px;margin-left:8px;white-space:nowrap}
+
+/* items on a trail */
+.items{border-left:2px solid var(--line);margin-left:9px;padding-left:24px;display:flex;flex-direction:column;gap:10px}
+.item{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.item::before{content:"";position:absolute;left:-33px;top:19px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--line)}
+.item.done::before{background:var(--mark);border-color:var(--mark)}
+.item summary{list-style:none;display:flex;gap:12px;align-items:center;padding:12px 14px;cursor:pointer}
+.item summary::-webkit-details-marker{display:none}
+.item summary input{width:20px;height:20px;accent-color:var(--ok);flex:none;cursor:pointer}
+.item .t{font-weight:600;flex:1}
+.item.done .t{color:var(--muted)}
+.item summary::after{content:"+";font:400 22px/1 var(--mono);color:var(--muted);flex:none}
+.item[open] summary::after{content:"\2212"}
+.body{padding:0 16px 16px 46px}
+.body p{margin:0 0 12px;max-width:72ch}
+.note{border-left:4px solid var(--mark);background:var(--mark-soft);padding:8px 12px;margin:0 0 12px;border-radius:0 6px 6px 0;font-size:15px;max-width:72ch}
+.note.warn{border-left-color:#D2452F}
+.note b{font-weight:700}
+ul.pts{margin:0 0 12px;padding-left:20px;max-width:72ch}
+ul.pts li{margin:3px 0}
+
+.code{margin:0 0 12px;border-radius:6px;overflow:hidden;background:var(--code-bg)}
+.ch{display:flex;justify-content:space-between;align-items:center;background:var(--code-head);color:var(--code-ink);padding:5px 8px 5px 12px;font-size:13px}
+.copy{background:transparent;border:1px solid #4a6376;color:var(--code-ink);border-radius:4px;padding:2px 10px;font-size:13px}
+.copy:hover{background:#27485d}
+pre{margin:0;padding:12px;overflow-x:auto;color:var(--code-ink);font:13px/1.55 var(--mono)}
+
+/* picker */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:18px;padding:6px 14px;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.answer{border:1px dashed var(--line);border-radius:6px;padding:12px 14px;max-width:72ch}
+.answer h4{margin:0 0 4px;font:700 18px var(--serif)}
+
+.empty{padding:30px;border:1px dashed var(--line);border-radius:6px;color:var(--muted)}
+.results-head{color:var(--muted);margin:0 0 12px}
+.reset{background:transparent;border:0;color:var(--primary);text-decoration:underline;padding:0;font-size:14px}
+
+@media (max-width:860px){
+  .wrap{grid-template-columns:1fr;gap:18px}
+  nav.tabs{position:static;flex-direction:row;overflow-x:auto;padding-bottom:6px}
+  .tab{min-width:210px;border-left-width:1px;border-top:4px solid var(--line);border-radius:0 0 6px 6px}
+  .tab[aria-selected="true"]{border-top-color:var(--mark)}
+  .body{padding-left:16px}
+  .search{width:100%}
+  main h2{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <h1>FDE field guide</h1>
+      <p id="overall">From a new laptop to a client handover.</p>
+    </div>
+    <div class="ctrl">
+      <div class="seg" role="group" aria-label="Operating system">
+        <button type="button" data-os="mac" aria-pressed="true">macOS / Linux</button>
+        <button type="button" data-os="win" aria-pressed="false">Windows</button>
+      </div>
+      <input class="search" id="q" type="search" placeholder="Search the guide" aria-label="Search the guide">
+    </div>
+  </div>
+  <div class="trail" id="trail" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
+</header>
+
+<div class="wrap">
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Guide tracks"></nav>
+  <main id="main" aria-live="polite"></main>
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   TEAM VALUES: edit these before you hand the guide to new joiners.
+------------------------------------------------------------------- */
+const TEAM = {
+  slack: '#fde-help',
+  skillsRepo: 'https://github.com/YOUR-ORG/fde-claude-skills',
+  templateRepo: 'https://github.com/YOUR-ORG/fde-project-template',
+  handoverOwner: 'your.name@company.com',
+  securityContact: 'security@your-company.com'
+};
+const R = String.raw;
+
+/* ------------------------------------------------------------------
+   CONTENT
+   item = { id, t (title), d (description), pts[], code[], notes[], picker }
+   code = { l (label), x (any OS) } or { l, mac, win }
+   notes = { k:'tip'|'warn', x }
+   In code, write @@{ where you need a literal ${  (template literals).
+------------------------------------------------------------------- */
+const TRACKS = [
+
+/* ============================ 1. SETUP ============================ */
+{
+  id:'setup', title:'1. Set up your machine', short:'VS Code, Salesforce CLI, Claude Code',
+  lead:'Work through this once, top to bottom. It takes about half a day, most of it waiting for installs. Finish with the smoke test so you know everything works before your first project.',
+  meta:'Time: about 3 to 4 hours. Needs: admin rights on your laptop, a GitHub account, a Salesforce sandbox login.',
+  sections:[
+  { t:'Foundations', i:'Everything else sits on top of these four tools.', items:[
+    { id:'s-core', t:'Install Git, Node.js, a JDK and the GitHub CLI',
+      d:'Node runs the Salesforce CLI, LWC tests and Playwright. A JDK (17 or 21) is required by the Apex language server and Code Analyzer.',
+      code:[{ l:'Install', mac:R`brew install git node@22 gh
+brew install --cask temurin@21`, win:R`winget install Git.Git
+winget install OpenJS.NodeJS.LTS
+winget install GitHub.cli
+winget install EclipseAdoptium.Temurin.21.JDK` },
+        { l:'Verify', x:R`git --version
+node --version
+java -version
+gh --version` }],
+      notes:[{k:'tip',x:'On macOS without Homebrew, install it first from brew.sh. On Windows, open a new terminal after installing so the PATH refreshes.'}] },
+    { id:'s-git', t:'Set up Git identity, SSH key and GitHub login',
+      d:'Use your work email so commits are attributed correctly. Sign in to GitHub once with the CLI and let it upload the SSH key.',
+      code:[{ l:'Configure', x:R`git config --global user.name "Your Name"
+git config --global user.email "you@company.com"
+git config --global init.defaultBranch main
+git config --global pull.rebase true
+ssh-keygen -t ed25519 -C "you@company.com"
+gh auth login` }],
+      notes:[{k:'warn',x:'Never commit auth files, .env files or org auth URLs. You will set up .gitignore rules in track 2, but build the habit now.'}] }
+  ]},
+  { t:'Editor', i:'One editor profile for everything: Apex, LWC, Playwright and Claude Code.', items:[
+    { id:'s-vsc', t:'Install VS Code and the extensions',
+      d:'Install VS Code from code.visualstudio.com, then enable the "code" shell command (Command Palette, "Shell Command: Install code command in PATH") and run this block.',
+      code:[{ l:'Extensions', x:R`code --install-extension salesforce.salesforcedx-vscode
+code --install-extension salesforce.sfdx-code-analyzer-vscode
+code --install-extension anthropic.claude-code
+code --install-extension ms-playwright.playwright
+code --install-extension esbenp.prettier-vscode
+code --install-extension dbaeumer.vscode-eslint
+code --install-extension eamodio.gitlens
+code --install-extension bierner.markdown-mermaid
+code --install-extension redhat.vscode-yaml` }],
+      pts:['Salesforce Extension Pack covers Apex, LWC, SOQL builder, org browser and Apex Replay Debugger.','Code Analyzer flags security and quality issues in Apex and LWC before a reviewer does.','Playwright extension lets you run and record UI tests from the editor.']},
+    { id:'s-vsc-set', t:'Apply the recommended workspace settings',
+      d:'Put these in your user settings (Command Palette, "Preferences: Open User Settings (JSON)").',
+      code:[{ l:'settings.json', x:R`{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "salesforcedx-vscode-core.show-cli-success-msg": false,
+  "salesforcedx-vscode-apex.java.home": ""
+}` }],
+      notes:[{k:'tip',x:'If Apex features do not start, set salesforcedx-vscode-apex.java.home to your JDK folder (the value of JAVA_HOME).'}] }
+  ]},
+  { t:'Salesforce CLI', i:'The sf command is how you deploy, test and automate everything.', items:[
+    { id:'s-sf', t:'Install the Salesforce CLI (sf)',
+      d:'Install the current CLI. Do not install the old sfdx v7 package alongside it.',
+      code:[{ l:'Install and verify', x:R`npm install --global @salesforce/cli
+sf --version
+sf update` }]},
+    { id:'s-auth', t:'Log in to your first sandbox with a clear alias',
+      d:'Use a client prefix plus the environment name. Never make production your default org.',
+      code:[{ l:'Authorize', x:R`sf org login web --alias client-dev --instance-url https://test.salesforce.com --set-default
+sf org list
+sf org display --target-org client-dev` }],
+      pts:['Aliases: client-dev, client-sit, client-uat, client-prod.','Sandboxes log in at test.salesforce.com. Production and Developer Edition use login.salesforce.com (the default).','Auth tokens expire. If you see an expired token error, just log in again.'],
+      notes:[{k:'warn',x:'sf org display --verbose prints a secret auth URL. Do not paste its output into chat, tickets or Claude prompts.'}]},
+    { id:'s-plugins', t:'Install Code Analyzer and check the agent commands',
+      d:'Code Analyzer runs static analysis from the terminal and in CI. The agent commands are what you will use to test Agentforce agents in track 3.',
+      code:[{ l:'Plugins', x:R`sf plugins install code-analyzer
+sf code-analyzer run --workspace force-app --view table
+sf agent --help
+sf agent test --help` }],
+      notes:[{k:'tip',x:'Agentforce CLI commands are evolving quickly. If sf agent test is missing, run sf update first, then check the release notes for the plugin.'}]},
+    { id:'s-scratch', t:'Optional: create a scratch org',
+      d:'Only if the project uses scratch orgs and you have access to a Dev Hub.',
+      code:[{ l:'Scratch org', x:R`sf org login web --alias devhub --set-default-dev-hub
+sf org create scratch --definition-file config/project-scratch-def.json --alias scratch1 --duration-days 7 --set-default` }]}
+  ]},
+  { t:'Claude Code', i:'Your AI pair engineer, inside the terminal and VS Code.', items:[
+    { id:'s-cc', t:'Install Claude Code and sign in',
+      d:'Use the account your company approved. The first run opens a browser to log in.',
+      code:[{ l:'Install', mac:R`curl -fsSL https://claude.ai/install.sh | bash
+claude --version
+claude`, win:R`irm https://claude.ai/install.ps1 | iex
+claude --version
+claude` },
+        { l:'Alternative via npm', x:R`npm install -g @anthropic-ai/claude-code` },
+        { l:'Health check', x:R`claude doctor` }],
+      notes:[{k:'warn',x:'Company policy: conversations are retained and may be reviewed by administrators. Do not paste real customer data, secrets or credentials. Use placeholders such as CUSTOMER_1.'}]},
+    { id:'s-cc-vsc', t:'Connect Claude Code to VS Code',
+      d:'Install the Claude Code extension (done above), then open the integrated terminal in your project and run claude. The extension also adds a side panel with diff views.',
+      code:[{ l:'In a Claude Code session', x:R`/ide
+/status` }],
+      pts:['Selected lines and open files are shared with Claude automatically.','Edits appear as diffs in the editor, so you review before accepting.']},
+    { id:'s-skills', t:'Add Salesforce skills to Claude Code',
+      d:'Skills are folders with a SKILL.md that teach Claude how your team does specific jobs (Apex, LWC, Flow, deploys). They load only when relevant, so they cost very little context.',
+      code:[{ l:'Option A: install from the team marketplace', x:'/plugin marketplace add ' + TEAM.skillsRepo.replace('https://github.com/','') + '\n/plugin install salesforce-skills@fde-claude-skills\n/plugin list' },
+        { l:'Option B: copy skills by hand (personal, all projects)', mac:R`mkdir -p ~/.claude/skills
+git clone ${TEAM.skillsRepo} /tmp/fde-skills
+cp -R /tmp/fde-skills/skills/* ~/.claude/skills/
+ls ~/.claude/skills`, win:R`mkdir $HOME\.claude\skills -Force
+git clone ${TEAM.skillsRepo} $HOME\fde-skills
+Copy-Item $HOME\fde-skills\skills\* $HOME\.claude\skills -Recurse -Force
+dir $HOME\.claude\skills` }],
+      pts:['Recommended starter set: Apex (bulkification, triggers, tests), LWC, Flow, SOQL and data, metadata deploy, Agentforce agent design, and testing.','Project-specific skills go in the repo at .claude/skills. Personal skills go in ~/.claude/skills.','Ask in a session "What skills do you have available?" to confirm they loaded.'],
+      notes:[{k:'warn',x:'A skill can instruct Claude to run commands. Only install skills from your team repo or sources you have read. Open the SKILL.md before you trust it.'},
+             {k:'tip',x:'The repo URL and marketplace name above are placeholders. Replace SKILLS_REPO with the URL set in TEAM at the top of this file, and ask your lead for the approved list.'}]},
+    { id:'s-mcp', t:'Connect the Salesforce DX MCP server',
+      d:'Lets Claude query orgs, read metadata and run tests through a structured tool instead of guessing shell commands.',
+      code:[{ l:'Add for this machine', x:R`claude mcp add salesforce -- npx -y @salesforce/mcp --orgs DEFAULT_TARGET_ORG --toolsets orgs,metadata,data,users
+claude mcp list` }],
+      notes:[{k:'tip',x:'Limit it to sandboxes and only the toolsets you need. Check the Salesforce DX MCP docs for current flag names, as they can change between versions.'}]},
+    { id:'s-user-md', t:'Write your personal CLAUDE.md',
+      d:'~/.claude/CLAUDE.md applies to every project. Keep it short and about you, not the client.',
+      code:[{ l:'~/.claude/CLAUDE.md', x:R`# About me
+- Forward deployed engineer working mostly on Salesforce and Agentforce.
+- Explain trade-offs briefly, then recommend one option.
+
+# Working style
+- Plan first for anything touching more than 3 files.
+- Show me the diff before committing. Small commits with clear messages.
+- Never run deploys to an org or push to GitHub without asking.
+- Never include real customer data in files, commands or search queries.` }]}
+  ]},
+  { t:'Test tooling and extras', i:'Set these up now so they are ready on day one of a project.', items:[
+    { id:'s-pw', t:'Install Playwright browsers',
+      d:'Used for UI automation in track 3. Install the browser once per machine.',
+      code:[{ l:'Install', x:R`npx playwright install --with-deps chromium
+npx playwright --version` }]},
+    { id:'s-extras', t:'Install the handy extras',
+      pts:['Salesforce Inspector Reloaded (Chrome extension): inspect fields, run SOQL, export data.','Bruno or Postman: test REST callouts and Salesforce APIs.','jq: parse the JSON that sf and Playwright produce.','Draw.io or the Mermaid preview in VS Code: architecture diagrams.','Data Loader or sf data commands: bulk data work.'],
+      code:[{ l:'jq', mac:'brew install jq', win:'winget install jqlang.jq' }]},
+    { id:'s-smoke', t:'Run the smoke test',
+      d:'If every line prints a version or status, you are ready. Fix anything that fails before moving on.',
+      code:[{ l:'Smoke test', x:R`git --version && node --version && java -version
+sf --version && sf org list
+gh auth status
+claude --version
+npx playwright --version
+code --list-extensions | grep -E "salesforce|claude|playwright"` }],
+      notes:[{k:'tip',x:'Stuck? Post the error text (not screenshots of secrets) in ' + TEAM.slack + '.'}]}
+  ]}
+  ]
+},
+
+/* ========================= 2. ESSENTIALS ========================= */
+{
+  id:'essentials', title:'2. Start a project well', short:'Repo, CLAUDE.md, project skills',
+  lead:'Do this in the first two days of an engagement, before feature work starts. A good starting setup means Claude, your teammates and your future self all understand the project the same way.',
+  meta:'Time: about half a day per project. Output: a repo with CI, a CLAUDE.md, project skills and a decision log.',
+  sections:[
+  { t:'Repository foundation', i:'Create it once and make it hard to break.', items:[
+    { id:'e-repo', t:'Create the project and the GitHub repo',
+      d:'Start from the team template if one exists. Otherwise generate a standard DX project.',
+      code:[{ l:'Scaffold', x:R`sf project generate --name acme-fde --template standard --manifest
+cd acme-fde
+git init -b main
+gh repo create YOUR-ORG/acme-fde --private --source . --remote origin
+git add . && git commit -m "chore: initial project scaffold"
+git push -u origin main` }],
+      notes:[{k:'tip',x:'Team template: ' + TEAM.templateRepo + ' (placeholder). Using it gives you the folders, CI, PR template and CLAUDE.md skeleton in one go.'}]},
+    { id:'e-ignore', t:'Add a safe .gitignore',
+      code:[{ l:'.gitignore', x:R`# Salesforce local state
+.sf/
+.sfdx/
+.localdevserver/
+.vscode/settings.json
+
+# Secrets and sessions
+.env
+.env.*
+auth*.txt
+.auth/
+
+# Node and test output
+node_modules/
+reports/
+playwright-report/
+test-results/
+
+# Claude Code local-only settings
+.claude/settings.local.json` }]},
+    { id:'e-branch', t:'Agree the branching and pull request rules',
+      pts:['Short-lived branches from main, named feature/TICKET-123-short-name.','Protect main: pull request required, one approval, CI must pass, no force pushes.','Small pull requests. If a PR needs a long explanation, split it.','Use a PR template that asks for: what changed, how it was tested, deploy notes, rollback.'],
+      code:[{ l:'.github/pull_request_template.md', x:R`## What changed
+
+## How it was tested
+- [ ] Apex tests
+- [ ] LWC Jest
+- [ ] Agent tests
+- [ ] Playwright
+
+## Deploy notes
+(manual steps, data changes, permission sets)
+
+## Rollback plan` }]},
+    { id:'e-ci', t:'Add a validation check to every pull request',
+      d:'The pipeline authenticates to a sandbox, validates the deployment and runs local tests. The auth URL is stored as a GitHub secret, never in the repo.',
+      code:[{ l:'Get the auth URL once (keep it private)', x:R`sf org display --target-org client-dev --verbose --json | jq -r .result.sfdxAuthUrl
+gh secret set SFDX_AUTH_URL_DEV` },
+        { l:'.github/workflows/validate.yml', x:R`name: validate
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm install --global @salesforce/cli
+      - name: Authenticate
+        run: |
+          echo "@@{{ secrets.SFDX_AUTH_URL_DEV }}" > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias ci-org
+          rm auth.txt
+      - name: Validate deployment
+        run: sf project deploy validate --source-dir force-app --target-org ci-org --test-level RunLocalTests --wait 60` }],
+      notes:[{k:'tip',x:'Prefer a dedicated integration user and JWT login for shared pipelines. The auth URL approach is fine for a first iteration.'}]}
+  ]},
+  { t:'Claude Code project setup', i:'Commit these files so the whole team gets the same Claude behaviour.', items:[
+    { id:'e-claudemd', t:'Write the project CLAUDE.md',
+      d:'Claude reads this at the start of every session. Keep it under about 100 lines: commands, structure, conventions and hard rules. Update it whenever you correct Claude twice about the same thing.',
+      code:[{ l:'CLAUDE.md', x:R`# Project: ACME service transformation
+
+## Context
+- Goal: deflect 30% of order-status cases with an Agentforce agent.
+- Clouds: Service Cloud, Experience Cloud, Data Cloud. Integration: order API via Named Credential.
+
+## Orgs
+- client-dev: sandbox, default target
+- client-sit, client-uat: sandboxes, deploy only via pipeline
+- client-prod: READ ONLY. Never deploy, never run DML.
+
+## Layout
+- force-app/main/default: metadata
+- specs/agent: Agentforce test specs
+- tests/e2e: Playwright tests
+- docs: ADRs (docs/adr), HANDOVER.md
+
+## Commands
+- Validate: sf project deploy validate --source-dir force-app --target-org client-dev --test-level RunLocalTests
+- Apex tests: sf apex run test --target-org client-dev --test-level RunLocalTests --code-coverage --result-format human --wait 30
+- LWC tests: npm run test:unit
+- Agent tests: sf agent test run --api-name Order_Agent_Regression --target-org client-dev --wait 15
+- UI tests: npx playwright test
+
+## Conventions
+- Apex: one trigger per object, logic in handler classes, bulk-safe, no SOQL or DML in loops, 85% coverage target.
+- LWC: small components, no hardcoded IDs, wire adapters over imperative calls where possible.
+- Names: Acme_ prefix for custom metadata, verbs for Apex actions (GetOrderStatus).
+
+## Rules
+- Never commit secrets, auth URLs or customer data. Use placeholders like CUSTOMER_1.
+- Ask before deploying to any org or pushing to GitHub.
+- Update docs/HANDOVER.md when architecture changes.
+- Record any significant design choice as an ADR in docs/adr.` }]},
+    { id:'e-settings', t:'Set shared permissions in .claude/settings.json',
+      d:'Allow the safe, frequent commands. Ask before anything that changes an org or the remote. Deny anything that touches secrets.',
+      code:[{ l:'.claude/settings.json', x:R`{
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(sf org list:*)",
+      "Bash(sf apex run test:*)",
+      "Bash(sf project deploy validate:*)",
+      "Bash(sf agent test:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(npm run test:unit:*)"
+    ],
+    "ask": [
+      "Bash(sf project deploy start:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.auth/**)",
+      "Bash(rm -rf:*)"
+    ]
+  }
+}` }],
+      notes:[{k:'tip',x:'Personal overrides go in .claude/settings.local.json, which stays out of git. Hooks (for example, auto-format after edits) are also configured here. See the Claude Code docs on hooks.'}]},
+    { id:'e-skills', t:'Create project-specific skills',
+      d:'Turn anything you explain twice into a skill. Start with these three: validate-deploy, release-notes and the handover skill in track 3.',
+      code:[{ l:'.claude/skills/validate-deploy/SKILL.md', x:R`---
+name: validate-deploy
+description: Validate the current branch against the dev sandbox with local tests and summarise failures. Use before opening a pull request or when asked to check the build.
+---
+
+# Validate deploy
+
+1. Run git status and confirm the working tree is what the user expects.
+2. Run: sf project deploy validate --source-dir force-app --target-org client-dev --test-level RunLocalTests --wait 60
+3. If it fails, group errors by component and by cause (compile, test failure, coverage, missing dependency).
+4. Propose the smallest fix for each group. Do not apply fixes without confirmation.
+5. Finish with a three-line summary: result, failing components, next step.` },
+        { l:'.claude/skills/release-notes/SKILL.md', x:R`---
+name: release-notes
+description: Draft client-friendly release notes from merged pull requests and git history since the last tag.
+---
+
+# Release notes
+
+1. Find the last tag with git describe --tags --abbrev=0.
+2. List commits and merged PRs since that tag.
+3. Group into: New, Improved, Fixed, Needs attention (manual steps).
+4. Write in plain language for a business reader. No class or field API names in headlines.
+5. Save to docs/releases/ with the date in the filename.` }],
+      pts:['The description is what triggers the skill, so say when to use it.','Keep SKILL.md short. Put long reference material in a separate file in the same folder and link to it.']},
+    { id:'e-mcp', t:'Share project MCP servers with the team',
+      code:[{ l:'Project scope', x:R`claude mcp add salesforce --scope project -- npx -y @salesforce/mcp --orgs client-dev --toolsets orgs,metadata,data
+cat .mcp.json` }],
+      notes:[{k:'warn',x:'Point shared MCP servers at sandboxes only. Never at production.'}]}
+  ]},
+  { t:'Org strategy and discovery', i:'Decide these early. They are painful to change later.', items:[
+    { id:'e-orgs', t:'Inventory the orgs and pull a baseline',
+      d:'Know which orgs exist, who owns them, and what is in them before you change anything.',
+      code:[{ l:'Baseline', x:R`sf project generate manifest --from-org client-dev --output-dir manifest
+sf project retrieve start --manifest manifest/package.xml --target-org client-dev
+git add . && git commit -m "chore: baseline metadata from client-dev"` }],
+      pts:['Write the org list, owners and refresh schedule into CLAUDE.md and the README.','Agree who can deploy to UAT and production, and how.']},
+    { id:'e-kickoff', t:'Run the technical kickoff checklist',
+      pts:['Success measures: what number moves, and by when?','Current state: orgs, clouds, installed packages, existing automations and technical debt.','Integrations: systems, owners, auth method, rate limits, sandboxes available.','Data: sources, volumes, quality, retention, masking in sandboxes.','Security: sharing model, field-level security, compliance constraints, where AI may touch data.','Delivery: environments, release cadence, change approval, who signs off.','People: client counterparts, decision makers, escalation path.']},
+    { id:'e-adr', t:'Start the decision log (ADRs)',
+      d:'One short file per significant decision. It becomes the best part of your handover later.',
+      code:[{ l:'docs/adr/0001-use-platform-events-for-order-updates.md', x:R`# 1. Use platform events for order updates
+
+Date: 2026-01-15
+Status: Accepted
+
+## Context
+Orders change in the ERP and Salesforce must reflect updates within a minute.
+
+## Options considered
+1. Polling with a scheduled job: simple, but delayed and wasteful.
+2. Platform events published by middleware: near real time, decoupled.
+3. Direct callout on page load: always fresh, but slow and rate limited.
+
+## Decision
+Option 2.
+
+## Consequences
+- Need replay handling and monitoring for event delivery.
+- Middleware team owns the publisher.` }]},
+    { id:'e-data', t:'Agree the data handling rules',
+      pts:['Customer data stays in the client org. It does not go into prompts, tickets or screenshots.','Use masked or synthetic data in sandboxes. Use placeholders (CUSTOMER_1, ACCT_XXXX) when asking Claude for help.','Test data comes from scripts you can re-run, not copies of production.','If you think data was exposed, stop and contact ' + TEAM.securityContact + '. Do not investigate it yourself.']}
+  ]}
+  ]
+},
+
+/* ========================== 3. ADVANCED =========================== */
+{
+  id:'advanced', title:'3. Design, hand over, test', short:'Architecture, handover docs, Apex, agent and Playwright testing',
+  lead:'This is where you move from building features to owning outcomes: designing solutions the client can run, documenting them so the next person is productive in a day, and proving they work with repeatable tests.',
+  meta:'Time: ongoing. Start with the testing setup in your first sprint, because everything else gets easier with it.',
+  sections:[
+  { t:'Architecture design', i:'Think on paper first. Claude is good at drafting and challenging, you own the decisions.', items:[
+    { id:'a-flow', t:'Follow a design workflow',
+      pts:['Clarify the outcome and constraints (volumes, latency, security, who operates it).','Draw the context: users, Salesforce clouds, external systems, data flows.','Design the data model and the security model before any automation.','Choose integration patterns per flow (use the picker below).','For agents: define topics, actions, instructions, guardrails and escalation.','List risks and non-functional needs: limits, error handling, monitoring, rollback.','Write ADRs for each real decision. Review with a peer before building.'],
+      notes:[{k:'tip',x:'Use Claude in plan mode (Shift+Tab twice) for design. It explores your repo read-only and proposes a plan, and you approve before anything changes.'}]},
+    { id:'a-prompt', t:'Prompt: draft a solution architecture',
+      code:[{ l:'Prompt template', x:R`I need a solution architecture for this requirement:
+[paste requirement, using placeholders for customer names]
+
+Constraints: [volumes, latency, security, release cadence, licences]
+Existing context: read CLAUDE.md, docs/adr and force-app before answering.
+
+Produce:
+1. Context and assumptions (list anything you are guessing)
+2. Data model changes (objects, fields, relationships, sharing)
+3. Integration approach per flow, with the pattern and why
+4. Automation split (declarative vs Apex vs LWC) with reasons
+5. Governor limit and scalability risks
+6. Security and data privacy considerations
+7. Two alternatives you rejected and why
+8. Open questions for the client
+9. A Mermaid diagram of the main flow
+
+Do not write code yet.` }]},
+    { id:'a-mermaid', t:'Diagrams as code with Mermaid',
+      d:'Diagrams that live in the repo stay up to date because Claude can edit them. Preview in VS Code with the Mermaid extension.',
+      code:[{ l:'docs/diagrams/order-status.mmd', x:R`sequenceDiagram
+  actor Customer
+  participant Chat as Agentforce agent
+  participant Flow as Apex action GetOrderStatus
+  participant NC as Named Credential
+  participant ERP as Order API
+  Customer->>Chat: Where is my order?
+  Chat->>Flow: orderNumber
+  Flow->>NC: GET /orders/{id}
+  NC->>ERP: authenticated call
+  ERP-->>Flow: status, ETA
+  Flow-->>Chat: structured result
+  Chat-->>Customer: Plain language answer
+  Note over Chat: Escalate to a human if order not found twice` }]},
+    { id:'a-agent', t:'Agent design canvas (Agentforce)',
+      d:'Fill this in before you open Agent Builder. It becomes the source for your test cases.',
+      code:[{ l:'docs/agent-design.md', x:R`# Agent: Order Support
+
+## Purpose
+One sentence on the job the agent does and for whom.
+
+## Topics
+| Topic | Scope (what it handles) | Out of scope |
+|---|---|---|
+| order_status | Where is my order, delivery estimate | Changing an address |
+| returns | Start a return, explain policy | Refund exceptions |
+
+## Actions
+| Action | Type | Inputs | Outputs | Error handling |
+|---|---|---|---|---|
+| GetOrderStatus | Apex invocable | orderNumber | status, eta | not found, timeout |
+
+## Instructions and guardrails
+- Tone, language, what to never say.
+- Never reveal data for an order the verified customer does not own.
+
+## Escalation
+- When and how to hand off to a human, with what context.
+
+## Grounding data
+- Knowledge articles, Data Cloud objects, fields in scope.
+
+## Test plan
+- 3+ utterances per topic, plus off-topic, adversarial and ambiguous inputs.` }]},
+    { id:'a-picker', t:'Integration pattern picker', picker:true,
+      d:'Pick what you need to do. This is a starting point for the conversation, not a replacement for design.' }
+  ]},
+  { t:'Technical handover document', i:'Handover is a deliverable, not an afterthought. Generate the first 80 percent from the repo, then edit.', items:[
+    { id:'h-contents', t:'What a good handover contains',
+      pts:['Overview: business goal, scope, what is live and what is not.','Architecture: context diagram, data model, integration flows, key ADRs.','Component inventory: apex, flows, LWCs, agents, permission sets, with owner and purpose.','Configuration and secrets: where they live (never the values), how to rotate them.','Environments and deployment: orgs, pipeline, manual steps, rollback.','Test evidence: latest results for Apex, agent and UI tests with links.','Runbook: monitoring, common failures, who to call.','Known issues, technical debt and recommended next steps.','Access: who has which roles, how to request access.'] },
+    { id:'h-skill', t:'Create a handover skill',
+      code:[{ l:'.claude/skills/handover/SKILL.md', x:R`---
+name: handover
+description: Generate or refresh docs/HANDOVER.md, the technical handover document, from the repo, metadata, ADRs and latest test reports. Use at sprint end, go-live, or when an engineer rolls off the project.
+---
+
+# Technical handover
+
+Read first: CLAUDE.md, docs/adr/*, docs/agent-design.md, reports/** (latest results), git log for the last 30 days.
+
+Write docs/HANDOVER.md with these sections, in order:
+1. Overview (goal, scope, status)
+2. Architecture (embed Mermaid diagrams from docs/diagrams)
+3. Data model (objects and fields we added or changed)
+4. Component inventory (table: type, API name, purpose, owner, test coverage)
+5. Integrations (system, direction, auth method, Named Credential name, error handling)
+6. Agents (topics, actions, guardrails, test results summary)
+7. Environments and deployment (orgs, pipeline, manual steps, rollback)
+8. Test evidence (pass/fail counts and coverage from reports/, with the report dates)
+9. Runbook (monitoring, common failures, escalation)
+10. Known issues and next steps
+11. Open questions
+
+Rules:
+- Facts must come from the repo or reports. If you cannot verify something, add it under Open questions.
+- Never write secrets, auth URLs or real customer data. Name where they are stored instead.
+- Keep tables for inventories and prose for reasoning.
+- End with a "Last generated" line with the date and the commit hash.` },
+        { l:'Generate it', x:R`claude -p "Use the handover skill to refresh docs/HANDOVER.md" --permission-mode acceptEdits` }],
+      notes:[{k:'tip',x:'Run it at the end of every sprint, not only at the end of the project. Review the diff like code. Treat anything marked Open questions as your to-do list.'}]},
+    { id:'h-review', t:'Review checklist before you hand it over',
+      pts:['A new engineer can deploy to a sandbox using only the document.','Every integration lists its owner and credential location.','Test evidence is dated and links to real reports.','No secrets or customer data anywhere in the file.','The handover owner (' + TEAM.handoverOwner + ') has read it end to end.'] }
+  ]},
+  { t:'Backend testing: Apex and LWC', i:'Fast tests that run on every pull request.', items:[
+    { id:'t-pyramid', t:'Test strategy at a glance',
+      pts:['Many Apex and LWC unit tests: fast, run on every PR.','A smaller set of agent tests: run the agent against known utterances.','A few UI tests with Playwright: cover the most important journeys only.','Manual exploratory testing for what automation cannot judge, such as tone and layout.'] },
+    { id:'t-apex', t:'Run Apex tests and produce results files',
+      d:'JUnit XML plugs into CI dashboards. The JSON file is easy for Claude and scripts to summarise.',
+      code:[{ l:'Apex with coverage', x:R`sf apex run test --target-org client-dev --test-level RunLocalTests --code-coverage --result-format junit --output-dir reports/apex --wait 30
+sf apex run test --target-org client-dev --test-level RunLocalTests --code-coverage --result-format json --output-dir reports/apex-json --wait 30` }],
+      pts:['Production deployments need at least 75 percent org-wide coverage. Aim for 85 percent and meaningful assertions, not coverage for its own sake.','Create data in @TestSetup methods or a test data factory. Never use SeeAllData=true.']},
+    { id:'t-lwc', t:'Run LWC Jest tests',
+      code:[{ l:'LWC', x:R`npm install --save-dev @salesforce/sfdx-lwc-jest
+npm run test:unit -- --coverage` }]}
+  ]},
+  { t:'Agent testing (Agentforce)', i:'Agents are not fully deterministic, so test what matters: right topic, right actions, acceptable outcome.', items:[
+    { id:'t-spec', t:'Write an agent test spec',
+      d:'Generate a starter spec with the CLI so field names match your version, then edit it.',
+      code:[{ l:'Generate a starter', x:R`sf agent generate test-spec --output-dir specs/agent` },
+        { l:'specs/agent/order-agent-testSpec.yaml', x:R`name: Order Agent Regression
+description: Core order support journeys
+subjectType: AGENT
+subjectName: Order_Support_Agent
+testCases:
+  - utterance: Where is my order ORDER_1?
+    expectedTopic: order_status
+    expectedActions:
+      - GetOrderStatus
+    expectedOutcome: The agent gives the order status and expected delivery date.
+  - utterance: I want to return the shoes from ORDER_2
+    expectedTopic: returns
+    expectedActions: []
+    expectedOutcome: The agent explains the return process and does not promise a refund.
+  - utterance: What is the weather in Paris?
+    expectedTopic: off_topic
+    expectedActions: []
+    expectedOutcome: The agent politely declines and offers help with orders.` }],
+      pts:['Cover each topic, plus off-topic, adversarial (ask for another customer data), ambiguous and multi-turn cases.','Use synthetic data in the sandbox so the expected outcomes are stable.'],
+      notes:[{k:'tip',x:'Ask Claude to draft test cases from docs/agent-design.md, then review them yourself. You know which edge cases the client cares about.'}]},
+    { id:'t-agent-run', t:'Create, run and export agent test results',
+      code:[{ l:'Run', x:R`sf agent test create --spec specs/agent/order-agent-testSpec.yaml --api-name Order_Agent_Regression --target-org client-dev
+sf agent test run --api-name Order_Agent_Regression --target-org client-dev --wait 15 --result-format junit --output-dir reports/agent
+sf agent test run --api-name Order_Agent_Regression --target-org client-dev --wait 15 --result-format json --output-dir reports/agent-json` }],
+      pts:['Check topic and action matches first. They are the most reliable signals.','Treat outcome checks as softer. Re-run a failing case 3 times before you decide it is a real regression.','Re-create the test definition after changing the spec file.'],
+      notes:[{k:'warn',x:'Agent CLI commands and flags are still evolving. Confirm exact options with sf agent test run --help on your version.'}]}
+  ]},
+  { t:'UI testing with Playwright', i:'Test the journeys a user would actually take in Lightning or an Experience site.', items:[
+    { id:'t-pw-init', t:'Set up Playwright with reports and traces',
+      code:[{ l:'Install', x:R`npm init playwright@latest
+npm install --save-dev @playwright/test` },
+        { l:'playwright.config.ts', x:R`import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  timeout: 90_000,
+  retries: process.env.CI ? 1 : 0,
+  globalSetup: './tests/e2e/global-setup.ts',
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: 'reports/playwright-html', open: 'never' }],
+    ['junit', { outputFile: 'reports/playwright-junit.xml' }],
+    ['json', { outputFile: 'reports/playwright.json' }],
+  ],
+  use: {
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'], storageState: '.auth/state.json' } },
+  ],
+});` }]},
+    { id:'t-pw-login', t:'Log in once with the Salesforce CLI session',
+      d:'No passwords in test code, and no MFA prompts. The CLI creates a one-time front door URL for the org you are already authorized to.',
+      code:[{ l:'tests/e2e/global-setup.ts', x:R`import { chromium, FullConfig } from '@playwright/test';
+import { execSync } from 'node:child_process';
+
+export default async function globalSetup(_config: FullConfig) {
+  const org = process.env.SF_ORG ?? 'client-dev';
+  const raw = execSync('sf org open --target-org ' + org + ' --url-only --json').toString();
+  const url = JSON.parse(raw).result.url; // contains a session token: never log it
+
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  await page.goto(url);
+  await page.waitForURL(/lightning\.force\.com/, { timeout: 60_000 });
+  process.env.SF_BASE_URL = new URL(page.url()).origin;
+  await page.context().storageState({ path: '.auth/state.json' });
+  await browser.close();
+}` }],
+      notes:[{k:'warn',x:'.auth/state.json holds a live session. It is in .gitignore. Keep it there, and use sandboxes only.'}]},
+    { id:'t-pw-spec', t:'Write resilient Lightning tests',
+      code:[{ l:'tests/e2e/account.spec.ts', x:R`import { test, expect } from '@playwright/test';
+
+test.use({ baseURL: process.env.SF_BASE_URL });
+
+test('a new account can be created', async ({ page }) => {
+  await page.goto('/lightning/o/Account/new');
+  await page.getByLabel('Account Name').fill('PW Test Account');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText(/Account .* was created/)).toBeVisible();
+});` }],
+      pts:['Prefer getByRole, getByLabel and getByText. Avoid long CSS paths and auto-generated IDs.','Playwright locators pierce open shadow DOM, which most Lightning components use.','Use expect(...).toBeVisible() for waits instead of fixed sleeps.','Create and clean up your own test data. Do not depend on records someone else made.','If relative URLs fail, set baseURL explicitly in the config.']},
+    { id:'t-pw-agent', t:'Test the agent through the chat UI',
+      d:'Use this for a few end-to-end journeys that prove the deployed experience works. Use the CLI agent tests for broad coverage.',
+      code:[{ l:'tests/e2e/agent-chat.spec.ts', x:R`import { test, expect } from '@playwright/test';
+
+test.use({ baseURL: process.env.SF_BASE_URL });
+
+test('agent handles a return question', async ({ page }) => {
+  await page.goto('/s/'); // Experience site with the agent embedded
+  await page.getByRole('button', { name: /chat|agent/i }).click();
+
+  const input = page.getByRole('textbox', { name: /message/i });
+  await input.fill('I want to return my order ORDER_1');
+  await input.press('Enter');
+
+  const reply = page.locator('[class*="conversationEntry"]').last(); // adjust to your widget
+  await expect(reply).toContainText(/return|refund/i, { timeout: 45_000 });
+  await expect(reply).not.toContainText(/something went wrong|error/i);
+});` }],
+      pts:['Assert on intent and key facts, not exact wording.','Allow longer timeouts, then fail with a screenshot and trace.','Keep each journey independent so one failure does not hide others.'],
+      notes:[{k:'tip',x:'The chat widget selectors above are placeholders. Use npx playwright codegen on your site to find stable locators.'}]}
+  ]},
+  { t:'Test results and reporting', i:'Evidence that anyone can open: reports in CI, plus a plain-language summary.', items:[
+    { id:'r-ci', t:'Run everything in CI and keep the reports',
+      code:[{ l:'.github/workflows/test.yml', x:R`name: test
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm install --global @salesforce/cli
+      - name: Authenticate
+        run: |
+          echo "@@{{ secrets.SFDX_AUTH_URL_DEV }}" > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias client-dev
+          rm auth.txt
+      - name: Apex tests
+        run: sf apex run test --target-org client-dev --test-level RunLocalTests --code-coverage --result-format junit --output-dir reports/apex --wait 30
+      - name: Agent tests
+        if: always()
+        run: sf agent test run --api-name Order_Agent_Regression --target-org client-dev --wait 15 --result-format junit --output-dir reports/agent
+      - name: UI tests
+        if: always()
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: reports/` }],
+      notes:[{k:'tip',x:'if: always() makes sure agent and UI tests still run when Apex fails, so you see the full picture in one run.'}]},
+    { id:'r-summary', t:'Generate a plain-language test report with Claude',
+      d:'Download the artifacts into reports/, then ask for a summary a project manager can read.',
+      code:[{ l:'Prompt', x:R`Read everything under reports/ (JUnit XML and JSON for Apex, agent tests and Playwright).
+
+Write docs/test-report.md with:
+1. Headline: total passed, failed, skipped per suite, and Apex coverage percentage.
+2. Failures: for each, the test name, the likely cause in one sentence, and the file or component to look at.
+3. Flaky candidates: anything that failed on retry or looks non-deterministic (especially agent tests).
+4. Coverage gaps: classes under 85 percent coverage.
+5. Recommendation: ready to promote to the next environment, yes or no, and why.
+
+Facts only from the reports. Mark anything you cannot verify. Include the date and commit hash.` }]}
+  ]}
+  ]
+},
+
+/* =========================== 4. EXTRAS ============================ */
+{
+  id:'extras', title:'4. Everything else', short:'First week, habits, troubleshooting, learning',
+  lead:'The things nobody puts in a setup guide, but that decide whether the first month goes well.',
+  meta:'Skim this now. Come back when something goes wrong.',
+  sections:[
+  { t:'Your first week', i:'A realistic plan for a new joiner.', items:[
+    { id:'x-w1', t:'Week one plan',
+      pts:['Day 1: finish track 1 and run the smoke test. Join ' + TEAM.slack + ' and say hello.','Day 2: read the project CLAUDE.md, ADRs and handover doc. Authorize all project orgs.','Day 3: pick a small, real ticket. Use plan mode, then implement with tests.','Day 4: open a pull request. Walk the reviewer through your Claude-assisted workflow.','Day 5: present what you learned and fix one thing in this guide or the CLAUDE.md.'] }
+  ]},
+  { t:'Working well with Claude Code', i:'Habits that separate fast from fast and wrong.', items:[
+    { id:'x-habits', t:'Daily habits',
+      pts:['Plan first for anything non-trivial (Shift+Tab to switch modes). Review the plan, then let it build.','Give it a way to check itself: tests to run, a validate command, a Playwright test.','Read every diff. You are accountable for every line that ships.','Small tasks and small commits. Start a fresh session (/clear) between unrelated tasks.','When context gets long, run /compact. Put anything durable in CLAUDE.md instead.','Reference files directly with @path so Claude reads the right thing.','If Claude gets something wrong twice, fix the cause: add a rule to CLAUDE.md or a skill.'],
+      code:[{ l:'Useful commands', x:R`/clear      start fresh
+/compact    summarise and shrink the context
+/memory     edit CLAUDE.md files
+/agents     manage subagents
+/mcp        see connected servers
+/permissions  review allowed commands` }]},
+    { id:'x-agents', t:'Subagents for focused reviews',
+      d:'A subagent has its own context and instructions. Good for review tasks that should not pollute your main session.',
+      code:[{ l:'.claude/agents/apex-reviewer.md', x:R`---
+name: apex-reviewer
+description: Reviews Apex changes for bulkification, governor limits, security (CRUD/FLS, sharing) and test quality. Use after Apex edits.
+tools: Read, Grep, Glob, Bash
+---
+
+You are a senior Salesforce developer reviewing a diff.
+Check: SOQL or DML in loops, missing bulk handling, hardcoded IDs, with sharing, FLS enforcement,
+test assertions that prove behaviour, and test data created in @TestSetup.
+Report findings by severity with file and line. Do not edit files.` }]}
+  ]},
+  { t:'Security and client trust', i:'Small mistakes here are big problems.', items:[
+    { id:'x-sec', t:'Non-negotiables',
+      pts:['No real customer data, credentials or auth URLs in prompts, commits, screenshots or tickets.','Work in sandboxes. Production is read-only unless a deploy is approved through the pipeline.','Rotate any credential you pasted by accident, then tell your lead.','Check that skills, MCP servers and plugins come from a trusted source before installing.','Run Code Analyzer before every pull request.','Claude conversations are retained and may be reviewed by administrators under company policy.'],
+      code:[{ l:'Code Analyzer before a PR', x:R`sf code-analyzer run --workspace force-app --view table` }]}
+  ]},
+  { t:'Troubleshooting', i:'The ten-minute fixes.', items:[
+    { id:'f-notfound', t:'sf: command not found',
+      d:'Open a new terminal. If it persists, make sure npm global binaries are on your PATH.',
+      code:[{ l:'Find the folder', x:R`npm config get prefix` }]},
+    { id:'f-java', t:'Apex features do not start in VS Code',
+      d:'The Apex language server cannot find Java. Install a JDK 17 or 21, then set salesforcedx-vscode-apex.java.home to the JDK folder and reload the window.' },
+    { id:'f-token', t:'Expired access or refresh token',
+      d:'Sandbox sessions expire. Log in again with the same alias.',
+      code:[{ l:'Re-authorize', x:R`sf org login web --alias client-dev --instance-url https://test.salesforce.com` }]},
+    { id:'f-conflict', t:'Deploy conflicts or unexpected overwrites',
+      d:'Preview before you deploy. Use ignore-conflicts only when you are sure about the direction.',
+      code:[{ l:'Preview', x:R`sf project deploy preview --source-dir force-app --target-org client-dev` }]},
+    { id:'f-flaky', t:'Agent tests pass sometimes and fail sometimes',
+      d:'Expected with generative outputs. Check topic and action first, loosen outcome wording, run the case three times, and only worry about consistent failures. Look at the agent instructions if the same utterance routes to different topics.' },
+    { id:'f-pw', t:'Playwright cannot find an element in Lightning',
+      d:'Run npx playwright codegen against the org to see what Playwright suggests. Wait for the visible state you need instead of a fixed time, and check whether a modal or spinner is covering the element. Use the trace viewer on a failing run.',
+      code:[{ l:'Explore and debug', x:R`npx playwright codegen
+npx playwright show-trace path/to/trace.zip` }]},
+    { id:'f-ctx', t:'Claude forgets decisions or repeats mistakes',
+      d:'Long sessions lose detail. Capture the decision in CLAUDE.md or an ADR, then /clear and continue.' }
+  ]},
+  { t:'Delivery and client habits', i:'Technical skill gets you in the room. These keep you there.', items:[
+    { id:'x-status', t:'Weekly status update template',
+      code:[{ l:'Status', x:R`Week of [date]
+Done: what shipped or was decided, in business terms.
+Next: top three things for next week.
+Risks and blockers: what could slip, what you need, from whom, by when.
+Decisions needed: the question, the options, your recommendation.
+Metrics: the number we are trying to move, and where it stands.` }]},
+    { id:'x-demo', t:'Demo and expectation tips',
+      pts:['Demo on realistic synthetic data, from a sandbox you have rehearsed in.','Show failures and guardrails for agents, not just the happy path.','Say what is out of scope early and in writing.','Estimate in ranges and name your assumptions. Re-estimate when an assumption breaks.'] },
+    { id:'x-release', t:'Know the Salesforce release rhythm',
+      d:'Salesforce ships three major releases a year (Spring, Summer, Winter). Sandboxes get previews first, so check release notes for features and retirements that affect your project.' }
+  ]},
+  { t:'Learning and reference', i:'Where to go deeper.', items:[
+    { id:'x-learn', t:'Learning path',
+      pts:['Trailhead: Apex, LWC, Flow, Agentforce and Data Cloud modules.','Certifications worth targeting: Platform Developer I and II, JavaScript Developer I, Agentforce Specialist.','Docs: developer.salesforce.com, the Claude Code docs, playwright.dev.','Release notes: read the sections for the clouds on your current project.'] },
+    { id:'x-gloss', t:'Glossary',
+      pts:['FDE: forward deployed engineer, embedded with the client to deliver working outcomes.','Sandbox: copy of production metadata for dev and test. Scratch org: short-lived, source-driven org.','DX: Salesforce developer experience, the source-based workflow with the sf CLI.','Topic and action: Agentforce building blocks. A topic is a job the agent can do, actions are what it can run.','Skill: a folder of instructions Claude loads when relevant.','CLAUDE.md: the file Claude reads at the start of every session.','ADR: architecture decision record.','MCP: Model Context Protocol, a standard for connecting Claude to tools like orgs and databases.'] },
+    { id:'x-links', t:'Team links and owners',
+      d:'Edit the TEAM block at the top of this HTML file to keep these current.',
+      pts:['Help channel: ' + TEAM.slack,'Skills repo: ' + TEAM.skillsRepo,'Project template: ' + TEAM.templateRepo,'Guide owner: ' + TEAM.handoverOwner,'Security contact: ' + TEAM.securityContact] }
+  ]}
+  ]
+}];
+
+/* Integration picker data */
+const PICKS = [
+  { q:'Show external data inside Salesforce in real time', h:'Callout with a Named Credential', a:'Call the API from Apex or an External Service, authenticated by a Named Credential. Cache what you can. For data you never want to copy, consider External Objects or Data Cloud zero-copy.', w:'Watch callout limits and timeouts. Never callout from a trigger synchronously.' },
+  { q:'Tell another system when Salesforce data changes', h:'Change Data Capture or Platform Events', a:'Use CDC for record changes with minimal build effort. Use custom Platform Events when you need a business-level message with a defined payload.', w:'Plan for replay, event volume allocations and consumer monitoring.' },
+  { q:'Receive updates from another system', h:'Platform Events, Salesforce APIs or Apex REST', a:'Prefer the standard REST or Composite APIs through a connected app or external client app. Publish Platform Events when the sender should not wait. Use Apex REST only for custom logic.', w:'Authenticate with a dedicated integration user and least-privilege permission sets.' },
+  { q:'Load or sync large volumes', h:'Bulk API 2.0 or middleware', a:'Use Bulk API 2.0 for large batch loads and extracts. Use an integration platform if you need transformation, retries and monitoring.', w:'Agree on a schedule and an external ID for upserts.' },
+  { q:'Long-running or heavy processing', h:'Queueable or Batch Apex, with an event on completion', a:'Move the work out of the user transaction. Queueable for chained jobs, Batch Apex for large data sets. Publish a Platform Event when done so the UI or agent can react.', w:'Design for idempotency. Jobs can retry.' },
+  { q:'Let an agent act on a back-end system', h:'Invocable Apex or Flow action with a Named Credential', a:'Expose a narrow action with typed inputs and outputs. Keep the logic in Apex or Flow, not in the prompt. Return structured errors the agent can explain.', w:'Enforce record access in the action, not just in agent instructions.' }
+];
+
+/* ------------------------------------------------------------------
+   APP
+------------------------------------------------------------------- */
+const state = { track:'setup', os:'mac', q:'' };
+const open = new Set();
+const KEY = 'fde-field-guide-progress';
+let done = new Set();
+try { done = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) { done = new Set(); }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify([...done])); } catch (e) { /* storage blocked: progress lasts for this session */ } }
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+let copies = [];
+
+function itemsOf(tr){ return tr.sections.flatMap(s => s.items); }
+function counts(tr){ const it = itemsOf(tr); return { n: it.filter(i => done.has(i.id)).length, total: it.length }; }
+
+function codeHtml(c){
+  const mac = c.x === undefined;
+  let txt = mac ? (state.os === 'mac' ? c.mac : c.win) : c.x;
+  txt = txt.replace(/@@\{/g, '${');
+  copies.push(txt);
+  const tag = mac ? ' (' + (state.os === 'mac' ? 'macOS / Linux' : 'Windows') + ')' : '';
+  return '<div class="code"><div class="ch"><span>' + esc(c.l + tag) + '</span><button type="button" class="copy" data-copy="' + (copies.length - 1) + '">Copy</button></div><pre><code>' + esc(txt) + '</code></pre></div>';
+}
+
+function pickerHtml(){
+  return '<div class="chips" role="group" aria-label="What do you need to do?">' +
+    PICKS.map((p, i) => '<button type="button" class="chip" aria-pressed="false" data-pick="' + i + '">' + esc(p.q) + '</button>').join('') +
+    '</div><div class="answer" id="answer">Choose a need above to see a suggested pattern.</div>';
+}
+
+function itemHtml(it){
+  const isDone = done.has(it.id);
+  let b = '';
+  if (it.d) b += '<p>' + esc(it.d) + '</p>';
+  if (it.picker) b += pickerHtml();
+  (it.notes || []).forEach(n => { b += '<div class="note ' + (n.k === 'warn' ? 'warn' : '') + '"><b>' + (n.k === 'warn' ? 'Careful: ' : 'Tip: ') + '</b>' + esc(n.x) + '</div>'; });
+  if (it.pts) b += '<ul class="pts">' + it.pts.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul>';
+  (it.code || []).forEach(c => { b += codeHtml(c); });
+  return '<details class="item' + (isDone ? ' done' : '') + '" id="' + it.id + '" data-id="' + it.id + '"' + (open.has(it.id) ? ' open' : '') + '>' +
+    '<summary><input type="checkbox" data-done="' + it.id + '" aria-label="Mark done: ' + esc(it.t) + '"' + (isDone ? ' checked' : '') + '><span class="t">' + esc(it.t) + '</span></summary>' +
+    '<div class="body">' + b + '</div></details>';
+}
+
+function renderTabs(){
+  $('#tabs').innerHTML = TRACKS.map(tr => {
+    const c = counts(tr), pct = Math.round(100 * c.n / c.total);
+    return '<button type="button" role="tab" class="tab" data-track="' + tr.id + '" aria-selected="' + (state.track === tr.id && !state.q) + '">' +
+      '<strong>' + esc(tr.title) + '</strong><span>' + esc(tr.short) + '</span>' +
+      '<span>' + c.n + ' of ' + c.total + ' done</span><div class="bar"><b style="width:' + pct + '%"></b></div></button>';
+  }).join('');
+  const segs = document.querySelectorAll('#trail i b');
+  let all = 0, total = 0;
+  TRACKS.forEach((tr, i) => { const c = counts(tr); all += c.n; total += c.total; segs[i].style.width = (100 * c.n / c.total) + '%'; });
+  $('#overall').textContent = all === total ? 'Everything done. Welcome to the team.' : all + ' of ' + total + ' steps done. From a new laptop to a client handover.';
+}
+
+function renderMain(){
+  copies = [];
+  const q = state.q.trim().toLowerCase();
+  let h = '';
+  if (q){
+    const hits = [];
+    TRACKS.forEach(tr => tr.sections.forEach(s => s.items.forEach(it => {
+      const hay = [it.t, it.d || '', (it.pts || []).join(' '), (it.code || []).map(c => (c.x || '') + (c.mac || '') + (c.win || '')).join(' ')].join(' ').toLowerCase();
+      if (hay.includes(q)) hits.push({ it, tr });
+    })));
+    h += '<h2>Search</h2><p class="results-head">' + hits.length + ' result' + (hits.length === 1 ? '' : 's') + ' for "' + esc(state.q) + '". <button type="button" class="reset" id="clear">Clear search</button></p>';
+    if (!hits.length) h += '<div class="empty">Nothing matched. Try a shorter word, like "agent", "deploy" or "token".</div>';
+    else h += '<div class="items">' + hits.map(x => itemHtml(x.it).replace('<span class="t">' + esc(x.it.t) + '</span>', '<span class="t">' + esc(x.it.t) + '<span class="tag">' + esc(x.tr.title.replace(/^\d+\.\s*/, '')) + '</span></span>')).join('') + '</div>';
+  } else {
+    const tr = TRACKS.find(t => t.id === state.track);
+    h += '<h2>' + esc(tr.title.replace(/^\d+\.\s*/, '')) + '</h2><p class="lead">' + esc(tr.lead) + '</p><p class="meta">' + esc(tr.meta) + '</p>';
+    tr.sections.forEach(s => {
+      h += '<h3>' + esc(s.t) + '</h3><p class="sec-intro">' + esc(s.i) + '</p><div class="items">' + s.items.map(itemHtml).join('') + '</div>';
+    });
+  }
+  $('#main').innerHTML = h;
+}
+
+function render(){ renderTabs(); renderMain(); }
+
+/* events */
+$('#tabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-track]'); if (!b) return;
+  state.track = b.dataset.track; state.q = ''; $('#q').value = '';
+  render(); window.scrollTo({ top: 0 });
+});
+document.querySelectorAll('[data-os]').forEach(b => b.addEventListener('click', () => {
+  state.os = b.dataset.os;
+  document.querySelectorAll('[data-os]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  renderMain();
+}));
+$('#q').addEventListener('input', e => { state.q = e.target.value; render(); });
+
+$('#main').addEventListener('click', e => {
+  const cb = e.target.closest('[data-done]');
+  if (cb){ e.stopPropagation(); return; }
+  const cp = e.target.closest('[data-copy]');
+  if (cp){
+    const txt = copies[+cp.dataset.copy];
+    const ok = () => { cp.textContent = 'Copied'; setTimeout(() => cp.textContent = 'Copy', 1500); };
+    const fallback = () => { const t = document.createElement('textarea'); t.value = txt; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); ok(); } catch (x) { cp.textContent = 'Press Ctrl+C'; } t.remove(); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fallback); else fallback();
+    return;
+  }
+  const pk = e.target.closest('[data-pick]');
+  if (pk){
+    const p = PICKS[+pk.dataset.pick];
+    pk.parentElement.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c === pk));
+    pk.closest('.body').querySelector('.answer').innerHTML = '<h4>' + esc(p.h) + '</h4><p>' + esc(p.a) + '</p><p><b>Watch for:</b> ' + esc(p.w) + '</p>';
+    return;
+  }
+  if (e.target.id === 'clear'){ state.q = ''; $('#q').value = ''; render(); }
+});
+$('#main').addEventListener('change', e => {
+  const cb = e.target.closest('[data-done]'); if (!cb) return;
+  const id = cb.dataset.done;
+  cb.checked ? done.add(id) : done.delete(id);
+  cb.closest('.item').classList.toggle('done', cb.checked);
+  save(); renderTabs();
+});
+$('#main').addEventListener('toggle', e => {
+  const d = e.target; if (!d.dataset || !d.dataset.id) return;
+  d.open ? open.add(d.dataset.id) : open.delete(d.dataset.id);
+}, true);
+
+render();
+</script>
+</body>
+</html>
