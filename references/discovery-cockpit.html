@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentforce Knowledge Base — Discovery Cockpit</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f5f7;
+    --panel: #ffffff;
+    --ink: #1a2233;
+    --muted: #5c6578;
+    --line: #e2e6ec;
+    --accent: #0b5cad;
+    --accent-soft: #e8f1fb;
+    --sf: #0d9488;
+    --warn: #b45309;
+    --warn-soft: #fef3e2;
+    --ok: #047857;
+    --ok-soft: #e7f5ef;
+    --risk: #b91c1c;
+    --risk-soft: #fdeaea;
+    --chip: #eef1f6;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(20,30,50,.07), 0 1px 2px rgba(20,30,50,.04);
+    font-synthesis: none;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+
+  /* ---------- Top bar ---------- */
+  header.top {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+  .top-inner {
+    max-width: 1180px; margin: 0 auto; padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .brand { display: flex; flex-direction: column; min-width: 240px; }
+  .brand h1 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -.2px; }
+  .brand .sub { font-size: 12px; color: var(--muted); }
+  .top-fields { display: flex; gap: 10px; flex: 1; flex-wrap: wrap; }
+  .top-fields input {
+    border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px;
+    font-size: 13px; color: var(--ink); background: #fbfcfe; min-width: 120px;
+  }
+  .timer-wrap {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--accent-soft); border: 1px solid #cfe2f6;
+    padding: 6px 10px; border-radius: 8px;
+  }
+  .timer-wrap .t { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 15px; color: var(--accent); min-width: 58px; text-align: center; }
+  .btn {
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+    border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;
+    font-weight: 600; transition: background .12s, border-color .12s;
+  }
+  .btn:hover { background: #f0f3f8; }
+  .btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.pri:hover { background: #09498a; }
+  .btn.sm { padding: 4px 9px; font-size: 12px; }
+  .btn.ghost { background: transparent; }
+
+  /* ---------- Layout ---------- */
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 210px 1fr; gap: 22px; align-items: start; }
+  nav.toc {
+    position: sticky; top: 74px; align-self: start;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 10px; box-shadow: var(--shadow); font-size: 13px;
+  }
+  nav.toc a { display: block; padding: 7px 9px; border-radius: 7px; color: var(--ink); text-decoration: none; margin-bottom: 2px; }
+  nav.toc a:hover { background: var(--chip); }
+  nav.toc a .n { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 6px; }
+  nav.toc .divider { height: 1px; background: var(--line); margin: 7px 2px; }
+  nav.toc a.special { color: var(--accent); font-weight: 600; }
+
+  main { min-width: 0; }
+
+  /* ---------- Sections ---------- */
+  section.card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-bottom: 18px; overflow: hidden;
+  }
+  .sec-head {
+    display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+    border-bottom: 1px solid var(--line); cursor: pointer; background: #fff;
+  }
+  .sec-head .badge {
+    width: 26px; height: 26px; border-radius: 7px; background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex: none;
+  }
+  .sec-head h2 { margin: 0; font-size: 15.5px; font-weight: 700; flex: 1; letter-spacing: -.2px; }
+  .sec-head .goal { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .sec-head .tbudget { font-size: 11.5px; color: var(--muted); background: var(--chip); padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+  .sec-head .chev { color: var(--muted); transition: transform .15s; }
+  section.collapsed .chev { transform: rotate(-90deg); }
+  section.collapsed .sec-body { display: none; }
+  .sec-body { padding: 16px 18px; }
+
+  .goalbar {
+    background: var(--accent-soft); border-left: 3px solid var(--accent);
+    padding: 8px 12px; border-radius: 6px; font-size: 13px; color: #0a3e73; margin-bottom: 14px;
+  }
+
+  .qgroup { margin-bottom: 14px; }
+  .qgroup > .label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 6px; }
+  ul.q { list-style: none; margin: 0 0 10px; padding: 0; }
+  ul.q li {
+    position: relative; padding: 5px 8px 5px 26px; font-size: 13.5px; border-radius: 6px; cursor: pointer; color: #26324a;
+  }
+  ul.q li:hover { background: #f6f8fb; }
+  ul.q li::before {
+    content: ""; position: absolute; left: 8px; top: 10px; width: 11px; height: 11px;
+    border: 1.5px solid #b7c0d0; border-radius: 3px; background: #fff;
+  }
+  ul.q li.asked { color: var(--muted); text-decoration: line-through; }
+  ul.q li.asked::before { background: var(--accent); border-color: var(--accent); }
+  ul.q li.asked::after {
+    content: "✓"; position: absolute; left: 10.5px; top: 4px; color: #fff; font-size: 10px; font-weight: 700;
+  }
+  .tech-tag {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .3px;
+    padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; text-transform: uppercase;
+  }
+  .tech-tag.data360 { background: #e6f7f4; color: #0b7a6e; }
+  .tech-tag.entra { background: #eae7fb; color: #5b45c9; }
+  .tech-tag.gotcha { background: var(--warn-soft); color: var(--warn); }
+
+  textarea.notes {
+    width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 10px 11px;
+    font-family: inherit; font-size: 13.5px; line-height: 1.5; color: var(--ink);
+    background: #fcfdfe; resize: vertical; min-height: 68px;
+  }
+  textarea.notes:focus, .top-fields input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .notes-label { font-size: 12px; font-weight: 700; color: var(--muted); margin: 10px 0 5px; text-transform: uppercase; letter-spacing: .4px; }
+
+  .inline-decision {
+    margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    background: var(--ok-soft); border: 1px dashed #b6ddca; border-radius: 8px; padding: 8px 10px;
+  }
+  .inline-decision .lbl { font-size: 12px; font-weight: 700; color: var(--ok); }
+
+  /* ---------- Decision register ---------- */
+  .reg-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .reg-head .btn { margin-left: auto; }
+  table.reg { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  table.reg th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); padding: 6px 8px; border-bottom: 2px solid var(--line); }
+  table.reg td { padding: 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.reg td input, table.reg td textarea, table.reg td select {
+    width: 100%; border: 1px solid transparent; border-radius: 6px; padding: 5px 6px; font-family: inherit; font-size: 13px; background: #fbfcfe; color: var(--ink); resize: vertical;
+  }
+  table.reg td input:focus, table.reg td textarea:focus, table.reg td select:focus { border-color: var(--accent); background: #fff; outline: none; }
+  table.reg td textarea { min-height: 34px; line-height: 1.4; }
+  .status-sel { font-weight: 600; }
+  .st-decided { color: var(--ok); }
+  .st-open { color: var(--warn); }
+  .st-parked { color: var(--muted); }
+  .st-risk { color: var(--risk); }
+  .row-del { border: none; background: transparent; color: #c0c7d4; cursor: pointer; font-size: 16px; line-height: 1; padding: 4px; }
+  .row-del:hover { color: var(--risk); }
+  .reg-empty { color: var(--muted); font-size: 13px; font-style: italic; padding: 14px 4px; }
+
+  .tag-cat {
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; background: var(--chip); color: var(--muted); white-space: nowrap;
+  }
+
+  .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .countpill { font-size: 12px; background: var(--chip); color: var(--muted); padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .countpill b { color: var(--ink); }
+
+  /* ---------- Prep checklist ---------- */
+  .prep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
+  .prep-item { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; padding: 4px 0; }
+  .prep-item input[type=checkbox] { margin-top: 3px; width: 15px; height: 15px; accent-color: var(--accent); flex: none; }
+  .prep-item .ph { font-size: 11.5px; color: var(--muted); }
+
+  footer.foot { max-width: 1180px; margin: 0 auto; padding: 8px 20px 40px; color: var(--muted); font-size: 12px; }
+  .savenote { font-size: 11.5px; color: var(--muted); }
+  .flex { display: flex; align-items: center; gap: 8px; }
+  .spacer { flex: 1; }
+
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; }
+    nav.toc { position: static; }
+    .prep-grid { grid-template-columns: 1fr; }
+  }
+
+  /* modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(15,22,38,.5); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-bg.show { display: flex; }
+  .modal { background: #fff; border-radius: 12px; max-width: 760px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  .modal h3 { margin: 0; padding: 16px 20px; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .modal .mbody { padding: 16px 20px; overflow: auto; }
+  .modal textarea { width: 100%; min-height: 360px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fbfcfe; }
+  .modal .mfoot { padding: 12px 20px; border-top: 1px solid var(--line); display: flex; gap: 8px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <h1>Discovery Cockpit — Agentforce Knowledge Base</h1>
+      <span class="sub">OneNote → Data 360 → Agentforce · 2-hour kickoff</span>
+    </div>
+    <div class="top-fields">
+      <input id="f-customer" placeholder="Customer / account" data-k="customer">
+      <input id="f-date" type="date" data-k="date">
+      <input id="f-attendees" placeholder="Attendees" data-k="attendees" style="flex:1;min-width:160px">
+    </div>
+    <div class="timer-wrap">
+      <span class="t" id="timer">00:00</span>
+      <button class="btn sm" id="t-start">Start</button>
+      <button class="btn sm ghost" id="t-reset">Reset</button>
+    </div>
+    <button class="btn pri" id="btn-export">Export decisions</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" id="toc"></nav>
+  <main id="main">
+    <!-- sections injected -->
+  </main>
+</div>
+
+<footer class="foot">
+  <div class="flex">
+    <span class="savenote" id="savenote">Autosaves to this browser.</span>
+    <span class="spacer"></span>
+    <button class="btn sm ghost" id="btn-clear">Clear all notes</button>
+  </div>
+</footer>
+
+<!-- Export modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3>Export decision register</h3>
+    <div class="mbody">
+      <div class="flex" style="margin-bottom:10px">
+        <button class="btn sm pri" data-fmt="md">Markdown</button>
+        <button class="btn sm" data-fmt="json">JSON</button>
+        <button class="btn sm" data-fmt="full">Full session brief (MD)</button>
+        <span class="spacer"></span>
+        <button class="btn sm" id="copy-exp">Copy</button>
+        <button class="btn sm" id="dl-exp">Download</button>
+        <button class="btn sm pri" id="pdf-exp" title="Opens a print view — choose “Save as PDF”">Save as PDF</button>
+      </div>
+      <textarea id="exp-text" spellcheck="false"></textarea>
+    </div>
+    <div class="mfoot">
+      <button class="btn" id="modal-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA: agenda sections + FDE-level prompting questions
+   ============================================================ */
+const SECTIONS = [
+  {
+    id: "obj",
+    title: "Objectives & Use Case",  
+    groups: [
+      { label: "What & why", qs: [        
+        "What questions must the agent answer on day one? Ask for 5–10 real example prompts.",
+        "What is the agent expected to do with a retrieved answer — just surface it, summarize, or take an action?"
+      ]},
+      { label: "Users & volume", qs: [
+        "Any multilingual requirement for content or answers?"
+      ]},
+      { label: "Quality bar & scope", qs: [
+        "Which OneNote content is in-scope vs explicitly out-of-scope for grounding?",
+        "Is there existing Salesforce Knowledge today, and how does this relate to / replace it?"
+      ]}
+    ]
+  },
+  {
+    id: "content",
+    title: "OneNote Walkthrough",
+    groups: [
+      { label: "Structure & size", qs: [
+        "How many notebooks, and roughly how many sections / pages each? (Graph API paginates — size drives sync time.)",
+        "How long is a typical page — a paragraph? Long pages need chunking strategy.",
+        "Are there section groups / nested sections? These affect how hierarchy is flattened on ingest.",
+        "Are OneNote documents are stored in a <b>Sharepoint public site (many)</b>? I'm assuming only 1 sharepoint site is in scope."
+      ]},
+      { label: "Content types — retrieval gotchas", qs: [
+        { t: "Images: how much knowledge lives ONLY in screenshots/diagrams? OneNote pages are HTML; image text is NOT extracted unless OCR'd.", tag: "gotcha" },
+        { t: "Tables: are answers held in tables? Table-to-text flattening quality directly affects grounding.", tag: "gotcha" },
+        { t: "Attachments (PDF, docx, xlsx embedded in pages): are these load-bearing? Connector may not pull embedded file bodies.", tag: "gotcha" },
+        { t: "Ink / handwriting / drawings — present? Effectively invisible to text retrieval.", tag: "gotcha" },
+        "Any links to external SharePoint/Teams content that the answer actually depends on?"
+      ]},
+      { label: "Quality & duplication", qs: [
+        "How much duplicated or near-duplicate content exists? Dupes poison retrieval (conflicting / repeaAlternatives & tradeoffsed chunks).",        
+        "Is there a consistent title / heading convention we can lean on for metadata and chunk boundaries?"
+      ]}
+    ]
+  },
+  {
+    id: "conn",
+    title: "Connection Approach",
+    groups: [
+      { label: "Data 360 OneNote connector", tag: "data360", qs: [       
+        { t: "Incremental vs full refresh support? What's the delta mechanism (Graph deltaToken / lastModified)? How often the OneNote knowledge documents are modified or newly created?", tag: "data360" }
+      ]},
+      { label: "Alternatives & tradeoffs", qs: [
+        "Salesforce Knowledge path: would converting OneNote → Knowledge Articles give better governance, versioning and reporting? At what authoring cost?",
+        "One-off / batch load (e.g. export → file → Ingestion API / UnstructuredDataLake): acceptable if content is fairly static?",
+        "Hybrid: author of record stays in OneNote, periodic sync to Data 360 — who owns the transform?"
+      ]}
+    ]
+  },
+  {
+    id: "access",
+    title: "Access & Security (with Infra IT Team)",
+    groups: [
+      { label: "Entra app registration", tag: "entra", qs: [
+        { t: "Who is the Azure/Microsoft Entra admin that can register an app AND grant admin consent? Confirm available on-call today.", tag: "entra" },
+        { t: "Graph permissions needed — Notes.Read.All (app) for all notebooks, or Notes.Read (delegated)? Confirm least-privilege scope.", tag: "entra" },
+        { t: "Client secret vs certificate credential — what does their security policy allow, and what's the rotation cadence?", tag: "entra" }
+      ]},
+      { label: "Authenticating account & tenancy", tag: "entra", qs: [
+        { t: "Which Microsoft account/service principal authenticates the connection? Does it have access to ALL target notebooks (personal vs shared/SharePoint-hosted)?", tag: "entra" },
+        "Are notebooks in OneDrive for Business (user-owned) or SharePoint document libraries (site-owned)? Changes the Graph path and permissions."
+      ]}
+    ]
+  },
+  {
+    id: "refresh",
+    title: "Refresh & Lifecycle",
+    groups: [
+      { label: "Cadence & mechanism", qs: [
+        "How often does source content actually change — daily edits, weekly, monthly, quarterly?",
+        { t: "Required freshness SLA in the agent — can an answer be a day stale, or must edits propagate in minutes?", tag: "gotcha" },
+        { t: "Match cadence to connector capability: scheduled full refresh vs incremental/delta. What's the min schedule interval in Data 360?", tag: "data360" }
+      ]},
+      { label: "Ownership & governance", qs: [
+        "Who owns the content and signs off on what's published to the agent? (Single owner vs distributed authors.)",
+        "Is there a review/approval step before content goes live, or is OneNote the live source with no gate?"
+      ]}
+    ]
+  }
+];
+
+/* ============================================================
+   STATE + PERSISTENCE
+   ============================================================ */
+const LS_KEY = "af-discovery-cockpit-v1";
+let state = loadState();
+
+function loadState(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+let saveTimer;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      const n = document.getElementById("savenote");
+      n.textContent = "Saved " + new Date().toLocaleTimeString();
+    } catch(e){
+      document.getElementById("savenote").textContent = "⚠ Could not save (storage blocked)";
+    }
+  }, 300);
+}
+function g(k, d){ return state[k] !== undefined ? state[k] : d; }
+function set(k,v){ state[k]=v; save(); }
+
+/* decisions array */
+if(!Array.isArray(state.decisions)) state.decisions = [];
+if(!state.asked) state.asked = {};
+if(!state.notes) state.notes = {};
+if(!state.fields) state.fields = {};
+
+/* ============================================================
+   SEED — discovery call findings (loads once)
+   Pre-fills notes + decision register from the discovery call.
+   Guarded by state.seededV1 so it never overwrites your live edits.
+   ============================================================ */
+(function seedDiscovery(){
+  if(state.seededV1) return;
+
+  const seedNotes = {
+    obj: "KNOWLEDGE BASE = Knowledge Management process for the contact centre.\n• Users / consumers: call-centre agents + team leaders, ~35 users total.\n• All knowledge is open to those users — NO restricted / role-based notes today.\n• Access habits today: agents read via the OneNote desktop app or via Teams (OneNote surfaced through a SharePoint site, also reachable in browser).\n\nOPEN: confirm exact agent-facing use cases / example prompts the agent must answer on day one, channel (Service Console / Slack / web), and the answer-quality bar.",
+
+    content: "STRUCTURE: One knowledge base, categorised & grouped into multiple SECTIONS, each with multiple PAGES (pages = articles).\nSIZE: ~150 OneNote pages (articles) total.\n\nLANGUAGES: ~99% English only. ~1% Arabic — limited to email templates.\n\nCONTENT TYPES:\n• Most pages = pure text, or text + inline images.\n• ONE section — \"DDA Document Sample\" — is screenshot/image-ONLY notes.\n• ~18 of the ~150 pages are pure-screenshot-only pages.\n• NO file / form attachments anywhere (no embedded PDF/docx/xlsx).\n\nQUALITY / LIFECYCLE SIGNAL: outdated knowledge is marked \"Revoked\" in the page TITLE. That title convention is our authoritative/stale signal and a filter we can use on ingest.\n\n⚠ RETRIEVAL WATCH-OUT: the ~18 screenshot-only pages + the \"DDA Document Sample\" section hold knowledge ONLY in images — invisible to text retrieval unless OCR'd. Needs a decision (OCR, re-author as text, or exclude).",
+
+    conn: "Source of record stays in OneNote (SharePoint-hosted). Need to pick ingestion path (Data 360 OneNote connector vs convert to Salesforce Knowledge vs one-off load).\nContent is updated on-request + ~quarterly cleanup, so it is NOT static — favours a connected/refreshable path over a one-off load.\nScreenshot-only content is the main design driver for this section (OCR / handling).",
+
+    access: "All OneNote knowledge lives in a single SharePoint SITE (site-owned document library), surfaced to Teams / browser / desktop app — NOT personal OneDrive notebooks.\n• No restricted notes — all ~35 users see everything, so no per-note access mapping needed for ingest.\n\nOPEN / TO CONFIRM: tenant ID; the Entra admin who can register the app + grant consent; the service principal/account that authenticates and whether it can read the whole site; least-privilege Graph scope (app-only Notes.Read.All vs Sites.* for the SharePoint-hosted notebooks); any conditional-access / firewall constraints.",
+
+    refresh: "CADENCE: updated on-request (ad hoc) whenever a note changes, plus a ~quarterly review where outdated knowledge is marked \"Revoked\" in the title.\nFRESHNESS: as soon as Fatima updates a note it is live to agents — no gate today. Need to agree the acceptable staleness in the agent and match it to the connector refresh schedule.\n\nGOVERNANCE: Fatima is the SOLE knowledge curator. NO authoring / review / approval workflow exists today — single-owner model.\n⚠ RISK: single point of ownership + no review gate means whatever we ingest inherits whatever is published. Decide whether \"Revoked\"-titled pages are filtered out on ingest, and who the backup owner is."
+  };
+
+  Object.keys(seedNotes).forEach(k=>{
+    if(!state.notes[k] || !state.notes[k].trim()) state.notes[k] = seedNotes[k];
+  });
+
+
+  // Seed the decision / requirements register (only if empty)
+  if(state.decisions.length === 0){
+    state.decisions = [
+      { topic:"Content inventory", decision:"~150 OneNote pages across multiple sections; one KB for the contact centre", rationale:"Confirmed on discovery call. Pages = articles. Grouped/categorised by section.", owner:"Fatima", status:"decided" },
+      { topic:"Content types", decision:"Mostly text / text+inline images; NO file or form attachments", rationale:"Simplifies ingest — no embedded-attachment extraction needed.", owner:"Fatima", status:"decided" },
+      { topic:"Image-only content", decision:"~18 pages are screenshot-only; \"DDA Document Sample\" section is image-only", rationale:"Knowledge trapped in images is invisible to text retrieval. Need OCR, re-authoring, or exclusion. Key design item.", owner:"", status:"open" },
+      { topic:"Languages", decision:"~99% English; ~1% Arabic limited to email templates", rationale:"Minimal multilingual scope. Confirm agent must handle the Arabic email-template content or treat as out of scope.", owner:"", status:"open" },
+      { topic:"Lifecycle signal", decision:"Outdated pages flagged \"Revoked\" in the page title", rationale:"Gives us a reliable filter — decide whether Revoked pages are excluded on ingest.", owner:"", status:"open" },
+      { topic:"Source location", decision:"Single SharePoint site (site-owned), not personal OneDrive", rationale:"One site in scope. Determines the Graph path and permissions model.", owner:"", status:"decided" },
+      { topic:"Access model", decision:"All ~35 users (agents + team leaders) see all notes; no restricted content", rationale:"No per-note access mapping needed for ingest.", owner:"", status:"decided" },
+      { topic:"Users / consumers", decision:"~35 users: call-centre agents + team leaders", rationale:"Sizing for retrieval volume & channel. Confirm delivery channel for the agent.", owner:"", status:"decided" },
+      { topic:"Update cadence", decision:"On-request updates + ~quarterly cleanup; live immediately, no gate", rationale:"Not static — favours a refreshable connected path over one-off load. Match connector schedule to this.", owner:"Fatima", status:"decided" },
+      { topic:"Governance / ownership", decision:"Fatima is sole curator; NO authoring/review/approval process today", rationale:"Single point of ownership and no review gate. Flagged as a risk — identify a backup owner and decide on a pre-publish gate.", owner:"Fatima", status:"risk" },
+      { topic:"Connection approach", decision:"Ingestion path TBD (Data 360 OneNote connector vs Salesforce Knowledge vs one-off)", rationale:"Content is updated regularly, so lean toward a connected/refreshable path. Decide next.", owner:"", status:"open" },
+      { topic:"Entra / auth", decision:"Entra admin, authenticating account, tenant ID, Graph scope still to confirm", rationale:"Needed before we can connect. Single SharePoint-hosted site means Sites/Notes read scope.", owner:"", status:"open" }
+    ];
+  }
+
+  state.fields = state.fields || {};
+  state.seededV1 = true;
+  save();
+})();
+
+/* ============================================================
+   RENDER SECTIONS
+   ============================================================ */
+const main = document.getElementById("main");
+const toc = document.getElementById("toc");
+
+// Prep card first
+const prepCard = document.createElement("section");
+prepCard.className = "card";
+prepCard.id = "sec-prep";
+prepCard.innerHTML = `
+  </div>`;
+main.appendChild(prepCard);
+
+SECTIONS.forEach((sec, i)=>{
+  const el = document.createElement("section");
+  el.className = "card";
+  el.id = "sec-"+sec.id;
+  let gi = 0;
+  const groupsHTML = sec.groups.map(grp=>{
+    const qsHTML = grp.qs.map(q=>{
+      const txt = typeof q === "string" ? q : q.t;
+      const tag = typeof q === "object" ? q.tag : (grp.tag || null);
+      const qid = sec.id + "-" + (gi++);
+      const tagHTML = tag ? `<span class="tech-tag ${tag}">${tag==="data360"?"Data 360":tag==="entra"?"Entra/Graph":"watch-out"}</span>` : "";
+      return `<li data-q="${qid}">${txt}${tagHTML}</li>`;
+    }).join("");
+    return `<div class="qgroup">
+      <div class="label">${grp.label}</div>
+      <ul class="q">${qsHTML}</ul>
+    </div>`;
+  }).join("");
+
+  el.innerHTML = `
+    <div class="sec-head" data-toggle>
+      <div class="badge">${i+1}</div>
+      <h2>${sec.title}</h2>
+      <span class="chev">▾</span>
+    </div>
+    <div class="sec-body">      
+      ${groupsHTML}
+      <div class="notes-label">Live notes</div>
+      <textarea class="notes" data-notes="${sec.id}" placeholder="Capture discussion, answers, context…"></textarea>
+      <div class="inline-decision">
+        <span class="lbl">+ Log a decision from this topic</span>
+        <button class="btn sm pri" data-adddec="${sec.id}" data-dectitle="${sec.title}">Add decision</button>
+      </div>
+    </div>`;
+  main.appendChild(el);
+});
+
+/* Decision register card (always last before export) */
+const regCard = document.createElement("section");
+regCard.className = "card";
+regCard.id = "sec-register";
+regCard.innerHTML = `
+  <div class="sec-head" data-toggle>
+    <div class="badge" style="background:var(--ok-soft);color:var(--ok)">★</div>
+    <h2>Decision &amp; Requirements Register</h2>
+    <span class="chev">▾</span>
+  </div>
+  <div class="sec-body">
+    <div class="reg-head">
+      <div class="pill-row" id="reg-counts"></div>
+      <button class="btn sm pri" id="add-row">+ Add row</button>
+    </div>
+    <table class="reg">
+      <thead>
+        <tr>
+          <th style="width:12%">Topic</th>
+          <th style="width:28%">Decision / Requirement</th>
+          <th style="width:28%">Rationale / Detail</th>
+          <th style="width:14%">Owner</th>
+          <th style="width:13%">Status</th>
+          <th style="width:5%"></th>
+        </tr>
+      </thead>
+      <tbody id="reg-body"></tbody>
+    </table>
+    <div class="reg-empty" id="reg-empty">No decisions logged yet. Use “Add decision” inside any topic, or “+ Add row”.</div>
+  </div>`;
+main.appendChild(regCard);
+
+/* TOC */
+const tocItems = [  
+  ...SECTIONS.map((s,i)=>({href:"#sec-"+s.id, n:(i+1), t:s.title})),
+  {div:true},
+  {href:"#sec-register", n:"★", t:"Decision register", special:true}
+];
+toc.innerHTML = tocItems.map(it=> it.div ? `<div class="divider"></div>` :
+  `<a href="${it.href}" class="${it.special?'special':''}"><span class="n">${it.n}</span>${it.t}</a>`).join("");
+
+/* ============================================================
+   HYDRATE from state
+   ============================================================ */
+// fields
+document.querySelectorAll(".top-fields input").forEach(inp=>{
+  const k = inp.dataset.k;
+  if(state.fields[k]) inp.value = state.fields[k];
+  inp.addEventListener("input", ()=>{ state.fields[k]=inp.value; save(); });
+});
+// prep
+document.querySelectorAll("[data-prep]").forEach(cb=>{
+  const k = cb.dataset.prep;
+  cb.checked = !!state.prep[k];
+  cb.addEventListener("change", ()=>{ state.prep[k]=cb.checked; save(); });
+});
+// asked questions
+document.querySelectorAll("li[data-q]").forEach(li=>{
+  const id = li.dataset.q;
+  if(state.asked[id]) li.classList.add("asked");
+  li.addEventListener("click", ()=>{
+    li.classList.toggle("asked");
+    state.asked[id] = li.classList.contains("asked");
+    save();
+  });
+});
+// notes
+document.querySelectorAll("textarea[data-notes]").forEach(ta=>{
+  const id = ta.dataset.notes;
+  if(state.notes[id]) ta.value = state.notes[id];
+  autoGrow(ta);
+  ta.addEventListener("input", ()=>{ state.notes[id]=ta.value; autoGrow(ta); save(); });
+});
+function autoGrow(ta){ ta.style.height="auto"; ta.style.height=Math.max(68, ta.scrollHeight)+"px"; }
+
+/* ============================================================
+   DECISION REGISTER
+   ============================================================ */
+const regBody = document.getElementById("reg-body");
+const regEmpty = document.getElementById("reg-empty");
+const STATUSES = [
+  {v:"decided", t:"✅ Decided", c:"st-decided"},
+  {v:"open", t:"🟠 Open", c:"st-open"},
+  {v:"parked", t:"⚪ Parked", c:"st-parked"},
+  {v:"risk", t:"🔴 Risk/Blocker", c:"st-risk"}
+];
+
+function renderRegister(){
+  regBody.innerHTML = "";
+  if(state.decisions.length === 0){ regEmpty.style.display="block"; }
+  else { regEmpty.style.display="none"; }
+  state.decisions.forEach((d, idx)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><input value="${esc(d.topic||'')}" data-f="topic" placeholder="Topic"></td>
+      <td><textarea data-f="decision" placeholder="What was decided / required">${esc(d.decision||'')}</textarea></td>
+      <td><textarea data-f="rationale" placeholder="Why / detail / tradeoff">${esc(d.rationale||'')}</textarea></td>
+      <td><input value="${esc(d.owner||'')}" data-f="owner" placeholder="Owner"></td>
+      <td>
+        <select data-f="status" class="status-sel ${statusClass(d.status)}">
+          ${STATUSES.map(s=>`<option value="${s.v}" ${d.status===s.v?'selected':''}>${s.t}</option>`).join("")}
+        </select>
+      </td>
+      <td><button class="row-del" title="Delete">×</button></td>`;
+    // bind
+    tr.querySelectorAll("[data-f]").forEach(inp=>{
+      inp.addEventListener("input", ()=>{
+        state.decisions[idx][inp.dataset.f] = inp.value;
+        if(inp.dataset.f==="status"){ inp.className = "status-sel "+statusClass(inp.value); updateCounts(); }
+        if(inp.tagName==="TEXTAREA"){ inp.style.height="auto"; inp.style.height=inp.scrollHeight+"px"; }
+        save();
+      });
+      if(inp.tagName==="TEXTAREA"){ setTimeout(()=>{inp.style.height="auto";inp.style.height=inp.scrollHeight+"px";},0); }
+    });
+    tr.querySelector(".row-del").addEventListener("click", ()=>{
+      state.decisions.splice(idx,1); save(); renderRegister();
+    });
+    regBody.appendChild(tr);
+  });
+  updateCounts();
+}
+function statusClass(v){ const s = STATUSES.find(x=>x.v===v); return s?s.c:""; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function addDecision(topic){
+  state.decisions.push({topic:topic||"", decision:"", rationale:"", owner:"", status:"open"});
+  save(); renderRegister();
+  // focus new decision cell
+  const rows = regBody.querySelectorAll("tr");
+  const last = rows[rows.length-1];
+  if(last){ last.querySelector('[data-f="decision"]').focus(); last.scrollIntoView({behavior:"smooth", block:"center"}); }
+}
+function updateCounts(){
+  const c = {decided:0, open:0, parked:0, risk:0};
+  state.decisions.forEach(d=> c[d.status] = (c[d.status]||0)+1 );
+  document.getElementById("reg-counts").innerHTML =
+    `<span class="countpill"><b>${state.decisions.length}</b> total</span>`+
+    `<span class="countpill">✅ <b>${c.decided}</b> decided</span>`+
+    `<span class="countpill">🟠 <b>${c.open}</b> open</span>`+
+    `<span class="countpill">🔴 <b>${c.risk}</b> risk</span>`+
+    `<span class="countpill">⚪ <b>${c.parked}</b> parked</span>`;
+}
+
+document.getElementById("add-row").addEventListener("click", ()=>addDecision(""));
+document.querySelectorAll("[data-adddec]").forEach(btn=>{
+  btn.addEventListener("click", ()=>addDecision(btn.dataset.dectitle));
+});
+renderRegister();
+
+/* ============================================================
+   COLLAPSE / TOGGLE
+   ============================================================ */
+document.querySelectorAll("[data-toggle]").forEach(h=>{
+  h.addEventListener("click", (e)=>{
+    if(e.target.closest("input,textarea,button,select,a")) return;
+    h.closest("section").classList.toggle("collapsed");
+  });
+});
+
+/* ============================================================
+   TIMER
+   ============================================================ */
+let tStart = state.timerStart || null, tElapsed = state.timerElapsed || 0, tInt = null;
+const timerEl = document.getElementById("timer");
+function fmt(ms){ const s=Math.floor(ms/1000); const m=Math.floor(s/60); const ss=s%60; return String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0"); }
+function tick(){ const now = tElapsed + (tStart? (Date.now()-tStart):0); timerEl.textContent = fmt(now);
+  if(now > 120*60*1000) timerEl.style.color = "var(--risk)";
+}
+function startTimer(){
+  if(tStart) return;
+  tStart = Date.now(); state.timerStart = tStart; save();
+  document.getElementById("t-start").textContent = "Pause";
+  tInt = setInterval(tick, 500); tick();
+}
+function pauseTimer(){
+  if(!tStart) return;
+  tElapsed += Date.now()-tStart; tStart=null;
+  state.timerStart=null; state.timerElapsed=tElapsed; save();
+  document.getElementById("t-start").textContent = "Start";
+  clearInterval(tInt); tick();
+}
+document.getElementById("t-start").addEventListener("click", ()=>{ tStart? pauseTimer():startTimer(); });
+document.getElementById("t-reset").addEventListener("click", ()=>{
+  tStart=null; tElapsed=0; state.timerStart=null; state.timerElapsed=0; save();
+  clearInterval(tInt); document.getElementById("t-start").textContent="Start"; timerEl.style.color="var(--accent)"; tick();
+});
+if(tStart){ // was running
+  document.getElementById("t-start").textContent="Pause"; tInt=setInterval(tick,500);
+}
+tick();
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+const modal = document.getElementById("modal");
+const expText = document.getElementById("exp-text");
+let currentFmt = "md";
+
+function meta(){
+  return {
+    customer: state.fields.customer || "",
+    date: state.fields.date || "",
+    attendees: state.fields.attendees || ""
+  };
+}
+function buildMD(){
+  const m = meta();
+  let out = `# Discovery — Decision & Requirements Register\n\n`;
+  out += `**Customer:** ${m.customer||"—"}  \n**Date:** ${m.date||"—"}  \n**Attendees:** ${m.attendees||"—"}\n\n`;
+  out += `## Decisions & Requirements\n\n`;
+  if(state.decisions.length===0){ out += `_None logged._\n\n`; }
+  else {
+    out += `| Topic | Decision / Requirement | Rationale / Detail | Owner | Status |\n|---|---|---|---|---|\n`;
+    state.decisions.forEach(d=>{
+      const st = (STATUSES.find(s=>s.v===d.status)||{}).t || d.status||"";
+      out += `| ${cell(d.topic)} | ${cell(d.decision)} | ${cell(d.rationale)} | ${cell(d.owner)} | ${st} |\n`;
+    });
+    out += `\n`;
+  }
+  // open / risk callout
+  const open = state.decisions.filter(d=>d.status==="open"||d.status==="risk");
+  if(open.length){
+    out += `## Open items & risks (follow-up)\n\n`;
+    open.forEach(d=>{ out += `- **${d.topic||"General"}** — ${d.decision||"(untitled)"}${d.owner?` _(owner: ${d.owner})_`:""} — ${d.status==="risk"?"🔴 RISK":"🟠 OPEN"}\n`; });
+    out += `\n`;
+  }
+  return out;
+}
+function cell(s){ return String(s||"").replace(/\n/g," ").replace(/\|/g,"\\|"); }
+
+function buildFull(){
+  const m = meta();
+  let out = buildMD();
+  out += `\n---\n\n## Session notes by topic\n\n`;
+  SECTIONS.forEach((sec,i)=>{
+    const notes = state.notes[sec.id];
+    out += `### ${i+1}. ${sec.title}\n\n`;
+    out += notes && notes.trim() ? notes.trim()+"\n\n" : `_No notes._\n\n`;
+  });
+  // prep status
+  out += `## Prep checklist status\n\n`;
+  PREP.forEach(p=>{ out += `- [${state.prep[p.k]?"x":" "}] ${p.t}\n`; });
+  out += `\n`;
+  return out;
+}
+function buildJSON(){
+  return JSON.stringify({
+    meta: meta(),
+    exportedAt: new Date().toISOString(),
+    decisions: state.decisions,
+    notes: state.notes,
+    prep: state.prep
+  }, null, 2);
+}
+function refreshExport(){
+  if(currentFmt==="md") expText.value = buildMD();
+  else if(currentFmt==="json") expText.value = buildJSON();
+  else expText.value = buildFull();
+}
+document.getElementById("btn-export").addEventListener("click", ()=>{ currentFmt="md"; setFmtActive(); refreshExport(); modal.classList.add("show"); });
+document.getElementById("modal-close").addEventListener("click", ()=> modal.classList.remove("show"));
+modal.addEventListener("click", e=>{ if(e.target===modal) modal.classList.remove("show"); });
+document.querySelectorAll("[data-fmt]").forEach(b=>{
+  b.addEventListener("click", ()=>{ currentFmt=b.dataset.fmt; setFmtActive(); refreshExport(); });
+});
+function setFmtActive(){
+  document.querySelectorAll("[data-fmt]").forEach(b=> b.classList.toggle("pri", b.dataset.fmt===currentFmt));
+}
+document.getElementById("copy-exp").addEventListener("click", ()=>{
+  expText.select();
+  navigator.clipboard?.writeText(expText.value).then(()=>{
+    document.getElementById("copy-exp").textContent="Copied ✓";
+    setTimeout(()=>document.getElementById("copy-exp").textContent="Copy",1500);
+  }).catch(()=>{ document.execCommand("copy"); });
+});
+document.getElementById("dl-exp").addEventListener("click", ()=>{
+  const ext = currentFmt==="json"?"json":"md";
+  const name = `discovery-register-${(state.fields.customer||"session").replace(/[^a-z0-9]+/gi,"-").toLowerCase()}-${state.fields.date||today()}.${ext}`;
+  const blob = new Blob([expText.value], {type:"text/plain"});
+  const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+});
+function today(){ return new Date().toISOString().slice(0,10); }
+
+/* ---------- PDF (print view → Save as PDF) ---------- */
+function buildPrintHTML(){
+  const m = meta();
+  const stMap = {};
+  STATUSES.forEach(s=> stMap[s.v] = s.t);
+  const rows = state.decisions.length ? state.decisions.map(d=>`
+    <tr class="st-${d.status||'open'}">
+      <td>${esc(d.topic||'')}</td>
+      <td>${esc(d.decision||'')}</td>
+      <td>${esc(d.rationale||'')}</td>
+      <td>${esc(d.owner||'')}</td>
+      <td class="st">${stMap[d.status]||esc(d.status||'')}</td>
+    </tr>`).join("") : `<tr><td colspan="5" class="muted">No decisions logged.</td></tr>`;
+
+  const open = state.decisions.filter(d=>d.status==="open"||d.status==="risk");
+  const openHTML = open.length ? `
+    <h2>Open items &amp; risks (follow-up)</h2>
+    <ul class="openlist">
+      ${open.map(d=>`<li><b>${esc(d.topic||'General')}</b> — ${esc(d.decision||'(untitled)')}${d.owner?` <span class="muted">(owner: ${esc(d.owner)})</span>`:""} <span class="flag ${d.status}">${d.status==="risk"?"RISK":"OPEN"}</span></li>`).join("")}
+    </ul>` : "";
+
+  const notesHTML = SECTIONS.map((sec,i)=>{
+    const n = state.notes[sec.id];
+    return `<h3>${i+1}. ${esc(sec.title)}</h3><div class="note">${n&&n.trim()?esc(n.trim()).replace(/\n/g,"<br>"):'<span class="muted">No notes.</span>'}</div>`;
+  }).join("");
+
+  const prepHTML = PREP.map(p=>`<li>${state.prep[p.k]?"☑":"☐"} ${esc(p.t)}</li>`).join("");
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Discovery Register — ${esc(m.customer||'Session')}</title>
+  <style>
+    @page { margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:#1a2233; font-size:11pt; line-height:1.45; margin:0; }
+    h1 { font-size:18pt; margin:0 0 4px; }
+    .meta { color:#5c6578; font-size:10pt; margin-bottom:16px; }
+    .meta b { color:#1a2233; }
+    h2 { font-size:13pt; margin:22px 0 8px; border-bottom:2px solid #e2e6ec; padding-bottom:4px; }
+    h3 { font-size:11.5pt; margin:14px 0 2px; }
+    table { width:100%; border-collapse:collapse; font-size:9.5pt; }
+    th { text-align:left; background:#f0f3f8; border:1px solid #d6dce6; padding:6px 7px; font-size:8.5pt; text-transform:uppercase; letter-spacing:.3px; color:#45506a; }
+    td { border:1px solid #e2e6ec; padding:6px 7px; vertical-align:top; }
+    td.st { white-space:nowrap; font-weight:600; }
+    tr.st-decided td.st { color:#047857; }
+    tr.st-open td.st { color:#b45309; }
+    tr.st-risk td.st { color:#b91c1c; }
+    tr.st-parked td.st { color:#5c6578; }
+    .muted { color:#8891a3; }
+    .openlist { margin:6px 0; padding-left:18px; }
+    .openlist li { margin-bottom:4px; }
+    .flag { font-size:8pt; font-weight:700; padding:1px 6px; border-radius:3px; }
+    .flag.risk { background:#fdeaea; color:#b91c1c; }
+    .flag.open { background:#fef3e2; color:#b45309; }
+    .note { border:1px solid #e2e6ec; border-radius:6px; padding:8px 10px; background:#fbfcfe; font-size:10pt; margin-bottom:4px; white-space:normal; }
+    .prep { columns:2; font-size:10pt; padding-left:0; list-style:none; }
+    .foot { margin-top:22px; color:#8891a3; font-size:8.5pt; border-top:1px solid #e2e6ec; padding-top:6px; }
+    .printbar { position:sticky; top:0; background:#0b5cad; color:#fff; padding:10px 14px; margin:-18mm -16mm 16px; display:flex; align-items:center; gap:12px; font-size:10pt; }
+    .printbar button { background:#fff; color:#0b5cad; border:none; border-radius:6px; padding:7px 14px; font-weight:700; font-size:10pt; cursor:pointer; }
+    @media print { .noprint { display:none !important; } .printbar { display:none !important; } }
+  </style></head><body>
+    <div class="printbar noprint">
+      <button onclick="window.print()">🖨 Print / Save as PDF</button>
+      <span>In the dialog, choose destination <b>“Save as PDF”</b>. This bar won't appear in the PDF.</span>
+    </div>
+    <h1>Discovery — Decision &amp; Requirements Register</h1>
+    <div class="meta"><b>Customer:</b> ${esc(m.customer||'—')} &nbsp;·&nbsp; <b>Date:</b> ${esc(m.date||'—')} &nbsp;·&nbsp; <b>Attendees:</b> ${esc(m.attendees||'—')}</div>
+    <h2>Decisions &amp; Requirements</h2>
+    <table><thead><tr><th style="width:13%">Topic</th><th style="width:28%">Decision / Requirement</th><th style="width:30%">Rationale / Detail</th><th style="width:14%">Owner</th><th style="width:15%">Status</th></tr></thead><tbody>${rows}</tbody></table>
+    ${openHTML}
+    <h2>Session notes by topic</h2>
+    ${notesHTML}
+    <h2>Prep checklist</h2>
+    <ul class="prep">${prepHTML}</ul>
+    <div class="foot">Generated ${new Date().toLocaleString()} · Agentforce Knowledge Base discovery</div>
+    <scr`+`ipt>
+      // Auto-open the print dialog once this document has fully laid out.
+      window.addEventListener('load', function(){ setTimeout(function(){ try{ window.focus(); window.print(); }catch(e){} }, 400); });
+    </scr`+`ipt>
+  </body></html>`;
+}
+document.getElementById("pdf-exp").addEventListener("click", ()=>{
+  const html = buildPrintHTML();
+  const w = window.open("", "_blank");
+  if(w){
+    w.document.open();
+    w.document.write(html);           // document's own onload triggers print()
+    w.document.close();
+    return;
+  }
+  // Pop-up blocked → fall back to a hidden iframe in THIS page (no window needed)
+  printViaIframe(html);
+});
+
+function printViaIframe(html){
+  // remove any previous one
+  const old = document.getElementById("pdf-frame");
+  if(old) old.remove();
+  const iframe = document.createElement("iframe");
+  iframe.id = "pdf-frame";
+  iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+  document.body.appendChild(iframe);
+  const doc = iframe.contentWindow.document;
+  // strip the auto-print script's reliance on window.print of the parent; iframe prints itself
+  doc.open(); doc.write(html); doc.close();
+  const go = ()=>{ try{ iframe.contentWindow.focus(); iframe.contentWindow.print(); }catch(e){ alert("Couldn't open the print dialog automatically. Use the Download button to save the Markdown instead."); } };
+  // iframe's internal load listener will also fire; add a parent-side backup
+  if(iframe.contentWindow.document.readyState === "complete") setTimeout(go, 300);
+  iframe.onload = ()=> setTimeout(go, 300);
+}
+
+/* clear */
+document.getElementById("btn-clear").addEventListener("click", ()=>{
+  if(!confirm("Clear ALL notes, decisions, checklist and fields from this browser? This cannot be undone.")) return;
+  localStorage.removeItem(LS_KEY);
+  location.reload();
+});
+
+/* default date to today if empty */
+if(!state.fields.date){ const d=document.getElementById("f-date"); if(d){ d.value=today(); state.fields.date=today(); save(); } }
+</script>
+</body>
+</html>
