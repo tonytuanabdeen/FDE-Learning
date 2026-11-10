@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Salesforce FDE Field Guide | Beginner → Intermediate → Advanced</title>
+<title>Salesforce FDE Field Guide | Beginner → Intermediate → Advanced (Tuan Abdeen)</title>
 <style>
 :root{--bg:#f4f6fb;--surface:#fff;--surface2:#eef1f8;--text:#172033;--muted:#65718a;--line:#dce2ee;--accent:#5b5ce2;--accent2:#00a6a6;--good:#16845b;--warn:#a96500;--shadow:0 14px 40px rgba(23,32,51,.09);--code:#111827;--codeText:#e5e7eb}
 [data-theme="dark"]{--bg:#0c1020;--surface:#151b2e;--surface2:#1d2540;--text:#eef2ff;--muted:#a4aec7;--line:#2b3553;--accent:#9b9cff;--accent2:#4dd6cf;--good:#57d6a1;--warn:#ffc36b;--shadow:0 16px 44px rgba(0,0,0,.28);--code:#080d18;--codeText:#e5e7eb}
@@ -49,6 +49,11 @@ pre{background:var(--code);color:var(--codeText);padding:15px;border-radius:13px
 .feedback-input::placeholder{color:var(--muted)}
 .feedback-note{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:11px;color:var(--muted)}
 .feedback-note.saved{color:var(--good)}
+.pill-start{display:inline-block;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.06em;color:#fff;background:var(--accent);border-radius:99px;padding:3px 9px;margin-left:8px;vertical-align:middle}
+.mini .pill-start{margin-left:8px}
+a.linkcard{display:block;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s,box-shadow .15s}
+a.linkcard:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:var(--shadow)}
+a.linkcard strong{color:var(--accent)}
 .sec{scroll-margin-top:16px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
 .sec-h{display:flex;align-items:center;gap:12px;margin-bottom:4px}
 .sec-h .n{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2))}
@@ -99,7 +104,7 @@ pre{background:var(--code);color:var(--codeText);padding:15px;border-radius:13px
   <div class="eyebrow">Welcome to the team</div>
   <h1>The FDE<br>Onboarding Field Guide</h1>
   <p>A structured, hands-on journey that builds the habits, tools and engineering judgement needed to deliver outcomes with customers — not just configure a development environment.</p>
-  <div class="hero-meta"><span class="pill">01 · Beginner — Get field-ready</span><span class="pill">02 · Intermediate — Build with confidence</span><span class="pill">03 · Advanced — Own the agent harness, end to end.</span></div>
+  <div class="hero-meta"><span class="pill">01 · 🐢 Beginner — Get field-ready</span><span class="pill">02 ·🚶 Intermediate — Build with confidence</span><span class="pill">03 · 🚀 Advanced — Own the agent harness, end to end.</span></div>
 </section>
 <div class="progress-wrap">
   <div class="progress-head"><strong>YOUR ONBOARDING PROGRESS</strong><span class="muted" id="progressText">0 of 0 tasks complete · 0%</span></div>
@@ -107,19 +112,21 @@ pre{background:var(--code);color:var(--codeText);padding:15px;border-radius:13px
   <div class="muted" style="font-size:12px;margin-top:8px" id="progressHint">Complete every required task in a stage to unlock its graduation celebration.</div>
 </div>
 <div class="journey" id="journey">
-  <div class="stage-card current" data-stage-card="beginner"><div class="stage-top"><span class="stage-number">STAGE 01</span><span class="stage-status">IN PROGRESS</span></div><h3>Beginner</h3><p>Set up your tools, understand the FDE role and safely navigate the Salesforce platform.</p></div>
-  <div class="stage-card" data-stage-card="intermediate"><div class="stage-top"><span class="stage-number">STAGE 02</span><span class="stage-status">LOCKED</span></div><h3>Intermediate</h3><p>Build a repeatable project workspace, ship changes and use Claude Code effectively.</p></div>
-  <div class="stage-card" data-stage-card="advanced"><div class="stage-top"><span class="stage-number">STAGE 03</span><span class="stage-status">LOCKED</span></div><h3>Advanced</h3><p>Design, test, secure and operate agentic Salesforce solutions in production.</p></div>
+  <div class="stage-card current" data-stage-card="beginner"><div class="stage-top"><span class="stage-number">STAGE 01</span><span class="stage-status">IN PROGRESS</span></div><h3>🐢 Beginner</h3><p>Set up your tools, understand the FDE role and safely navigate the Salesforce platform.</p></div>
+  <div class="stage-card" data-stage-card="intermediate"><div class="stage-top"><span class="stage-number">STAGE 02</span><span class="stage-status">LOCKED</span></div><h3>🚶 Intermediate</h3><p>Build a repeatable project workspace, ship changes and use Claude Code effectively.</p></div>
+  <div class="stage-card" data-stage-card="advanced"><div class="stage-top"><span class="stage-number">STAGE 03</span><span class="stage-status">LOCKED</span></div><h3>🚀 Advanced</h3><p>Design, test, secure and operate agentic Salesforce solutions in production.</p></div>
 </div>
 
 <div id="documentation" class="layout">
   <aside class="sidebar">
     <div class="side-title">PLAYBOOK CONTENTS</div>
     <button class="navitem active" data-target="start"><span class="dot"></span>How to use this guide</button>
-    <button class="navitem" data-target="beginner"><span class="dot"></span>01 · Beginner</button>
-    <button class="navitem" data-target="intermediate" data-requires="beginner"><span class="dot"></span>02 · Intermediate<span class="lock" aria-hidden="true">🔒</span></button>
-    <button class="navitem" data-target="advanced" data-requires="intermediate"><span class="dot"></span>03 · Advanced<span class="lock" aria-hidden="true">🔒</span></button>
-    <button class="navitem" data-target="graduation" data-requires="advanced"><span class="dot"></span>Graduation & sign-off<span class="lock" aria-hidden="true">🔒</span></button>    
+    <button class="navitem" data-target="toolkit"><span class="dot"></span>Productivity Toolkit: Slack</button>
+    <button class="navitem" data-target="beginner"><span class="dot"></span>01 · 🐢 Beginner</button>
+    <button class="navitem" data-target="intermediate" data-requires="beginner"><span class="dot"></span>02 · 🚶 Intermediate<span class="lock" aria-hidden="true">🔒</span></button>
+    <button class="navitem" data-target="advanced" data-requires="intermediate"><span class="dot"></span>03 · 🚀 Advanced<span class="lock" aria-hidden="true">🔒</span></button>
+    <button class="navitem" data-target="graduation" data-requires="advanced"><span class="dot"></span>Graduation & sign-off<span class="lock" aria-hidden="true">🔒</span></button>
+    <button class="navitem" data-target="learning"><span class="dot"></span>📚 Structured AI Learning</button>
   </aside>
   <main class="content">
     <section class="section" id="start">
@@ -135,8 +142,19 @@ pre{background:var(--code);color:var(--codeText);padding:15px;border-radius:13px
       <div class="callout warn"><strong>North-star outcome</strong><br>By the end of onboarding, you can enter a customer environment, understand a business problem, shape a sound Salesforce solution, engineer and validate it, and explain what is needed to take it safely toward production.</div>
     </section>
 
+    <section class="section" id="toolkit">
+      <div class="kicker">Work smarter · Where the team already works</div>
+      <h2>💬 FDE Productivity Toolkit — Slack</h2>
+      <p>Slack is more than chat — it is an AI-assisted workspace. Use these three capabilities to find knowledge faster, turn conversations into structured insight, and capture ideas without breaking flow.</p>
+      <div class="grid2">
+        <div class="mini"><strong>Slackbot — Your AI work assistant <span class="pill-start">Start here</span></strong><p>Slackbot is Slack's built-in AI assistant. It understands your workspace context and helps you find information, analyse discussions, prepare meetings, draft content and complete work-related tasks.</p></div>
+        <div class="mini"><strong>Slack Surfaces — Turn information into insights</strong><p>Slack Surfaces are interactive, shareable reports and dashboards that Slackbot can generate from your workspace information and connected data sources. <b>Example use cases:</b> Project status dashboard, Deployment progress report, Support ticket trends.</p></div>
+        <div class="mini"><strong>Dictation — Speak naturally</strong><p>Dictation allows you to speak your prompts rather than type them. Click the microphone icon in the Slackbot message input and speak naturally.</p></div>
+      </div>
+    </section>
+
     <section class="section" id="beginner" data-os="mac">
-      <div class="section-head"><div><div class="head-top"><div class="kicker">Stage 01 · Foundation</div><div class="seg" id="os-select" role="group" aria-label="Operating system"><button type="button" class="active" data-os="mac" aria-pressed="true">macOS / Linux</button><button type="button" data-os="win" aria-pressed="false">Windows</button></div></div><h2>Beginner — Get field-ready</h2><p class="muted">Goal: become productive on your machine, understand the FDE operating model and safely connect to Salesforce development environments.</p><span class="tag">Suggested: Week 1</span></div></div>
+      <div class="section-head"><div><div class="head-top"><div class="kicker">Stage 01 · Foundation</div><div class="seg" id="os-select" role="group" aria-label="Operating system"><button type="button" class="active" data-os="mac" aria-pressed="true">macOS / Linux</button><button type="button" data-os="win" aria-pressed="false">Windows</button></div></div><h2>🐢 Beginner — Get field-ready</h2><p class="muted">Goal: become productive on your machine, understand the FDE operating model and safely connect to Salesforce development environments.</p><span class="tag">Suggested: Week 1</span></div></div>
       <div class="agenda">
         <p class="agenda-h">What you'll set up — 6 steps <span>· jump to the step-by-step detail below</span></p>
         <div class="steps-row">
@@ -253,6 +271,7 @@ code --install-extension redhat.vscode-yaml</code></pre>
           </details>
         </div>
       </section>
+      <div class="lab"><h3>Alternative IDE · <b>Cursor</b></h3><ol><li>If you prefer using Cursor IDE instead of Visual Studio Code, you are welcome to do so.</li><li>Please follow the dedicated setup instructions here: <a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F09D6SBKDNE" target="_blank">Cursor IDE Setup Guide</a></li><li>Note: Cursor is an optional alternative. You do not need to complete both IDE setups.</li></ol></div>
 
       <section class="sec" id="sec-gitid">
         <div class="sec-h"><span class="n">4</span><div><h3>Set up Git identity &amp; GitHub login</h3><p class="sub">SSH key and sign-in</p></div></div>
@@ -322,7 +341,7 @@ claude plugin marketplace add forward-deployed-engineering-emu/fde-skills</code>
     </section>
 
     <section class="section" id="intermediate">
-      <div class="section-head"><div><div class="kicker">Stage 02 · Engineering practice</div><h2>Intermediate — Build with confidence</h2><p class="muted">Goal: create a repeatable project workspace, make controlled changes, collaborate through Git and use AI coding tools with engineering discipline.</p></div><span class="tag">Suggested: Weeks 2–4</span></div>
+      <div class="section-head"><div><div class="kicker">Stage 02 · Engineering practice</div><h2>🚶 Intermediate — Build with confidence</h2><p class="muted">Goal: create a repeatable project workspace, make controlled changes, collaborate through Git and use AI coding tools with engineering discipline.</p></div><span class="tag">Suggested: Weeks 2–4</span></div>
       <div class="outcome"><strong>Stage outcome</strong>You can create a Salesforce DX project, connect to a non-production org, retrieve or build metadata, validate changes, raise a reviewable pull request and explain how you used Claude Code safely.</div>
       <div class="agenda">
         <p class="agenda-h">What you'll set up — 5 steps <span>· jump to the step-by-step detail below</span></p>
@@ -638,7 +657,7 @@ ls .claude/CLAUDE.md CLAUDE.md 2&gt;/dev/null</code></pre>
     </section>
 
     <section class="section" id="advanced">
-      <div class="section-head"><div><div class="kicker">Stage 03 · Technical leadership</div><h2>Advanced — Own the agent harness, end to end.</h2>
+      <div class="section-head"><div><div class="kicker">Stage 03 · Technical leadership</div><h2>🚀 Advanced — Own the agent harness, end to end.</h2>
       <p class="muted">This Advanced playbook takes you from building features to leading a workstream: engineer the harness for real-world behaviour, prove it with layered testing and evaluation, and ship it safely with security, observability, and a production runbook.</p></div><span class="tag">Suggested: Weeks 4–8+</span></div>
       <div class="outcome"><strong>Stage outcome</strong>You can lead a bounded customer workstream: discover the real problem, design an appropriate Salesforce architecture, implement and evaluate it, manage risks and explain production readiness.</div>
 
@@ -833,7 +852,26 @@ sf project deploy start --source-dir force-app --target-org client-uat --test-le
       </div>
       <div class="outcome"><strong>Graduation principle</strong>Can this FDE independently take a well-scoped problem from discovery to a reviewed, tested and supportable Salesforce solution — while knowing when to ask for help?</div>
       <div class="checkpoint"><button class="btn primary" onclick="window.print()">Print / Save as PDF</button><button onclick="exportProgress()">Export progress summary</button></div>
-    </section>    
+    </section>
+
+    <section class="section" id="learning">
+      <div class="kicker">Keep growing · Beyond onboarding</div>
+      <h2>📚 Structured AI Learning</h2>
+      <p>Onboarding gets you field-ready; these pathways keep you current. Build recognised Agentforce and Data 360 expertise through Trailhead and Salesforce certifications — always available, whatever stage you are at.</p>
+
+      <h3>Agentblazer 2026 — achievement pathway</h3>
+      <p>Earn Agentblazer status by completing the guided agentic-AI learning path on Trailhead, and keep your skills current as the platform evolves.</p>
+      <div class="grid2">
+        <a class="mini linkcard" href="https://trailhead.salesforce.com/agentblazer" target="_blank" rel="noopener"><strong>Agentblazer 2026 — Trailhead ↗</strong><p>Complete the Agentblazer learning path to build and demonstrate hands-on Agentforce skills.</p></a>
+      </div>
+
+      <h3>🏅 Salesforce Certifications — Validate Your Expertise</h3>
+      <p>Certifications turn hands-on practice into recognised, portable proof of expertise. Prepare with Trailhead and official exam guides.</p>
+      <div class="grid2">
+        <a class="mini linkcard" href="https://trailhead.salesforce.com/en/credentials/agentforcespecialist" target="_blank" rel="noopener"><strong>Agentforce Specialist Certification ↗</strong><p>Validate your ability to design, build and deploy Agentforce agents on the Salesforce platform.</p></a>
+        <a class="mini linkcard" href="https://trailhead.salesforce.com/credentials/datacloudconsultant" target="_blank" rel="noopener"><strong>Data 360 Consultant Certification ↗</strong><p>Prove your skills in data modelling, ingestion, harmonisation and activation with Salesforce Data 360 (Data Cloud).</p></a>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -842,7 +880,7 @@ sf project deploy start --source-dir force-app --target-org client-uat --test-le
   <div class="slide-controls"><button class="btn" id="prevSlide">← Previous</button><div class="slide-dots" id="slideDots"></div><button class="btn primary" id="nextSlide">Next →</button></div>
   <p class="muted" style="text-align:center;font-size:12px">Tip: use ← and → arrow keys to navigate slides. Switch back to Documentation for full instructions and checklists.</p>
 </div>
-<div class="footer">Salesforce FDE Field Guide · Learning path and examples are illustrative. Follow current internal policies and project standards.</div>
+<div class="footer">Salesforce FDE Field Guide · Learning path and examples are illustrative. Follow current internal policies and project standards. (Tuan Abdeen)</div>
 </div>
 
 <div class="celebrate" id="celebration" role="dialog" aria-modal="true" aria-label="Stage completed">
