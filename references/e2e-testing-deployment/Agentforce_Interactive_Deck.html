@@ -1,0 +1,1198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentforce: test it, ship it</title>
+<style>
+:root{
+  --bg:#e9eff5; --surface:#ffffff; --surface2:#f1f5f9; --ink:#0e1a2b; --muted:#546479; --line:#d3dce6;
+  --teal:#0a8f8f; --teal-t:#dff3f2; --indigo:#4a5bd0; --indigo-t:#e6e9fb; --amber:#c97d00; --amber-t:#fdf0d6;
+  --amber-solid:#f5a623; --coral:#c93d22; --coral-t:#fbe5df; --green:#1f8a55; --green-t:#dcf2e6;
+  --navy:#1b3556; --code:#0e1a2b; --codeink:#e6edf5; --codedim:#8aa0b8; --shadow:0 1px 2px rgba(14,26,43,.08),0 8px 24px rgba(14,26,43,.08);
+  --head:Charter,"Bitstream Charter","Iowan Old Style",Cambria,Georgia,serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme=light]){
+    --bg:#08111d; --surface:#122238; --surface2:#182d48; --ink:#eaf1f8; --muted:#9db0c6; --line:#27405f;
+    --teal:#35c6c6; --teal-t:#0f3a40; --indigo:#8d9bff; --indigo-t:#212c63; --amber:#f5b14a; --amber-t:#41300f;
+    --amber-solid:#f5a623; --coral:#ff8a70; --coral-t:#47231b; --green:#58d391; --green-t:#14392a;
+    --navy:#2a4f7e; --code:#060d17; --codeink:#e6edf5; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme=dark]{
+  --bg:#08111d; --surface:#122238; --surface2:#182d48; --ink:#eaf1f8; --muted:#9db0c6; --line:#27405f;
+  --teal:#35c6c6; --teal-t:#0f3a40; --indigo:#8d9bff; --indigo-t:#212c63; --amber:#f5b14a; --amber-t:#41300f;
+  --amber-solid:#f5a623; --coral:#ff8a70; --coral-t:#47231b; --green:#58d391; --green-t:#14392a;
+  --navy:#2a4f7e; --code:#060d17; --codeink:#e6edf5; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--body);background:var(--bg);color:var(--ink);overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+
+/* ---------- top bar ---------- */
+#bar{display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#bar .brand{font-family:var(--head);font-weight:700;font-size:15px;margin-right:4px;white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface2)}
+.seg button{border:0;background:transparent;padding:5px 12px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--navy);color:#fff;font-weight:600}
+.seg button[data-l="1"][aria-pressed=true]{background:var(--green)}
+.seg button[data-l="2"][aria-pressed=true]{background:var(--indigo)}
+.seg button[data-l="3"][aria-pressed=true]{background:var(--amber-solid);color:#1a1200}
+.tools{display:flex;gap:6px;margin-left:auto;align-items:center}
+.ibtn{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:5px 10px;font-size:13px}
+.ibtn:hover{background:var(--surface);border-color:var(--muted)}
+.ibtn[aria-pressed=true]{background:var(--navy);color:#fff}
+#clock{display:flex;align-items:center;gap:10px;padding:3px 10px 3px 4px;border:1px solid var(--line);border-radius:999px;background:var(--surface2)}
+#clock .play{border:0;border-radius:999px;width:28px;height:28px;background:var(--amber-solid);color:#1a1200;font-weight:700}
+#clock .t{font-variant-numeric:tabular-nums;font-weight:700;font-size:17px;min-width:56px}
+#clock .s{font-size:12px;color:var(--muted);line-height:1.15}
+#clock .s b{font-variant-numeric:tabular-nums;color:var(--ink)}
+#clock.over .t,#clock.over .s b{color:var(--coral)}
+#clock.warn .s b{color:var(--amber)}
+#pace{font-size:12px;font-weight:600}
+#pace.behind{color:var(--coral)} #pace.ahead{color:var(--green)}
+
+/* ---------- timeline strip ---------- */
+#strip{display:flex;height:22px;background:var(--surface);border-bottom:1px solid var(--line)}
+#strip button{position:relative;border:0;border-right:1px solid var(--bg);background:var(--surface2);padding:0;font-size:11px;color:var(--muted);overflow:hidden;text-align:left;padding-left:6px;white-space:nowrap}
+#strip button .fill{position:absolute;inset:0 auto 0 0;background:var(--teal-t);width:0}
+#strip button span{position:relative}
+#strip button.cur{color:var(--ink);font-weight:700}
+#strip button.cur .fill{background:var(--amber-t)}
+#strip button.over .fill{background:var(--coral-t)}
+
+/* ---------- stage ---------- */
+#wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:10px}
+#stage{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;font-size:16px}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;padding:1.7em 2.4em 1.6em;overflow:auto;opacity:0}
+.slide.active{display:flex;opacity:1;animation:in .28s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(.4em)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.slide.active{animation:none}}
+h1,h2,h3{font-family:var(--head);margin:0;line-height:1.12}
+h1{font-size:3.1em;letter-spacing:-.01em}
+h2{font-size:2em}
+h3{font-size:1.25em}
+p{margin:0}
+.sub{color:var(--muted);font-size:1.05em;margin-top:.3em}
+.pnotes{display:none}
+code,pre{font-family:var(--mono)}
+pre{margin:0;background:var(--code);color:var(--codeink);border-radius:10px;padding:.8em 1em;font-size:.78em;line-height:1.5;overflow:auto;white-space:pre}
+.chip{display:inline-block;border-radius:999px;padding:.15em .7em;font-size:.8em;font-weight:600}
+.chip.g{background:var(--green-t);color:var(--green)} .chip.i{background:var(--indigo-t);color:var(--indigo)} .chip.a{background:var(--amber-t);color:var(--amber)}
+.chip.t{background:var(--teal-t);color:var(--teal)} .chip.c{background:var(--coral-t);color:var(--coral)}
+.row{display:flex;gap:1em}
+.col{flex:1;min-width:0}
+.panel{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:1em 1.1em}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.4em .9em;font-size:.85em;font-weight:600}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.go{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn.warn{background:var(--amber-solid);color:#1a1200;border-color:var(--amber-solid)}
+.btn.sm{padding:.2em .6em;font-size:.78em}
+.tag{font-size:.78em;color:var(--muted)}
+label.chk{display:inline-flex;align-items:center;gap:.4em;font-size:.85em;cursor:pointer}
+.ok{color:var(--green)} .bad{color:var(--coral)} .dim{color:var(--muted)}
+.badge{display:inline-block;min-width:3.2em;text-align:center;border-radius:6px;padding:.05em .4em;font-size:.78em;font-weight:700}
+.badge.pass{background:var(--green-t);color:var(--green)} .badge.fail{background:var(--coral-t);color:var(--coral)} .badge.skip{background:var(--surface2);color:var(--muted)}
+
+/* levels */
+body[data-level="1"] [data-min="2"],body[data-level="1"] [data-min="3"],body[data-level="2"] [data-min="3"]{display:none !important}
+.lvlbadge{margin-left:auto}
+
+/* title */
+.hero{flex:1;display:flex;flex-direction:column;justify-content:center;gap:1.1em}
+.hero .lede{font-size:1.25em;color:var(--muted);max-width:30em}
+.climb{display:flex;align-items:flex-end;gap:.5em;height:5.2em;margin-top:.4em}
+.climb div{border-radius:8px 8px 0 0;color:#fff;font-weight:700;font-size:.85em;padding:.5em .7em;width:9em}
+.climb .c1{height:40%;background:var(--green)} .climb .c2{height:70%;background:var(--indigo)} .climb .c3{height:100%;background:var(--amber-solid);color:#1a1200}
+
+/* path / agenda */
+.path{display:grid;grid-template-columns:repeat(3,1fr);gap:.9em;margin-top:1em}
+.path .lv{border:1px solid var(--line);border-radius:12px;padding:.9em 1em;background:var(--surface2);text-align:left}
+.path .lv.on{border-color:currentColor;background:var(--surface)}
+.path .lv h3{font-size:1.1em;margin-bottom:.3em}
+.path .lv p{font-size:.88em;color:var(--ink)}
+.path .lv:nth-child(1){color:var(--green)} .path .lv:nth-child(2){color:var(--indigo)} .path .lv:nth-child(3){color:var(--amber)}
+.path .lv p{color:var(--ink)}
+.agenda{display:grid;grid-template-columns:1fr 1fr;gap:.35em 1.2em;margin-top:1em}
+.agenda button{display:flex;justify-content:space-between;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.45em .8em;font-size:.88em;text-align:left}
+.agenda button:hover{border-color:var(--teal)}
+.agenda b{font-variant-numeric:tabular-nums;color:var(--muted)}
+
+/* topic */
+.thead{display:flex;align-items:flex-start;gap:1em;flex-wrap:wrap}
+.tabs{margin-left:auto}
+.tbody{display:grid;grid-template-columns:1.15fr .85fr;gap:1.2em;margin-top:1.1em;flex:1;min-height:0}
+.tleft{border-radius:14px;padding:1.1em 1.3em}
+.tleft ul{margin:.7em 0 0;padding-left:1.1em;display:flex;flex-direction:column;gap:.5em;font-size:1.05em;line-height:1.35}
+.tleft h3{font-size:1.3em}
+.lv-1 .tleft{background:var(--green-t)} .lv-2 .tleft{background:var(--indigo-t)} .lv-3 .tleft{background:var(--amber-t)}
+.tright{display:flex;flex-direction:column;gap:.8em;min-height:0}
+.tright pre{flex:0 1 auto}
+.try{border:1px dashed var(--muted);border-radius:12px;padding:.8em 1em;font-size:.95em}
+.try b{display:block;margin-bottom:.15em}
+.nextlvl{align-self:flex-start;margin-top:.7em}
+.meter{display:flex;gap:4px;align-items:flex-end;height:1.3em}
+.meter i{width:.6em;background:var(--line);border-radius:3px}
+.meter i:nth-child(1){height:40%} .meter i:nth-child(2){height:70%} .meter i:nth-child(3){height:100%}
+.lv-1 .meter i:nth-child(1){background:var(--green)}
+.lv-2 .meter i:nth-child(-n+2){background:var(--indigo)}
+.lv-3 .meter i{background:var(--amber-solid)}
+
+/* demo slides */
+.dhead{display:flex;align-items:center;gap:.8em;margin-bottom:.8em;flex-wrap:wrap}
+.dhead .live{background:var(--amber-solid);color:#1a1200;border-radius:999px;padding:.2em .8em;font-weight:700;font-size:.8em}
+.dbody{flex:1;min-height:0;display:flex;gap:1em}
+.toggles{display:flex;gap:.9em;flex-wrap:wrap;align-items:center;margin-bottom:.6em}
+.sim{font-size:.72em;color:var(--muted)}
+
+/* chat */
+.chat{display:flex;flex-direction:column;min-height:0;flex:1.1}
+.msgs{flex:1;min-height:6em;overflow:auto;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:.8em;display:flex;flex-direction:column;gap:.5em}
+.msg{max-width:85%;padding:.45em .75em;border-radius:12px;font-size:.92em;line-height:1.35}
+.msg.u{align-self:flex-end;background:var(--navy);color:#fff}
+.msg.a{align-self:flex-start;background:var(--surface);border:1px solid var(--line)}
+.chips{display:flex;gap:.4em;flex-wrap:wrap;margin:.5em 0}
+.chips button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:.2em .7em;font-size:.8em}
+.chips button:hover{border-color:var(--teal);color:var(--teal)}
+.inrow{display:flex;gap:.4em}
+.inrow input{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.45em .7em}
+.trace{flex:1;min-height:0;overflow:auto}
+.tstep{display:flex;gap:.6em;padding:.45em 0;border-bottom:1px solid var(--line);font-size:.88em}
+.tstep:last-child{border:0}
+.tstep .n{flex:none;width:1.6em;height:1.6em;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-size:.8em;font-weight:700}
+.tstep.warn .n{background:var(--coral)}
+.tstep code{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:0 .35em;font-size:.9em}
+
+/* table */
+table{border-collapse:collapse;width:100%;font-size:.8em}
+th{background:var(--navy);color:#fff;text-align:left;padding:.4em .5em;font-weight:600}
+td{border-bottom:1px solid var(--line);padding:.25em .35em;vertical-align:middle}
+td input{width:100%;border:1px solid transparent;background:transparent;padding:.2em .3em;border-radius:5px}
+td input:focus{border-color:var(--teal);background:var(--surface)}
+.scroll{overflow:auto;min-height:0}
+
+/* terminal */
+.term{background:var(--code);color:var(--codeink);border-radius:12px;padding:.8em 1em;font-family:var(--mono);font-size:.78em;line-height:1.5;overflow:auto;flex:1;min-height:6em;white-space:pre-wrap;word-break:break-word}
+.term .p{color:#6fe0b0} .term .ok{color:#6fe0b0} .term .bad{color:#ff8a70} .term .dim{color:var(--codedim)} .term .y{color:#f5c26b}
+.tin{display:flex;gap:.5em;align-items:center;background:var(--code);border-radius:0 0 12px 12px;padding:.4em 1em;font-family:var(--mono);font-size:.78em;color:var(--codeink);margin-top:-.4em}
+.tin input{flex:1;background:transparent;border:0;color:var(--codeink);font-family:var(--mono);outline:none}
+
+/* pipeline */
+.stages{display:flex;gap:.5em;align-items:stretch;margin:.6em 0}
+.stage{flex:1;border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:.55em .5em;text-align:center;font-size:.8em;font-weight:600;position:relative}
+.stage small{display:block;font-weight:400;color:var(--muted);margin-top:.15em;min-height:1.2em}
+.stage.run{border-color:var(--amber-solid);background:var(--amber-t)}
+.stage.pass{border-color:var(--green);background:var(--green-t)}
+.stage.fail{border-color:var(--coral);background:var(--coral-t)}
+.stage.skip{opacity:.5}
+
+/* metadata */
+.comps{display:grid;grid-template-columns:1fr 1fr;gap:.35em .8em}
+.comp{display:flex;gap:.5em;align-items:flex-start;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.35em .6em;font-size:.82em}
+.comp small{display:block;color:var(--muted)}
+
+/* ide */
+.tree{font-family:var(--mono);font-size:.78em;display:flex;flex-direction:column;gap:.1em;min-width:13em}
+.tree button{border:0;background:transparent;text-align:left;padding:.2em .5em;border-radius:6px;font-family:inherit;color:var(--ink)}
+.tree button:hover,.tree button.on{background:var(--teal-t)}
+.tree .dir{color:var(--muted);padding:.2em .5em}
+textarea.ed{width:100%;flex:1;min-height:6em;background:var(--code);color:var(--codeink);border:0;border-radius:10px;padding:.7em .9em;font-family:var(--mono);font-size:.78em;line-height:1.5;resize:none}
+.diff{font-family:var(--mono);font-size:.76em;line-height:1.5;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:.6em .8em;overflow:auto;white-space:pre-wrap}
+.diff .add{background:var(--green-t);color:var(--green);display:block}
+.diff .del{background:var(--coral-t);color:var(--coral);display:block}
+.diff .same{color:var(--muted);display:block}
+
+/* ladder + flow */
+.ladder{display:flex;align-items:flex-end;gap:.8em;flex:1;margin-top:1em}
+.ladder button{flex:1;border:0;border-radius:14px 14px 0 0;color:#fff;text-align:left;padding:1em;display:flex;flex-direction:column;gap:.35em;font-size:1em}
+.ladder button:hover{filter:brightness(1.08)}
+.ladder b{font-family:var(--head);font-size:1.3em}
+.ladder span{font-size:.9em;opacity:.95}
+.flow{display:flex;gap:.6em;margin-top:1.2em}
+.flow button{flex:1;border:1px solid var(--line);background:var(--surface2);border-radius:14px;padding:.9em .6em;text-align:center}
+.flow button[aria-pressed=true]{background:var(--surface);border-color:var(--teal);box-shadow:var(--shadow)}
+.flow .dot{width:2.6em;height:2.6em;border-radius:50%;display:grid;place-items:center;margin:0 auto .4em;color:#fff;font-weight:700}
+
+/* footer */
+#foot{display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--surface);border-top:1px solid var(--line)}
+#dots{display:flex;gap:5px;flex:1;justify-content:center;flex-wrap:wrap}
+#dots button{width:10px;height:10px;border-radius:50%;border:0;padding:0;background:var(--line)}
+#dots button.cur{background:var(--amber-solid);transform:scale(1.35)}
+#dots button.seen{background:var(--teal)}
+#count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:48px;text-align:right}
+
+/* notes + overview */
+#notes{position:fixed;right:0;top:0;bottom:0;width:min(380px,92vw);background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--shadow);padding:16px;overflow:auto;transform:translateX(105%);transition:transform .2s;z-index:20;font-size:14px;line-height:1.5}
+#notes.open{transform:none}
+#notes h4{margin:0 0 6px;font-family:var(--head);font-size:18px}
+#notes pre{background:var(--surface2);color:var(--ink);white-space:pre-wrap;font-family:var(--body);font-size:14px;padding:10px}
+#overview{position:fixed;inset:0;background:rgba(8,17,29,.82);display:none;z-index:30;padding:24px;overflow:auto}
+#overview.open{display:block}
+#ovgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+#ovgrid button{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;font-size:13px}
+#ovgrid button.cur{border-color:var(--amber-solid)}
+#ovgrid small{display:block;color:var(--muted);margin-top:4px}
+.kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface2)}
+@media (max-width:760px){.tbody,.dbody,.row{flex-direction:column;display:flex}.path{grid-template-columns:1fr}.agenda{grid-template-columns:1fr}#bar .brand{display:none}}
+</style>
+</head>
+<body data-level="1">
+<div id="app">
+  <header id="bar">
+    <span class="brand">Agentforce: test it, ship it</span>
+    <div class="seg" id="lvseg" role="group" aria-label="Depth level">
+      <button data-l="1" aria-pressed="true">Beginner</button>
+      <button data-l="2" aria-pressed="false">Intermediate</button>
+      <button data-l="3" aria-pressed="false">Advanced</button>
+    </div>
+    <div id="clock" title="Press T to start or pause">
+      <button class="play" id="playbtn" aria-label="Start timer">&#9654;</button>
+      <div class="t" id="tleft">60:00</div>
+      <div class="s">Section left<br><b id="sleft">3:00</b></div>
+      <div id="pace"></div>
+    </div>
+    <div class="tools">
+      <button class="ibtn" id="resetbtn" title="Reset timer">Reset</button>
+      <button class="ibtn" id="notesbtn" aria-pressed="false" title="Presenter notes (N)">Notes</button>
+      <button class="ibtn" id="ovbtn" title="All slides (G)">Slides</button>
+      <button class="ibtn" id="themebtn" title="Light or dark">Theme</button>
+      <button class="ibtn" id="fsbtn" title="Fullscreen (F)">Full</button>
+    </div>
+  </header>
+  <nav id="strip" aria-label="Time plan"></nav>
+  <main id="wrap"><div id="stage">
+
+  <!-- 0 Title -->
+  <section class="slide" data-sec="intro" data-title="Agentforce: test it, ship it">
+    <div class="hero">
+      <div>
+        <h1>Agentforce:<br>test it, ship it</h1>
+        <p class="lede" style="margin-top:.6em">Testing and deployment for new joiners. Every topic climbs from beginner to advanced, and every topic has a demo you can touch.</p>
+      </div>
+      <div class="climb" aria-hidden="true"><div class="c1">Beginner</div><div class="c2">Intermediate</div><div class="c3">Advanced</div></div>
+      <div class="row" style="align-items:center">
+        <button class="btn go" id="starthero">Start the clock and begin</button>
+        <span class="tag">Arrow keys move. <span class="kbd">T</span> timer, <span class="kbd">N</span> notes, <span class="kbd">L</span> level, <span class="kbd">G</span> all slides.</span>
+      </div>
+    </div>
+    <div class="pnotes">[0:00-0:01] Welcome.
+Pre-flight: nothing to install. All demos in this deck are simulated and run in the page, so they work offline. For your real-org segments, have a sandbox with an active agent, Testing Center access, VS Code authorised, and a repo with CI secrets, plus a short recording of each real demo as backup.
+Say: "By the end you will know how we check that an agent behaves and how we move it safely to production. Pick your altitude with the Beginner / Intermediate / Advanced switch at the top; every slide changes with it."</div>
+  </section>
+
+  <!-- 1 Path -->
+  <section class="slide" data-sec="intro" data-title="The hour and the climb">
+    <h2>The hour and the climb</h2>
+    <p class="sub">Choose how deep to go. The switch at the top changes every topic slide and unlocks extra controls in the demos.</p>
+    <div class="path" id="path">
+      <button class="lv" data-l="1"><h3>Beginner</h3><p>What it is, why it matters, and the one thing to try.</p></button>
+      <button class="lv" data-l="2"><h3>Intermediate</h3><p>How you actually do it, with real file formats and commands.</p></button>
+      <button class="lv" data-l="3"><h3>Advanced</h3><p>Scale, flakiness, gates and pitfalls that bite in production.</p></button>
+    </div>
+    <div class="agenda" id="agenda"></div>
+    <div class="pnotes">[0:01-0:02] Explain the two controls: the level switch and the timer. Click any agenda row to jump. The timeline strip under the header shows the planned minutes per section and fills as you go; it turns red if a section runs over.
+Tip: for a mixed audience, stay on Beginner for the talking and flip to Advanced only when someone asks "what about at scale?".</div>
+  </section>
+
+  <!-- 2 Why -->
+  <section class="slide" data-sec="intro" data-title="Agents aren't Apex">
+    <h2>Agents aren't Apex</h2>
+    <p class="sub">Ask the same question five times and compare two kinds of test.</p>
+    <div class="row" style="margin-top:1em;flex:1;min-height:0">
+      <div class="col panel"><h3>Apex test</h3><p class="tag">Fixed input, fixed output</p><div id="whyApex" style="margin-top:.6em;font-size:.88em"></div></div>
+      <div class="col panel"><h3>Agent test</h3><p class="tag">Free-form input, varied wording</p><div id="whyAgent" style="margin-top:.6em;font-size:.88em"></div></div>
+    </div>
+    <div class="row" style="margin-top:.8em;align-items:center"><button class="btn go" id="whyBtn">Ask 5 times</button><span id="whyMsg" class="tag"></span></div>
+    <div class="pnotes">[0:02-0:03] Click "Ask 5 times". The Apex column always matches. The agent column changes wording each time, so an exact-match check fails even when the answer is right, while a key-fact check passes. This is why agent tests check topic, action and key facts, and why we repeat tests.</div>
+  </section>
+
+  <!-- 3 Ladder -->
+  <section class="slide" data-sec="intro" data-title="Four ways to test">
+    <h2>Four ways to test, one ladder</h2>
+    <p class="sub">Click a rung to jump to it. Each rung catches what the one below misses.</p>
+    <div class="ladder">
+      <button style="background:var(--navy);height:45%" data-jump="manual"><b>1 Manual</b><span>Explore and debug in minutes</span></button>
+      <button style="background:var(--indigo);height:62%" data-jump="batch"><b>2 Batch</b><span>A regression suite of hundreds</span></button>
+      <button style="background:var(--teal);height:80%" data-jump="py"><b>3 Automated</b><span>Runs on every change</span></button>
+      <button style="background:var(--green);height:100%" data-jump="multi"><b>4 Multi-turn</b><span>Full conversations and personas</span></button>
+    </div>
+    <div class="pnotes">[0:02-0:03] Map for Part 1. Manual is fastest. Every bug you find becomes a row in a suite. A script runs that suite on every change. Because real users hold conversations, the top rung tests multi-turn dialogues.</div>
+  </section>
+
+  <!-- topic slides -->
+  <section class="slide topic" data-topic="manual" data-sec="manual"></section>
+
+  <!-- DEMO 1 -->
+  <section class="slide" data-sec="manual" data-title="Demo 1: Preview and trace">
+    <div class="dhead"><h2>Demo 1: Preview and trace</h2><span class="live">Live demo</span><span class="sim">Simulated agent, runs in this page</span></div>
+    <div class="toggles">
+      <label class="chk"><input type="checkbox" data-cfg="guardrail"> Guardrail: refuse off-topic requests</label>
+      <label class="chk" data-min="2"><input type="checkbox" data-cfg="formal"> Formal tone instruction</label>
+      <button class="btn sm" id="d1clear">Clear chat</button>
+    </div>
+    <div class="dbody">
+      <div class="chat">
+        <div class="msgs" id="d1msgs"></div>
+        <div class="chips" id="d1chips"></div>
+        <div class="inrow"><input id="d1in" placeholder="Type as a customer..." aria-label="Message"><button class="btn pri" id="d1send">Send</button></div>
+      </div>
+      <div class="col panel trace" id="d1trace"><b>Trace</b><p class="tag" style="margin-top:.3em">Send a message to see which topic and action the agent chose.</p></div>
+    </div>
+    <div class="pnotes">[0:08-0:12] DEMO 1 (4 min)
+1. Click "Where is my order 1001?" and read the trace: topic, action, input, output.
+2. Click "Give me a stock tip": see the guardrail decline.
+3. Untick the guardrail and ask again: the agent now answers off-topic. That is a bug you'd want a test for.
+4. (Intermediate) Tick the formal tone and re-ask the first question.
+5. (Advanced) Ask "when will it arrive?" after an order question: see context carry over. Then explain permission and input-mapping checks you'd do in the real Builder trace.
+Say: "We will turn these conversations into test rows next."
+Real-org version: do the same in Agentforce Builder preview. Backup: your recording.</div>
+  </section>
+
+  <section class="slide topic" data-topic="batch" data-sec="batch"></section>
+
+  <!-- DEMO 2 -->
+  <section class="slide" data-sec="batch" data-title="Demo 2: Run a CSV suite">
+    <div class="dhead"><h2>Demo 2: Run a CSV suite</h2><span class="live">Live demo</span><span class="sim">Simulated Testing Center</span></div>
+    <div class="toggles">
+      <label class="chk"><input type="checkbox" data-cfg="guardrail"> Guardrail: refuse off-topic requests</label>
+      <button class="btn go" id="d2run">Run suite</button>
+      <button class="btn sm" id="d2add" data-min="2">Add row</button>
+      <button class="btn sm" id="d2csv" data-min="2" aria-pressed="false">View as CSV</button>
+      <span id="d2sum" class="tag"></span>
+    </div>
+    <div class="scroll" style="flex:1" id="d2wrap"></div>
+    <div class="pnotes">[0:14-0:19] DEMO 2 (5 min)
+1. Untick the guardrail first (simulates a bad edit). Click Run suite: the stock-tip row fails.
+2. Tick the guardrail, run again: all green. Point at the run history line.
+3. (Intermediate) Edit a row, add a row, and click View as CSV to show what you would upload.
+4. (Advanced) Discuss comparing runs, custom evaluations, and keeping a golden set.
+Real-org version: Agentforce Studio > Testing Center > New test > upload CSV > Run. Backup: a finished run.</div>
+  </section>
+
+  <section class="slide topic" data-topic="py" data-sec="py"></section>
+
+  <!-- DEMO 3 -->
+  <section class="slide" data-sec="py" data-title="Demo 3: YAML runner">
+    <div class="dhead"><h2>Demo 3: Run it headless</h2><span class="live">Live demo</span><span class="sim">Simulated runner. Edit the YAML.</span></div>
+    <div class="toggles">
+      <label class="chk"><input type="checkbox" data-cfg="guardrail"> Guardrail: refuse off-topic requests</label>
+      <button class="btn go" id="d3run">Run tests</button>
+      <label class="chk" data-min="3">Runs per case <select id="d3runs"><option>1</option><option selected>5</option><option>10</option></select></label>
+      <label class="chk" data-min="3"><input type="checkbox" data-cfg="noise"> Non-deterministic agent</label>
+    </div>
+    <div class="dbody">
+      <textarea class="ed col" id="d3yaml" spellcheck="false" aria-label="YAML test file"></textarea>
+      <div class="col" style="display:flex;flex-direction:column"><div class="term" id="d3out"><span class="dim">Press Run tests.</span></div></div>
+    </div>
+    <div class="pnotes">[0:21-0:26] DEMO 3 (4-5 min)
+1. Read the YAML aloud; it is plain English.
+2. Run: all pass. Untick the guardrail and run: the guardrail case fails, exit code 1.
+3. (Advanced) Tick "Non-deterministic agent", set runs to 5 or 10, and run a few times. The runner passes a case at 80% of runs, so a 1-in-4 random slip no longer breaks the build. Raise the point: a flaky result is information about the agent.
+Real-org version: python run_agent_tests.py --suite tests/order_agent.yml. Never show tokens on screen.</div>
+  </section>
+
+  <section class="slide topic" data-topic="multi" data-sec="multi"></section>
+
+  <!-- DEMO 4 -->
+  <section class="slide" data-sec="multi" data-title="Demo 4: Conversation testing">
+    <div class="dhead"><h2>Demo 4: Conversation testing</h2><span class="live">Live demo</span><span class="sim">Simulated agent and tester</span></div>
+    <div class="toggles">
+      <label class="chk"><input type="checkbox" data-cfg="memory"> Agent remembers earlier turns</label>
+      <select id="d4sc" aria-label="Scenario"></select>
+      <button class="btn go" id="d4run">Run scenario</button>
+      <span data-min="3" class="row" style="gap:.4em;align-items:center">
+        <select id="d4persona" aria-label="Persona"><option value="frustrated">Frustrated customer</option><option value="nonnative">Non-native speaker</option><option value="distracted">Distracted user</option></select>
+        <button class="btn warn" id="d4sim">Simulate persona</button>
+      </span>
+    </div>
+    <div class="scroll" id="d4out" style="flex:1"><p class="tag">Pick a scenario and run it. Then turn memory off and run it again.</p></div>
+    <div class="pnotes">[0:28-0:33] DEMO 4 (5 min)
+1. Run "Remember my name" with memory on: both turns pass. Turn memory off, run again: the second turn fails. That is exactly what a conversation test catches.
+2. Run "Order follow-up" the same way.
+3. (Advanced) Simulate a persona. Note the turns-to-resolution: the distracted user needs three turns.
+Real-org version: show Giuseppe's Conversation Testing Center running a scripted scenario turn by turn, then the persona option in Testing Center. Swap the narration in once you have the real UI in front of you. Backup: recording.</div>
+  </section>
+
+  <section class="slide topic" data-topic="meta" data-sec="meta"></section>
+
+  <!-- DEMO 5 metadata -->
+  <section class="slide" data-sec="meta" data-title="Demo 5: Build a deployment package">
+    <div class="dhead"><h2>Demo: Build a deployment package</h2><span class="live">Interactive</span><span class="sim">Simplified dependency model</span></div>
+    <div class="toggles">
+      <button class="btn" id="d5only">Select only the agent</button>
+      <button class="btn" id="d5deps">Add its dependencies</button>
+      <button class="btn go" id="d5go">Deploy to UAT</button>
+    </div>
+    <div class="dbody">
+      <div class="col"><div class="comps" id="d5comps"></div>
+        <div data-min="3" class="panel" style="margin-top:.7em;font-size:.85em"><b>Target org pre-flight</b><br>
+          <label class="chk"><input type="checkbox" id="pf1" checked> Named credential exists in UAT</label><br>
+          <label class="chk"><input type="checkbox" id="pf2" checked> Permission set assigned to the agent user</label><br>
+          <label class="chk"><input type="checkbox" id="pf3" checked> Knowledge and data loaded in UAT</label></div></div>
+      <div class="col panel scroll" id="d5out"><b>Result</b><p class="tag" style="margin-top:.3em">Choose components, then deploy.</p></div>
+    </div>
+    <div class="pnotes">[0:33-0:38] Metadata demo (about 2 min inside the 5).
+1. Click "Select only the agent" then Deploy: validation errors name every missing dependency.
+2. Click "Add its dependencies" then Deploy: success.
+3. (Advanced) Untick a pre-flight item and deploy again: metadata deploys but the agent still cannot work. Metadata is not the whole environment.
+The model is simplified for teaching; confirm real type names by retrieving your own agent.</div>
+  </section>
+
+  <section class="slide topic" data-topic="ide" data-sec="ide"></section>
+
+  <!-- DEMO 6 IDE -->
+  <section class="slide" data-sec="ide" data-title="Demo 6: Edit and diff in the IDE">
+    <div class="dhead"><h2>Demo: Edit and diff</h2><span class="live">Interactive</span><span class="sim">Simulated VS Code panel</span></div>
+    <div class="dbody">
+      <div class="panel tree" id="d6tree"></div>
+      <div class="col" style="display:flex;flex-direction:column;gap:.6em;min-height:0">
+        <div class="tag" id="d6file">genAiPlugins/Order_Topic.genAiPlugin-meta.xml (instructions)</div>
+        <textarea class="ed" id="d6ed" spellcheck="false" aria-label="Instruction editor"></textarea>
+        <div class="row" style="align-items:center"><b style="font-size:.9em">Source Control diff</b><span id="d6warn" class="tag"></span><button class="btn sm" id="d6commit" data-min="2" style="margin-left:auto">Commit</button></div>
+        <div class="diff" id="d6diff" style="max-height:30%"></div>
+        <div id="d6log" data-min="2" class="tag"></div>
+      </div>
+    </div>
+    <div class="pnotes">[0:38-0:42] IDE demo (2 min)
+1. Click through the folder tree to show what an agent looks like as files.
+2. Delete the last instruction line (the one that tells the agent to decline). The diff shows it in red, and the warning appears. The other demos' guardrail switch follows this edit: go back to Demo 2 and run the suite to see it fail.
+3. (Intermediate) Click Commit to show the diff becoming history.
+Real-org version: VS Code Org Browser > retrieve the agent > edit > Source Control diff.</div>
+  </section>
+
+  <section class="slide topic" data-topic="cli" data-sec="cli"></section>
+
+  <!-- DEMO 7 CLI -->
+  <section class="slide" data-sec="cli" data-title="Demo 7: Retrieve, deploy, test">
+    <div class="dhead"><h2>Demo: Retrieve, deploy, test</h2><span class="live">Live demo</span><span class="sim">Simulated CLI output. Type or click.</span></div>
+    <div class="toggles">
+      <label class="chk"><input type="checkbox" data-cfg="guardrail"> Instruction guardrail is present</label>
+      <span class="chips" id="d7chips" style="margin:0"></span>
+    </div>
+    <div style="display:flex;flex-direction:column;flex:1;min-height:0"><div class="term" id="d7term"></div>
+      <div class="tin"><span class="ok">$</span><input id="d7in" autocomplete="off" spellcheck="false" aria-label="Terminal input" placeholder="type help"></div></div>
+    <div class="pnotes">[0:42-0:48] DEMO 7 (5-6 min)
+Click the chips in order, or type: 1 login, 2 retrieve, 3 git diff, 4 deploy, 5 agent test, 6 exit code.
+Story: untick the guardrail first. git diff shows the risky edit, deploy succeeds (deploys don't judge behaviour), but the agent test run fails with a non-zero exit code. This is why the test run is a pipeline gate.
+(Intermediate) --dry-run. (Advanced) validate then quick deploy.
+Real-org version: run the same four commands against a sandbox alias. Check flags with --help for your CLI version. Backup: pre-run terminal log.</div>
+  </section>
+
+  <section class="slide topic" data-topic="cicd" data-sec="cicd"></section>
+
+  <!-- DEMO 8 CI -->
+  <section class="slide" data-sec="cicd" data-title="Demo 8: Run the pipeline">
+    <div class="dhead"><h2>Demo: Run the pipeline</h2><span class="live">Interactive</span><span class="sim">Simulated pipeline</span></div>
+    <div class="toggles">
+      <div class="seg" id="d8tabs"><button data-p="gh" aria-pressed="true">GitHub Actions</button><button data-p="bb" aria-pressed="false">Bitbucket</button><button data-p="az" aria-pressed="false">Azure DevOps</button></div>
+      <label class="chk"><input type="checkbox" data-cfg="guardrail"> Instruction guardrail is present</label>
+      <button class="btn go" id="d8run">Run pipeline</button>
+    </div>
+    <div class="toggles" data-min="3">
+      <label class="chk">Agent pass-rate gate <input type="range" id="d8gate" min="60" max="100" step="20" value="100"> <b id="d8gv">100%</b></label>
+      <label class="chk"><input type="checkbox" id="d8appr"> Require production approval</label>
+    </div>
+    <div class="stages" id="d8stages"></div>
+    <div id="d8msg" class="panel" style="font-size:.9em;margin-bottom:.6em">Press Run pipeline.</div>
+    <pre id="d8code" style="flex:1;min-height:5em"></pre>
+    <div class="pnotes">[0:46-0:52] DEMO 8 (about 3 min)
+1. Run the pipeline with the guardrail on: every stage goes green and promotion happens.
+2. Untick the guardrail and run: Agent tests fails and Promote is skipped. "Merge blocked."
+3. Switch the tab: the YAML changes, the five stages do not.
+4. (Advanced) Lower the gate to 80% and rerun with the guardrail off: the 80% pass rate now clears the gate. Discuss whether that is acceptable. Then add the approval requirement.
+Auth note: the auth URL lives in the platform's secret store, never in the repo.</div>
+  </section>
+
+  <section class="slide topic" data-topic="partner" data-sec="partner"></section>
+
+  <!-- DEMO 9 partner -->
+  <section class="slide" data-sec="partner" data-title="Demo 9: Which tool fits?">
+    <div class="dhead"><h2>Demo: Which tool fits your team?</h2><span class="live">Interactive</span><span class="sim">Rule of thumb, not a verdict</span></div>
+    <div class="toggles">
+      <label class="chk">Team <select id="d9team"><option value="dev">Developers only</option><option value="mixed" selected>Admins and developers</option><option value="ent">Large, regulated</option></select></label>
+      <label class="chk">Budget <select id="d9bud"><option value="low">Minimal</option><option value="mid" selected>Moderate</option><option value="high">Flexible</option></select></label>
+      <label class="chk">Releases <select id="d9rel"><option value="rare">Occasional</option><option value="weekly" selected>Weekly</option><option value="daily">Daily</option></select></label>
+    </div>
+    <div class="dbody"><div class="col" id="d9out"></div>
+      <div class="col panel" data-min="3" style="font-size:.88em"><b>Ask every vendor</b><ul style="margin:.4em 0 0;padding-left:1.1em;display:flex;flex-direction:column;gap:.3em">
+        <li>Do you support the agent metadata types today? Show me a deployment.</li><li>Can I run my own CLI test job as a pipeline step?</li><li>Does a failing agent test block promotion?</li><li>What is the audit trail and rollback story?</li><li>What does exit look like if we leave?</li></ul></div></div>
+    <div class="pnotes">[0:54-0:58] Change the three selectors and watch the ranking move. Message: no tool wins everywhere. Code-first teams do well with CLI plus CI. Mixed teams gain from a UI. Regulated enterprises need audit and approvals. Verify each vendor's current agent-metadata support before committing; this area moves quickly.</div>
+  </section>
+
+  <!-- wrap flow -->
+  <section class="slide" data-sec="wrap" data-title="The whole flow">
+    <h2>The whole flow, end to end</h2>
+    <p class="sub">Click a step to see what happens and which tool does it.</p>
+    <div class="flow" id="flow"></div>
+    <div class="panel" id="flowdetail" style="margin-top:1em;flex:1;font-size:1.05em"></div>
+    <div class="pnotes">[0:56-0:58] Recap. A change starts in Builder or the IDE. You preview, then run batch and conversation suites. A pull request triggers the automated tests, which gate the merge. Only a green run deploys. After release, nightly runs keep watching, and every production surprise becomes a new test case.</div>
+  </section>
+
+  <!-- closing -->
+  <section class="slide" data-sec="wrap" data-title="Takeaways and Q&A">
+    <div class="hero">
+      <h1>Takeaways<br>and Q&amp;A</h1>
+      <div class="row" style="flex-wrap:wrap">
+        <div class="panel col" style="min-width:12em"><h3>Test at four levels</h3><p class="tag" style="margin-top:.3em">Manual, batch, automated, multi-turn.</p></div>
+        <div class="panel col" style="min-width:12em"><h3>Treat the agent as metadata</h3><p class="tag" style="margin-top:.3em">Version it, review it, deploy it with its dependencies.</p></div>
+        <div class="panel col" style="min-width:12em"><h3>Let the pipeline say no</h3><p class="tag" style="margin-top:.3em">A failing agent test blocks the release.</p></div>
+      </div>
+      <p class="lede" style="font-size:1.05em">Homework: build a five-row suite for a sample agent, retrieve it into VS Code and change one line, then deploy to your sandbox and run the tests.</p>
+    </div>
+    <div class="pnotes">[0:58-1:00 plus Q&A] Three takeaways, then the homework. If you ran short on time, say which demos people can repeat on their own in the sandbox. If time runs long during the session, drop the partner demo to a 30-second slide and keep Demos 2, 3 and the CLI demo.</div>
+  </section>
+
+  </div></main>
+  <footer id="foot">
+    <button class="ibtn" id="prev" aria-label="Previous slide">&#9664; Back</button>
+    <div id="dots"></div>
+    <span id="count"></span>
+    <button class="ibtn" id="next" aria-label="Next slide">Next &#9654;</button>
+  </footer>
+</div>
+<aside id="notes" aria-label="Presenter notes"><h4 id="ntitle"></h4><pre id="nbody"></pre><p class="tag">Level: <span id="nlvl"></span></p></aside>
+<div id="overview"><div id="ovgrid"></div></div>
+
+<script>
+"use strict";
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* =========================================================
+   Simulated agent (shared by every demo)
+   ========================================================= */
+const cfg={guardrail:true,formal:false,memory:true,noise:false};
+const ORDERS={1001:{s:'shipped',d:'Nov 9'},1002:{s:'processing',d:'Nov 14'},1003:{s:'delivered',d:'Nov 2'}};
+function classify(u){
+  const l=u.toLowerCase();
+  if(/\b(return|refund|exchange|send back)\b/.test(l)) return 'Returns';
+  if(/\b(order|ordr|track|ship|shipping|deliver|delivery|arrive|parcel|package)\b/.test(l)) return 'Order_Status';
+  if(/my name|\bhello\b|\bhi\b|\bhey\b|thank/.test(l)) return 'General_Help';
+  return 'Off_Topic';
+}
+function agentReply(u,hist=[],o={}){
+  let topic=classify(u), l=u.toLowerCase(), action='none', input='', reply='', reason='Matched '+topic+' by intent keywords', meta={};
+  const lastOrder=cfg.memory?[...hist].reverse().map(h=>h.meta&&h.meta.order).find(Boolean):null;
+  if(topic==='Order_Status'){
+    const num=(u.match(/\b(\d{4})\b/)||[])[1]||lastOrder;
+    if(!num){reply='Happy to check. What is your order number?';reason='Order number missing, so the agent asks for it'}
+    else{action='Get_Order_Status';input='orderNumber='+num;const od=ORDERS[num];
+      reply=od?`Order ${num} is ${od.s}. ${od.s==='delivered'?'Delivered':'Expected'} ${od.d}.`:`I couldn't find order ${num}.`;meta.order=num;
+      if(!(u.match(/\b(\d{4})\b/)||[])[1])reason='Order number taken from earlier in the conversation'}
+  }else if(topic==='Returns'){
+    action='Start_Return';input='reason=customer request';reply='I can start a return for you. Which item would you like to send back?';
+  }else if(topic==='General_Help'){
+    const names=cfg.memory?hist.filter(h=>h.role==='user').map(h=>(h.msg.match(/my name is (\w+)/i)||[])[1]).filter(Boolean):[];
+    const now=(u.match(/my name is (\w+)/i)||[])[1];
+    if(/what('?s| is) my name/i.test(u)){const n=names[names.length-1];reply=n?`Your name is ${n}.`:"I don't have your name yet. What should I call you?";reason=n?'Name found in conversation history':'No name in context'}
+    else if(now)reply=`Hi ${now}! How can I help with orders or returns?`;
+    else if(/thank/.test(l))reply="You're welcome!";
+    else reply='Hi! How can I help with orders or returns?';
+  }else{
+    if(cfg.guardrail){reply="I can help with orders and returns, so I can't help with that.";reason='Out of scope. Guardrail instruction applied'}
+    else{topic='General_Chat';reply='Sure! A solid tip: diversify your portfolio.';reason='No instruction limits scope, so the agent answers anything'}
+  }
+  if(o.noise&&Math.random()<0.25&&topic!=='Off_Topic'){topic=topic==='Order_Status'?'Returns':'Order_Status';action=topic==='Returns'?'Start_Return':'Get_Order_Status';reply='Let me help with that.';reason='Misrouted (simulated randomness)'}
+  if(cfg.formal&&topic!=='Off_Topic')reply='Certainly. '+reply;
+  return{topic,action,input,reply,reason,meta};
+}
+function judge(c,out){
+  const t=!c.t||out.topic===c.t;
+  const a=!c.a||((c.a==='none'||c.a==='(none)')?out.action==='none':out.action===c.a);
+  const terms=(c.r||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  const r=terms.every(x=>out.reply.toLowerCase().includes(x));
+  return{t,a,r,pass:t&&a&&r};
+}
+const ROWS=[
+  {u:'Where is my order 1001?',t:'Order_Status',a:'Get_Order_Status',r:'shipped'},
+  {u:'Track order 1002 please',t:'Order_Status',a:'Get_Order_Status',r:'processing'},
+  {u:'I want to return a shirt',t:'Returns',a:'Start_Return',r:'return'},
+  {u:'wheres my ordr 1003',t:'Order_Status',a:'Get_Order_Status',r:'delivered'},
+  {u:'Give me a stock tip',t:'Off_Topic',a:'none',r:"can't help"},
+];
+function suiteRate(){let p=0;ROWS.forEach(r=>{if(judge(r,agentReply(r.u,[])).pass)p++});return{p,n:ROWS.length,pct:Math.round(100*p/ROWS.length)}}
+
+/* shared toggles */
+function syncCfg(){$$('[data-cfg]').forEach(i=>{i.checked=!!cfg[i.dataset.cfg]})}
+document.addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.cfg;if(k){cfg[k]=e.target.checked;syncCfg()}});
+
+/* =========================================================
+   Topic content: beginner -> advanced
+   ========================================================= */
+const LV=['Beginner','Intermediate','Advanced'];
+const TOPICS={
+manual:{title:'Manual testing in Agent Builder preview',sub:'The fastest feedback loop, and the weakest memory',
+ notes:'[0:06-0:08] Concept, 2 min. Beginner: what preview is. Intermediate: read the trace. Advanced: debugger habits. Then go to Demo 1.',
+ lv:[
+ {h:'Chat with your agent like a customer would',p:['Open the agent in Agentforce Builder and use the preview panel','Type a normal question, then an off-topic one','Read the reply: is it right, polite and on topic?','Do this after every instruction edit'],tip:'Try one happy path and one question the agent should refuse.'},
+ {h:'Read the trace, not just the answer',p:['Check which topic the agent picked and why','Check each action: inputs sent and outputs returned','Rephrase the same question: typos, short, rambling','Preview with realistic context: the same data and user a customer would have'],tip:'When a reply is wrong, find the first wrong step in the trace.'},
+ {h:'Use preview as a debugger, then capture what you learn',p:['Wrong topic? Look for overlapping topic descriptions and classification instructions','Action failing? Check input mapping and the permissions of the agent\'s running user','Compare traces before and after an instruction change','Turn every failing conversation into a batch row or a YAML case'],tip:'A bug found by hand and not captured will come back.'}]},
+batch:{title:'Batch testing with Testing Center and a CSV',sub:'One file, many questions, one pass/fail grid',
+ notes:'[0:12-0:14] Concept, 2 min, then Demo 2. For the CSV format, always tell people to download the current template from their org.',
+ lv:[
+ {h:'A spreadsheet of questions and what you expect',p:['Each row: what the customer says, the topic and action you expect, what the reply should say','Upload the CSV to Testing Center and run it','Get a pass/fail grid in one click','Re-run after every change'],tip:'Start with ten rows. Add one row per bug.'},
+ {h:'Design the suite, then read the results',p:['Aim for 5 to 20 tests per topic','Mix happy paths, edge cases (typos, missing info) and negatives that must be refused','Read results per metric: topic, action, response','Compare runs to see what an edit fixed or broke'],
+  code:'Utterance,Expected Topic,Expected Actions,Expected Response\nWhere is my order 1001?,Order_Status,"[""Get_Order_Status""]",Mentions shipped\nGive me a stock tip,Off_Topic,,Politely declines',tip:'Download the current CSV template from your org. Headers can change.'},
+ {h:'Treat the suite as code and keep it trustworthy',p:['Store test definitions in Git (they are metadata) and deploy them with the agent','Use custom evaluations: string checks, numeric limits such as latency, or your own scorer','Generate extra cases with AI, then review them like code','Run suites in sandboxes: batches use capacity and can fire real actions'],tip:'Keep a small golden set that must always pass, plus a wider exploratory set.'}]},
+py:{title:'Automated testing with Python and YAML',sub:'Same idea as the CSV, run by a robot',
+ notes:'[0:19-0:21] Concept, 2 min, then Demo 3. The YAML schema is a teaching example; the Salesforce CLI also has its own YAML test-spec format worth mentioning.',
+ lv:[
+ {h:'Write tests as plain text and let a script run them',p:['A YAML file lists questions and expected results','A Python script sends each question to the agent','The script prints PASS or FAIL for each case','Anyone can read the test file, even without coding'],tip:'Read the YAML aloud. It should sound like a sentence.'},
+ {h:'Build a small runner you can trust',p:['Parse the YAML, then open an agent session through the Agent API or call the CLI test commands','Assert on topic, action and key facts rather than exact wording','Exit with a non-zero code when anything fails','Run locally first, then in CI on every pull request'],
+  code:'- id: off_topic_guardrail\n  utterance: "Give me a stock tip"\n  expect:\n    topic: Off_Topic\n    response_not_contains: ["portfolio"]',tip:'Keep credentials in environment variables, never in the repo.'},
+ {h:'Handle non-determinism and scale the suite',p:['Run each case N times and pass at a threshold, such as 4 of 5','Tag cases: smoke (every PR) and full (nightly)','Emit JUnit reports so CI dashboards show trends','Track pass rate over time to spot drift after platform or model updates','Test Flows and Apex separately: agent tests prove selection, not execution'],
+  code:'for case in suite["cases"]:\n    wins = sum(run_once(case) for _ in range(N))\n    ok = wins >= K          # tolerate randomness\n    results.append((case["id"], wins, N, ok))\nsys.exit(0 if all(r[3] for r in results) else 1)',tip:'A test that flips between pass and fail is information about the agent, not noise.'}]},
+multi:{title:'Multi-turn conversation testing',sub:'Do they remember? Do they recover?',
+ notes:'[0:26-0:28] Concept, 2 min, then Demo 4. Use Giuseppe\'s Conversation Testing Center for the Advanced beat, and describe its real features once you have confirmed them.',
+ lv:[
+ {h:'Real chats have more than one message',p:['Customers give their name, then ask follow-ups','A good agent remembers what was said earlier','Test a short conversation, not just one question','Example: say your name, then ask "what\'s my name?"'],tip:'If the agent forgets the name, the test fails.'},
+ {h:'Replay conversations turn by turn',p:['Testing Center takes a Conversation History column: earlier turns go in, the next reply is checked','The last message in the history must be from the agent','Script scenarios: greet, give details, ask a follow-up, change your mind','Assert memory and context carry-over, not only correctness'],
+  code:'Conversation History,Utterance,Expected Response\n"[{""role"":""user"",""message"":""hello, my name is alex""},{""role"":""agent"",""message"":""Hi Alex! How can I assist you today?""}]",What\'s my name?,Alex',tip:'Build scenarios from real transcripts once you have them, with personal details removed.'},
+ {h:'Simulate people, not scripts',p:['Persona tests simulate a frustrated customer, a non-native speaker or a distracted user and score task resolution','Giuseppe\'s Conversation Testing Center adds scripted multi-turn scenarios with turn-by-turn results','Probe the hard cases: topic switches, interruptions, escalation and hand-off to a human','Keep a regression library of real failed conversations, anonymised'],tip:'Measure turns to resolution, not just whether the last answer was right.'}]},
+meta:{title:'Deployment starts with metadata',sub:'An agent is a bundle of components, not one thing',
+ notes:'[0:33-0:38] 5 min including the dependency demo. Type names evolve with API versions: retrieve your agent first and adjust.',
+ lv:[
+ {h:'Moving an agent means moving its files',p:['The agent is described by metadata components','Change sets can move them by hand','Source files in Git can move them repeatably','Everything the agent calls must move with it'],tip:'Think of moving house: the boxes must arrive together.'},
+ {h:'Know the bundle and its dependencies',p:['Agent: Bot, BotVersion, GenAiPlannerBundle','Capabilities: GenAiPlugin (topics), GenAiFunction (actions), GenAiPromptTemplate','Behind actions: Flows and Apex classes','Access: permission sets for the agent user','Tests: AiEvaluationDefinition'],tip:'Retrieve your agent once and read the folder names. Type names evolve with API versions.'},
+ {h:'Plan for environments, not just files',p:['Org-specific settings (named credentials, endpoints) belong in environment config','Knowledge and Data Cloud content are data, not metadata: plan loading separately','Deploy a new agent version, then activate it deliberately','Group components into packages or deployment units with a clear owner','Include destructive changes so removed topics do not linger'],tip:'Write a pre-flight checklist for each target org.'}]},
+ide:{title:'The IDE: VS Code for agent source',sub:'Retrieve, read, edit, diff, deploy',
+ notes:'[0:38-0:42] 4 min including the diff demo.',
+ lv:[
+ {h:'Your editor for Salesforce files',p:['Install VS Code and the Salesforce Extension Pack','Connect it to a sandbox','Retrieve the agent into a project folder','Change a file and deploy it back'],tip:'Everything you can click in Builder is also text on your disk.'},
+ {h:'Source control makes changes reviewable',p:['Org Browser: pick metadata and retrieve it','Use Source Control to see a diff before each commit','Right-click a file or folder to deploy it to the org','Review instruction changes like prose in a pull request'],tip:'A one-word instruction change can change behaviour. Make the diff visible.'},
+ {h:'Make the workflow hard to get wrong',p:['A dev sandbox or scratch org per feature, with source tracking','A .forceignore file to keep noise out of the repo','Pre-commit hooks for formatting and XML validation','PR templates that require a test run','Shared editor settings so the whole team behaves the same'],tip:'Goal: a new joiner\'s first commit looks like everyone else\'s.'}]},
+cli:{title:'Salesforce CLI',sub:'The engine under the IDE and every pipeline',
+ notes:'[0:42-0:48] Concept 2 min, then the CLI demo. Check flags with --help for the CLI version in use.',
+ lv:[
+ {h:'Four commands do most of the work',p:['Log in to an org with an alias','Retrieve metadata into your project','Deploy metadata to a target org','Run the agent test suite'],
+  code:'sf org login web --alias uat\nsf project retrieve start --metadata Bot:Order_Agent\nsf project deploy start --source-dir force-app --target-org uat\nsf agent test run --api-name Order_Tests --wait 10 --target-org uat',tip:'If you can do it in the CLI, you can automate it.'},
+ {h:'Choose how you select what to deploy',p:['--metadata for named components, --source-dir for folders, a manifest for exact lists','--dry-run checks a deploy without changing the org','Aliases make commands read like sentences','Exit codes tell scripts whether to continue'],
+  code:'sf project deploy start \\\n  --source-dir force-app \\\n  --target-org uat --dry-run',tip:'Run --help. The agent commands change often.'},
+ {h:'Script it for pipelines',p:['Validate first, then quick-deploy the validated package','Use --json output for scripts and dashboards','Authenticate without a browser: JWT or a stored auth URL','Pin the CLI version for repeatable runs','Deploy only what changed using a delta tool'],
+  code:'sf project deploy validate \\\n  --source-dir force-app --target-org prod\nsf project deploy quick --job-id <id> \\\n  --target-org prod',tip:'Pipelines should fail loudly and early.'}]},
+cicd:{title:'CI/CD pipelines',sub:'GitHub Actions, Bitbucket Pipelines, Azure DevOps',
+ notes:'[0:46-0:52] 6 min including the pipeline demo.',
+ lv:[
+ {h:'A robot that runs your steps whenever code changes',p:['You push code or open a pull request','The pipeline installs tools, deploys and tests','Red means stop, green means go','GitHub, Bitbucket and Azure DevOps all do this'],tip:'Same idea in all three. Only the file syntax differs.'},
+ {h:'Same five steps everywhere',p:['Install CLI, authenticate, deploy, test the agent, promote','Authenticate with a secret from the platform\'s secret store','Deploy to a CI sandbox on every pull request','A failing agent test fails the build and blocks the merge'],
+  code:'# .github/workflows/agent.yml\non: pull_request\njobs:\n  agent-tests:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npm i -g @salesforce/cli',tip:'Never commit credentials. Use the secret store.'},
+ {h:'Gates, environments and drift',p:['Map branches to orgs: feature, integration, UAT, production','Require approvals for production with environments','Set a quality gate on agent pass rate and Apex coverage','Run a nightly job to catch drift when no code changed','Publish JUnit results and keep a rollback plan'],
+  code:'deploy-prod:\n  needs: agent-tests\n  environment: production   # needs approval\n  if: github.ref == \'refs/heads/main\'',tip:'Nightly runs matter: behaviour can shift without a code change.'}]},
+partner:{title:'Partner DevOps tools',sub:'Gearset, Copado, DevOps Center and others',
+ notes:'[0:52-0:56] 4 min including the recommender. Verify current agent-metadata support with each vendor before the session.',
+ lv:[
+ {h:'Tools that put a screen on top of deployments',p:['Compare two orgs and see what differs','Click to deploy instead of writing scripts','Good for teams with admins who do not code','Examples: Gearset, Copado, Flosum, AutoRABIT and Salesforce DevOps Center'],tip:'The goal is the same as a pipeline: safe, repeatable promotion.'},
+ {h:'What you get beyond a script',p:['Visual comparison, pipelines and promotion paths','Approvals, audit trail and rollbacks','Backups and monitoring in some products','Work item tracking tied to changes'],tip:'Ask whether you can still run your own test jobs inside the tool.'},
+ {h:'Choose with evidence',p:['Confirm support for agent metadata types and for running agent tests','Check how scripted CLI steps plug in as pipeline steps','Weigh compliance needs, total cost and lock-in','Pilot on one team and one agent, then decide','Many teams go hybrid: partner tool for promotion, CLI jobs for tests'],tip:'Run a real agent deployment during the trial, not a demo org.'}]}
+};
+
+let L=1;
+function renderTopic(sec){
+  const T=TOPICS[sec.dataset.topic], d=T.lv[L-1];
+  sec.dataset.title=T.title;
+  sec.innerHTML=`<div class="thead"><div><h2>${esc(T.title)}</h2><p class="sub">${esc(T.sub)}</p></div>
+    <div class="seg tabs" role="group" aria-label="Level">${LV.map((n,i)=>`<button data-l="${i+1}" aria-pressed="${L===i+1}">${n}</button>`).join('')}</div></div>
+    <div class="tbody lv-${L}"><div class="tleft"><div class="row" style="align-items:center;gap:.6em"><span class="meter" aria-hidden="true"><i></i><i></i><i></i></span><span class="chip ${['g','i','a'][L-1]}">${LV[L-1]}</span></div>
+      <h3 style="margin-top:.5em">${esc(d.h)}</h3><ul>${d.p.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+      ${L<3?`<button class="btn nextlvl" data-l="${L+1}">Go deeper: ${LV[L]}</button>`:''}</div>
+      <div class="tright">${d.code?`<pre>${esc(d.code)}</pre>`:''}<div class="try"><b>Try this</b>${esc(d.tip)}</div></div></div>
+    <div class="pnotes">${esc(T.notes)}</div>`;
+}
+function renderAllTopics(){$$('.slide.topic').forEach(renderTopic)}
+
+/* =========================================================
+   Deck engine: stage scaling, navigation, level, timer
+   ========================================================= */
+const SECS=[{id:'intro',n:'Intro',m:3},{id:'manual',n:'Manual',m:6},{id:'batch',n:'Batch',m:8},{id:'py',n:'Python+YAML',m:7},{id:'multi',n:'Multi-turn',m:7},{id:'meta',n:'Metadata',m:5},{id:'ide',n:'IDE',m:4},{id:'cli',n:'CLI',m:6},{id:'cicd',n:'CI/CD',m:6},{id:'partner',n:'Partners',m:4},{id:'wrap',n:'Wrap-up',m:4}];
+let planned=0;SECS.forEach(s=>{s.start=planned*60;planned+=s.m});
+const TOTAL=planned*60;
+const T={running:false,el:0,last:0,sec:{},entry:{}};
+let slides=[],cur=0,seen=new Set();
+
+function fit(){
+  const w=$('#wrap'),st=$('#stage'),pw=w.clientWidth-20,ph=w.clientHeight-20;
+  const W=Math.max(300,Math.min(pw,ph*16/9)),H=W*9/16;
+  st.style.width=W+'px';st.style.height=H+'px';st.style.fontSize=(W/62)+'px';
+  if(pw<760){st.style.height=ph+'px';st.style.fontSize=Math.max(11,pw/34)+'px'}
+}
+addEventListener('resize',fit);
+
+function secOf(i){return slides[i].dataset.sec}
+function firstSlideOf(id){return slides.findIndex(s=>s.dataset.sec===id)}
+function go(i){
+  i=Math.max(0,Math.min(slides.length-1,i));
+  slides[cur].classList.remove('active');
+  const prevSec=secOf(cur);cur=i;slides[cur].classList.add('active');slides[cur].scrollTop=0;
+  seen.add(cur);
+  const s=secOf(cur);
+  if(T.running&&T.entry[s]===undefined)T.entry[s]=T.el;
+  updateNav();updateNotes();tick(true);
+}
+function updateNav(){
+  $('#count').textContent=(cur+1)+' / '+slides.length;
+  $$('#dots button').forEach((b,i)=>{b.className=(i===cur?'cur':seen.has(i)?'seen':'')});
+  $('#prev').disabled=cur===0;$('#next').disabled=cur===slides.length-1;
+}
+function updateNotes(){
+  $('#ntitle').textContent=slides[cur].dataset.title||'';
+  $('#nbody').textContent=($('.pnotes',slides[cur])||{}).textContent||'No notes.';
+  $('#nlvl').textContent=LV[L-1];
+}
+function setLevel(n){
+  L=n;document.body.dataset.level=n;
+  $$('#lvseg button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.l===n)));
+  $$('#path .lv').forEach(b=>b.classList.toggle('on',+b.dataset.l===n));
+  renderAllTopics();updateNotes();
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-l]');
+  if(b&&(b.closest('#lvseg')||b.closest('.tabs')||b.classList.contains('nextlvl')||b.closest('#path'))){setLevel(+b.dataset.l)}
+  const j=e.target.closest('[data-jump]');if(j)go(firstSlideOf(j.dataset.jump));
+});
+
+/* timer */
+const fmt=s=>{const a=Math.abs(Math.round(s));return (s<0?'+':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0')};
+function tick(force){
+  const now=performance.now();
+  if(T.running){const dt=(now-T.last)/1000;T.last=now;T.el+=dt;const s=secOf(cur);T.sec[s]=(T.sec[s]||0)+dt}
+  const sec=SECS.find(x=>x.id===secOf(cur)),used=T.sec[sec.id]||0,left=sec.m*60-used;
+  $('#tleft').textContent=fmt(TOTAL-T.el);
+  $('#sleft').textContent=fmt(left);
+  const c=$('#clock');c.classList.toggle('over',TOTAL-T.el<0||left<0);c.classList.toggle('warn',left>=0&&left<60&&T.running);
+  const pace=$('#pace');
+  if(T.entry[sec.id]!==undefined){const d=T.entry[sec.id]-sec.start+Math.max(0,used-sec.m*60);
+    if(Math.abs(d)<20){pace.textContent='On pace';pace.className=''}
+    else if(d>0){pace.textContent='Behind '+fmt(d);pace.className='behind'}
+    else{pace.textContent='Ahead '+fmt(-d);pace.className='ahead'}}
+  else{pace.textContent='';pace.className=''}
+  $$('#strip button').forEach(b=>{const s=SECS.find(x=>x.id===b.dataset.s),u=T.sec[s.id]||0;
+    b.querySelector('.fill').style.width=Math.min(100,100*u/(s.m*60))+'%';
+    b.classList.toggle('cur',s.id===sec.id);b.classList.toggle('over',u>s.m*60)});
+}
+function toggleTimer(){
+  T.running=!T.running;T.last=performance.now();
+  $('#playbtn').innerHTML=T.running?'&#10074;&#10074;':'&#9654;';
+  $('#playbtn').setAttribute('aria-label',T.running?'Pause timer':'Start timer');
+  if(T.running&&T.entry[secOf(cur)]===undefined)T.entry[secOf(cur)]=T.el;
+  tick();
+}
+function resetTimer(){T.running=false;T.el=0;T.sec={};T.entry={};$('#playbtn').innerHTML='&#9654;';tick()}
+setInterval(()=>tick(),250);
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''))){if(e.key==='Escape')e.target.blur();return}
+  const k=e.key;
+  if(k==='ArrowRight'||k==='PageDown'||k===' '){e.preventDefault();go(cur+1)}
+  else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();go(cur-1)}
+  else if(k==='Home')go(0);else if(k==='End')go(slides.length-1);
+  else if(k==='t'||k==='T')toggleTimer();
+  else if(k==='n'||k==='N')toggleNotes();
+  else if(k==='g'||k==='G')toggleOverview();
+  else if(k==='l'||k==='L')setLevel(L%3+1);
+  else if(k==='f'||k==='F')fullscreen();
+  else if(k==='Escape'){$('#overview').classList.remove('open')}
+});
+function toggleNotes(){const o=$('#notes').classList.toggle('open');$('#notesbtn').setAttribute('aria-pressed',String(o))}
+function toggleOverview(){
+  const ov=$('#overview'),open=ov.classList.toggle('open');
+  if(open){$('#ovgrid').innerHTML=slides.map((s,i)=>`<button data-i="${i}" class="${i===cur?'cur':''}"><b>${i+1}. ${esc(s.dataset.title||'')}</b><small>${esc(SECS.find(x=>x.id===s.dataset.sec).n)}</small></button>`).join('')}
+}
+$('#ovgrid').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(b){$('#overview').classList.remove('open');go(+b.dataset.i)}});
+$('#overview').addEventListener('click',e=>{if(e.target.id==='overview')$('#overview').classList.remove('open')});
+function fullscreen(){const d=document;if(d.fullscreenElement)d.exitFullscreen();else d.documentElement.requestFullscreen&&d.documentElement.requestFullscreen().catch(()=>{})}
+$('#playbtn').onclick=toggleTimer;$('#resetbtn').onclick=resetTimer;$('#notesbtn').onclick=toggleNotes;$('#ovbtn').onclick=toggleOverview;$('#fsbtn').onclick=fullscreen;
+$('#prev').onclick=()=>go(cur-1);$('#next').onclick=()=>go(cur+1);
+$('#themebtn').onclick=()=>{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark'};
+$('#starthero').onclick=()=>{if(!T.running)toggleTimer();go(1)};
+
+/* =========================================================
+   Intro interactives
+   ========================================================= */
+$('#agenda').innerHTML=SECS.map(s=>`<button data-jump="${s.id}"><span>${esc(s.n)}</span><b>${s.m} min</b></button>`).join('');
+$('#whyBtn').onclick=()=>{
+  const V=['Your order 1001 has shipped and should arrive Nov 9.','Good news: order 1001 is on its way, arriving Nov 9.','Order 1001 shipped! Expect it around Nov 9.','It\'s shipped. Delivery is expected on Nov 9.','1001 has left our warehouse. Arrival: Nov 9.'];
+  let a='',g='',exact=0,fact=0;
+  for(let i=0;i<5;i++){
+    a+=`<div style="padding:.25em 0"><code>assertEquals("shipped", status)</code> <span class="badge pass">PASS</span></div>`;
+    const t=V[Math.floor(Math.random()*V.length)],ex=t===V[0],fk=/Nov 9/.test(t);if(ex)exact++;if(fk)fact++;
+    g+=`<div style="padding:.25em 0">"${esc(t)}"<br><span class="badge ${ex?'pass':'fail'}">exact match</span> <span class="badge ${fk?'pass':'fail'}">key fact</span></div>`;
+  }
+  $('#whyApex').innerHTML=a;$('#whyAgent').innerHTML=g;
+  $('#whyMsg').textContent=`Exact match passed ${exact} of 5. Key-fact check passed ${fact} of 5. Same agent, same question.`;
+};
+$('#whyApex').innerHTML='<span class="tag">Press the button.</span>';$('#whyAgent').innerHTML='<span class="tag">Press the button.</span>';
+
+/* =========================================================
+   Demo 1: preview
+   ========================================================= */
+const d1={hist:[]};
+const D1Q=['Where is my order 1001?','Give me a stock tip','I want to return a shirt','when will it arrive?'];
+$('#d1chips').innerHTML=D1Q.map(q=>`<button>${esc(q)}</button>`).join('');
+function d1render(out){
+  $('#d1msgs').innerHTML=d1.hist.map(h=>`<div class="msg ${h.role==='user'?'u':'a'}">${esc(h.msg)}</div>`).join('')||'<span class="tag">Say hello to the agent.</span>';
+  const m=$('#d1msgs');m.scrollTop=m.scrollHeight;
+  if(!out)return;
+  const bad=out.topic==='General_Chat';
+  $('#d1trace').innerHTML=`<b>Trace</b>
+   <div class="tstep ${bad?'warn':''}"><span class="n">1</span><div>Topic selected: <code>${esc(out.topic)}</code>${bad?'<br><b class="bad">Out of scope. A test would catch this.</b>':''}</div></div>
+   <div class="tstep"><span class="n">2</span><div>Action: <code>${esc(out.action)}</code>${out.input?'<br>Input: <code>'+esc(out.input)+'</code>':''}</div></div>
+   <div class="tstep"><span class="n">3</span><div>Why: ${esc(out.reason)}</div></div>
+   <div class="tstep"><span class="n">4</span><div>Reply: ${esc(out.reply)}</div></div>
+   <div data-min="3" style="margin-top:.5em"><pre>${esc(JSON.stringify({topic:out.topic,action:out.action,input:out.input,reply:out.reply},null,2))}</pre></div>`;
+}
+function d1send(t){t=t.trim();if(!t)return;const out=agentReply(t,d1.hist);d1.hist.push({role:'user',msg:t},{role:'agent',msg:out.reply,meta:out.meta});d1render(out);$('#d1in').value=''}
+$('#d1chips').onclick=e=>{if(e.target.tagName==='BUTTON')d1send(e.target.textContent)};
+$('#d1send').onclick=()=>d1send($('#d1in').value);
+$('#d1in').addEventListener('keydown',e=>{if(e.key==='Enter')d1send(e.target.value)});
+$('#d1clear').onclick=()=>{d1.hist=[];d1render();$('#d1trace').innerHTML='<b>Trace</b><p class="tag" style="margin-top:.3em">Send a message to see which topic and action the agent chose.</p>'};
+d1render();
+
+/* =========================================================
+   Demo 2: batch CSV
+   ========================================================= */
+let d2rows=ROWS.map(r=>({...r})),d2res=[],d2hist=[],d2csv=false;
+function d2render(){
+  const w=$('#d2wrap');
+  if(d2csv){
+    const csv='Utterance,Expected Topic,Expected Actions,Expected Response\n'+d2rows.map(r=>[r.u,r.t,r.a==='none'?'':`"[""${r.a}""]"`,r.r].map(x=>/,/.test(x)&&x[0]!=='"'?`"${x}"`:x).join(',')).join('\n');
+    w.innerHTML=`<pre>${esc(csv)}</pre>`;return;
+  }
+  w.innerHTML=`<table><thead><tr><th>Utterance</th><th>Expected Topic</th><th>Expected Action</th><th>Response contains</th><th>Topic</th><th>Action</th><th>Response</th></tr></thead><tbody>${
+   d2rows.map((r,i)=>{const x=d2res[i];const b=(k)=>x?`<span class="badge ${x[k]?'pass':'fail'}">${x[k]?'pass':'fail'}</span>`:'<span class="badge skip">-</span>';
+    return `<tr><td><input data-i="${i}" data-k="u" value="${esc(r.u)}"></td><td><input data-i="${i}" data-k="t" value="${esc(r.t)}"></td><td><input data-i="${i}" data-k="a" value="${esc(r.a)}"></td><td><input data-i="${i}" data-k="r" value="${esc(r.r)}"></td><td>${b('t')}</td><td>${b('a')}</td><td>${b('r')}</td></tr>`}).join('')}</tbody></table>`;
+  $$('input',w).forEach(inp=>inp.oninput=()=>{d2rows[+inp.dataset.i][inp.dataset.k]=inp.value});
+}
+$('#d2run').onclick=()=>{
+  d2res=d2rows.map(r=>judge(r,agentReply(r.u,[])));
+  const p=d2res.filter(x=>x.pass).length;d2hist.push(p);
+  const prev=d2hist.length>1?d2hist[d2hist.length-2]:null;
+  const delta=prev===null?'':(p>prev?` (+${p-prev} vs previous run)`:p<prev?` (${p-prev} vs previous run)`:' (same as previous run)');
+  $('#d2sum').innerHTML=`<b class="${p===d2rows.length?'ok':'bad'}">Run ${d2hist.length}: ${p}/${d2rows.length} passed</b>${delta}`;
+  d2render();
+};
+$('#d2add').onclick=()=>{d2rows.push({u:'',t:'Order_Status',a:'Get_Order_Status',r:''});d2res=[];d2render()};
+$('#d2csv').onclick=e=>{d2csv=!d2csv;e.target.setAttribute('aria-pressed',String(d2csv));e.target.textContent=d2csv?'Back to table':'View as CSV';d2render()};
+d2render();
+
+/* =========================================================
+   Demo 3: YAML runner
+   ========================================================= */
+$('#d3yaml').value=`suite: order-agent
+cases:
+  - id: order_status_happy
+    utterance: "Where is order 1001?"
+    expect:
+      topic: Order_Status
+      action: Get_Order_Status
+      response_contains: ["shipped"]
+
+  - id: return_flow
+    utterance: "I want to return a shirt"
+    expect:
+      topic: Returns
+      action: Start_Return
+
+  - id: off_topic_guardrail
+    utterance: "Give me a stock tip"
+    expect:
+      topic: Off_Topic
+      response_not_contains: ["portfolio"]
+`;
+function parseYaml(txt){
+  const cases=[];let c=null;
+  const list=s=>s.split(',').map(x=>x.trim().replace(/^["']|["']$/g,'')).filter(Boolean);
+  txt.split('\n').forEach(line=>{
+    let m;
+    if((m=line.match(/^\s*-\s*id:\s*(.+?)\s*$/))){c={id:m[1],u:'',t:'',a:'',has:[],not:[]};cases.push(c)}
+    else if(c&&(m=line.match(/^\s*utterance:\s*"?(.*?)"?\s*$/)))c.u=m[1];
+    else if(c&&(m=line.match(/^\s*topic:\s*(\S+)/)))c.t=m[1];
+    else if(c&&(m=line.match(/^\s*action:\s*(\S+)/)))c.a=m[1];
+    else if(c&&(m=line.match(/^\s*response_contains:\s*\[(.*)\]/)))c.has=list(m[1]);
+    else if(c&&(m=line.match(/^\s*response_not_contains:\s*\[(.*)\]/)))c.not=list(m[1]);
+  });
+  return cases;
+}
+$('#d3run').onclick=async()=>{
+  const out=$('#d3out'),cases=parseYaml($('#d3yaml').value);
+  const N=L>=3?+$('#d3runs').value:1,K=Math.ceil(0.8*N);
+  const lines=[`<span class="p">$</span> python run_agent_tests.py --suite tests/order_agent.yml${L>=3?' --runs '+N:''}`];
+  if(!cases.length){out.innerHTML=lines[0]+'\n<span class="bad">No cases found. Check the YAML indentation.</span>\n<span class="dim">exit code: 2</span>';return}
+  let failed=0;
+  cases.forEach(c=>{
+    let wins=0,why='';
+    for(let i=0;i<N;i++){
+      const o=agentReply(c.u,[],{noise:cfg.noise&&L>=3}),r=o.reply.toLowerCase();
+      const okT=!c.t||o.topic===c.t,okA=!c.a||o.action===c.a,okH=c.has.every(x=>r.includes(x.toLowerCase())),okN=c.not.every(x=>!r.includes(x.toLowerCase()));
+      if(okT&&okA&&okH&&okN)wins++;else if(!why)why=!okT?`topic was ${o.topic}, expected ${c.t}`:!okA?`action was ${o.action}, expected ${c.a}`:!okH?'reply missing expected text':'reply contains forbidden text';
+    }
+    const ok=wins>=K;if(!ok)failed++;
+    lines.push(`${esc(c.id.padEnd(22,' '))} ${ok?'<span class="ok">PASS</span>':'<span class="bad">FAIL</span>'}  (${wins}/${N})${ok||!why?'':'  <span class="dim">'+esc(why)+'</span>'}`);
+  });
+  lines.push('');lines.push(`Summary: ${cases.length-failed} passed, ${failed} failed`);
+  lines.push(`<span class="dim">exit code: ${failed?1:0}</span>`);
+  out.innerHTML='';
+  for(const l of lines){out.innerHTML+=l+'\n';await sleep(140)}
+};
+
+/* =========================================================
+   Demo 4: conversation tests
+   ========================================================= */
+const SCEN={
+ name:{n:'Remember my name',t:[['hello, my name is Alex','alex'],["what's my name?",'alex']]},
+ order:{n:'Order follow-up',t:[['Where is order 1001?','shipped'],['when will it arrive?','nov 9']]},
+ mixed:{n:'Mixed intent',t:[['Where is order 1002?','processing'],['actually I want to return a shirt','return'],['thanks','welcome']]}
+};
+const PERSONA={
+ frustrated:['This is the THIRD time I ask! where is my order 1001??','ok and WHEN will it arrive','fine, thanks'],
+ nonnative:['Hello, I am looking my package, number 1001','It will arrive when day please?','Thank you very much'],
+ distracted:['hi','where is my stuff','wait, order 1001']
+};
+$('#d4sc').innerHTML=Object.entries(SCEN).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
+function transcript(turns,expects){
+  const hist=[];let html='';let resolved=0;
+  turns.forEach((u,i)=>{
+    const o=agentReply(u,hist);hist.push({role:'user',msg:u},{role:'agent',msg:o.reply,meta:o.meta});
+    const exp=expects?expects[i]:null;const ok=exp?o.reply.toLowerCase().includes(exp):null;
+    if(!resolved&&/nov 9/i.test(o.reply))resolved=i+1;
+    html+=`<div style="display:flex;gap:.6em;align-items:flex-start;padding:.35em 0;border-bottom:1px solid var(--line);font-size:.88em"><div style="flex:1"><b>Turn ${i+1}</b> Customer: ${esc(u)}<br><span class="dim">Agent (${esc(o.topic)}):</span> ${esc(o.reply)}${exp?`<br><span class="tag">expects "${esc(exp)}"</span>`:''}</div>${exp?`<span class="badge ${ok?'pass':'fail'}">${ok?'pass':'fail'}</span>`:''}</div>`;
+  });
+  return{html,resolved};
+}
+$('#d4run').onclick=()=>{const s=SCEN[$('#d4sc').value];const r=transcript(s.t.map(x=>x[0]),s.t.map(x=>x[1]));$('#d4out').innerHTML=`<b>${esc(s.n)}</b> <span class="tag">memory ${cfg.memory?'on':'off'}</span>${r.html}`};
+$('#d4sim').onclick=()=>{const p=$('#d4persona').value,r=transcript(PERSONA[p],null);
+  $('#d4out').innerHTML=`<b>Persona: ${esc($('#d4persona').selectedOptions[0].text)}</b>${r.html}<p style="margin-top:.6em"><span class="badge ${r.resolved?'pass':'fail'}">${r.resolved?'resolved':'not resolved'}</span> ${r.resolved?`Task resolved in <b>${r.resolved}</b> turn${r.resolved>1?'s':''}.`:'The customer never got the arrival date.'}</p>`};
+
+/* =========================================================
+   Demo 5: metadata package
+   ========================================================= */
+const COMPS=[
+ {id:'bot',t:'Bot',n:'Order_Agent',req:['planner','perm']},
+ {id:'planner',t:'GenAiPlannerBundle',n:'Order_Agent',req:['plugin']},
+ {id:'plugin',t:'GenAiPlugin',n:'Order_Topic',req:['func','tmpl']},
+ {id:'func',t:'GenAiFunction',n:'Get_Order_Status',req:['flow']},
+ {id:'flow',t:'Flow',n:'Get_Order_Status',req:[]},
+ {id:'tmpl',t:'GenAiPromptTemplate',n:'Order_Summary',req:[]},
+ {id:'perm',t:'PermissionSet',n:'Agent_Order_Access',req:[]},
+ {id:'eval',t:'AiEvaluationDefinition',n:'Order_Tests',req:['bot']}
+];
+const sel=new Set(['bot','planner','plugin','func','flow','tmpl','perm','eval']);
+function d5render(){
+  $('#d5comps').innerHTML=COMPS.map(c=>`<label class="comp"><input type="checkbox" data-id="${c.id}" ${sel.has(c.id)?'checked':''}><span><b>${c.t}</b><small>${c.n}</small></span></label>`).join('');
+  $$('#d5comps input').forEach(i=>i.onchange=()=>{i.checked?sel.add(i.dataset.id):sel.delete(i.dataset.id)});
+}
+const cname=id=>{const c=COMPS.find(x=>x.id===id);return c.t+' '+c.n};
+$('#d5only').onclick=()=>{sel.clear();sel.add('bot');d5render()};
+$('#d5deps').onclick=()=>{let ch=true;while(ch){ch=false;[...sel].forEach(id=>COMPS.find(c=>c.id===id).req.forEach(r=>{if(!sel.has(r)){sel.add(r);ch=true}}))}d5render()};
+$('#d5go').onclick=()=>{
+  const errs=[];[...sel].forEach(id=>COMPS.find(c=>c.id===id).req.forEach(r=>{if(!sel.has(r))errs.push(`${cname(id)} needs ${cname(r)}, which is not in the package.`)}));
+  const o=$('#d5out');
+  if(sel.size===0){o.innerHTML='<b>Result</b><p class="bad">Nothing selected.</p>';return}
+  if(errs.length){o.innerHTML=`<b class="bad">Deployment failed: ${errs.length} problem${errs.length>1?'s':''}</b><ul style="padding-left:1.1em">${errs.map(e=>`<li>${esc(e)}</li>`).join('')}</ul><p class="tag">Use "Add its dependencies" and try again.</p>`;return}
+  const post=[];if(L>=3){if(!$('#pf1').checked)post.push('Named credential missing in UAT: the Flow action will fail at run time.');if(!$('#pf2').checked)post.push('Agent user has no permission set: actions are denied.');if(!$('#pf3').checked)post.push('No knowledge or data in UAT: grounded answers come back empty.')}
+  o.innerHTML=`<b class="ok">Deployment succeeded: ${sel.size} components</b><p class="tag" style="margin-top:.3em">Next: activate the new agent version, then run the test suite.</p>${post.length?`<div class="panel" style="margin-top:.6em"><b class="bad">Metadata is not the whole environment</b><ul style="padding-left:1.1em">${post.map(e=>`<li>${esc(e)}</li>`).join('')}</ul></div>`:''}`;
+};
+d5render();
+
+/* =========================================================
+   Demo 6: IDE edit + diff
+   ========================================================= */
+const ORIG=`Help customers check order status and start returns.
+Always ask for the order number if it is missing.
+If a request is not about orders or returns, politely decline.`;
+const FILES=[['dir','force-app/main/default/'],['f','bots/Order_Agent'],['f','genAiPlannerBundles/Order_Agent'],['f','genAiPlugins/Order_Topic',1],['f','genAiFunctions/Get_Order_Status'],['f','genAiPromptTemplates/Order_Summary'],['f','flows/Get_Order_Status'],['f','permissionsets/Agent_Order_Access'],['f','aiEvaluationDefinitions/Order_Tests']];
+let d6log=[];
+function d6tree(on){$('#d6tree').innerHTML=FILES.map((f,i)=>f[0]==='dir'?`<div class="dir">${f[1]}</div>`:`<button data-i="${i}" class="${i===on?'on':''}">${f[1]}</button>`).join('')}
+d6tree(3);$('#d6ed').value=ORIG;
+$('#d6tree').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i,f=FILES[i];d6tree(i);
+  if(f[2]){$('#d6ed').value=ORIG;$('#d6ed').disabled=false;$('#d6file').textContent=f[1]+'.genAiPlugin-meta.xml (instructions)';d6diff()}
+  else{$('#d6ed').value='<!-- '+f[1]+' -->\n<!-- Simplified for this demo.\n     In a real project this file holds the\n     component definition as XML. -->';$('#d6ed').disabled=true;$('#d6file').textContent=f[1]+' (read only here)';$('#d6diff').textContent=''}};
+function lcsDiff(a,b){
+  const n=a.length,m=b.length,t=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)t[i][j]=a[i]===b[j]?t[i+1][j+1]+1:Math.max(t[i+1][j],t[i][j+1]);
+  const out=[];let i=0,j=0;
+  while(i<n&&j<m){if(a[i]===b[j]){out.push(['same',a[i]]);i++;j++}else if(t[i+1][j]>=t[i][j+1]){out.push(['del',a[i++]])}else out.push(['add',b[j++]])}
+  while(i<n)out.push(['del',a[i++]]);while(j<m)out.push(['add',b[j++]]);return out;
+}
+function d6diff(){
+  const txt=$('#d6ed').value,d=lcsDiff(ORIG.split('\n'),txt.split('\n'));
+  const changed=d.some(x=>x[0]!=='same');
+  $('#d6diff').innerHTML=changed?d.map(x=>`<span class="${x[0]}">${x[0]==='add'?'+ ':x[0]==='del'?'- ':'  '}${esc(x[1])}</span>`).join(''):'<span class="same">No changes</span>';
+  const g=/decline|refuse|can't help|cannot help/i.test(txt);cfg.guardrail=g;syncCfg();
+  $('#d6warn').innerHTML=g?'':'<b class="bad">Guardrail instruction missing. Your tests should fail.</b>';
+}
+$('#d6ed').oninput=d6diff;
+$('#d6commit').onclick=()=>{const txt=$('#d6ed').value;if(txt===ORIG){$('#d6log').textContent='Nothing to commit.';return}
+  d6log.push('Commit '+(d6log.length+1)+': update Order_Topic instructions');$('#d6log').innerHTML=d6log.map(esc).join('<br>')};
+d6diff();
+
+/* =========================================================
+   Demo 7: CLI terminal
+   ========================================================= */
+const cli={authed:false,deployed:false,exit:0,hist:[],hi:0,validated:false};
+const term=$('#d7term');
+const out=h=>{term.innerHTML+=h+'\n';term.scrollTop=term.scrollHeight};
+function banner(){term.innerHTML='<span class="dim">Simulated Salesforce CLI. Type help, or click the steps above.</span>\n'}
+function runCmd(raw){
+  const c=raw.trim();if(!c)return;
+  out(`<span class="p">$</span> ${esc(c)}`);cli.hist.push(c);cli.hi=cli.hist.length;
+  const need=()=>{if(!cli.authed){out('<span class="bad">Error: No authenticated org found. Run: sf org login web --alias uat</span>');cli.exit=1;return false}return true};
+  if(c==='help'){out('Try, in order:\n  sf org login web --alias uat\n  sf project retrieve start --metadata Bot:Order_Agent\n  git diff\n  sf project deploy start --source-dir force-app --target-org uat\n  sf agent test run --api-name Order_Tests --wait 10 --target-org uat\n  echo $?\n  clear')}
+  else if(c==='clear'){banner()}
+  else if(c==='echo $?'){out(String(cli.exit))}
+  else if(/^sf org login web/.test(c)){cli.authed=true;cli.exit=0;out('Successfully authorized test-user@example.com.uat with org ID 00D000000000001. Alias: uat')}
+  else if(/^sf project retrieve start/.test(c)){if(!need())return;cli.exit=0;out('<span class="ok">Retrieved 8 components</span>\n  Bot                    Order_Agent\n  GenAiPlannerBundle     Order_Agent\n  GenAiPlugin            Order_Topic\n  GenAiFunction          Get_Order_Status\n  GenAiPromptTemplate    Order_Summary\n  Flow                   Get_Order_Status\n  PermissionSet          Agent_Order_Access\n  AiEvaluationDefinition Order_Tests')}
+  else if(c==='git diff'){cli.exit=0;if(cfg.guardrail)out('<span class="dim">(no changes)</span>');else out('<span class="y">diff --git a/genAiPlugins/Order_Topic.genAiPlugin-meta.xml</span>\n<span class="bad">-If a request is not about orders or returns, politely decline.</span>')}
+  else if(/^sf project deploy validate/.test(c)){if(!need())return;cli.validated=true;cli.exit=0;out('<span class="ok">Validation succeeded.</span> Job ID: 0Af000000000001AAA\nDeploy it without re-running checks:\n  sf project deploy quick --job-id 0Af000000000001AAA --target-org uat')}
+  else if(/^sf project deploy quick/.test(c)){if(!need())return;if(!cli.validated){out('<span class="bad">Error: No validated deployment found. Run sf project deploy validate first.</span>');cli.exit=1;return}cli.deployed=true;cli.exit=0;out('<span class="ok">Quick deploy succeeded.</span> 8/8 components deployed.')}
+  else if(/^sf project deploy start/.test(c)){if(!need())return;cli.exit=0;if(/--dry-run/.test(c))out('<span class="ok">Dry run succeeded.</span> 8/8 components would deploy. Nothing changed in the org.');else{cli.deployed=true;out('Deploying to uat...\n<span class="ok">Status: Succeeded</span>  Components: 8/8\n<span class="dim">Deploys check that metadata is valid. They do not judge behaviour.</span>')}}
+  else if(/^sf agent test run/.test(c)){if(!need())return;
+    const rows=ROWS.map(r=>({r,j:judge(r,agentReply(r.u,[]))}));const f=rows.filter(x=>!x.j.pass).length;
+    out('Running Order_Tests...');
+    rows.forEach(x=>out(`${x.j.pass?'<span class="ok">PASS</span>':'<span class="bad">FAIL</span>'}  ${esc(x.r.u)}${x.j.pass?'':'  <span class="dim">topic '+(x.j.t?'ok':'wrong')+', action '+(x.j.a?'ok':'wrong')+', response '+(x.j.r?'ok':'wrong')+'</span>'}`));
+    out(`\n${rows.length-f} passed, ${f} failed`);cli.exit=f?1:0;
+    if(/--result-format json/.test(c)||L>=3&&/--json/.test(c))out(esc(JSON.stringify({status:f?'Failed':'Passed',passed:rows.length-f,failed:f})))}
+  else{out(`<span class="bad">command not found: ${esc(c.split(' ')[0])}</span>  <span class="dim">(type help)</span>`);cli.exit=127}
+}
+const STEPS=[['1 login','sf org login web --alias uat'],['2 retrieve','sf project retrieve start --metadata Bot:Order_Agent'],['3 git diff','git diff'],['4 deploy','sf project deploy start --source-dir force-app --target-org uat'],['5 agent test','sf agent test run --api-name Order_Tests --wait 10 --target-org uat'],['6 exit code','echo $?']];
+const STEPS2=[['dry run','sf project deploy start --source-dir force-app --target-org uat --dry-run'],['validate','sf project deploy validate --source-dir force-app --target-org uat'],['quick deploy','sf project deploy quick --job-id 0Af000000000001AAA --target-org uat'],['test (json)','sf agent test run --api-name Order_Tests --wait 10 --target-org uat --result-format json']];
+function d7chips(){$('#d7chips').innerHTML=STEPS.concat(L>=2?STEPS2:[]).map((s,i)=>`<button class="btn sm" data-c="${esc(s[1])}">${s[0]}</button>`).join('')}
+$('#d7chips').onclick=e=>{const b=e.target.closest('button');if(b)runCmd(b.dataset.c)};
+$('#d7in').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){runCmd(e.target.value);e.target.value=''}
+  else if(e.key==='ArrowUp'&&cli.hist.length){cli.hi=Math.max(0,cli.hi-1);e.target.value=cli.hist[cli.hi]||''}
+  else if(e.key==='ArrowDown'){cli.hi=Math.min(cli.hist.length,cli.hi+1);e.target.value=cli.hist[cli.hi]||''}
+});
+banner();d7chips();
+
+/* =========================================================
+   Demo 8: pipeline
+   ========================================================= */
+const PIPE={
+gh:`name: agent-ci
+on:
+  pull_request:
+  schedule:
+    - cron: "0 2 * * *"   # nightly
+jobs:
+  agent-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm i -g @salesforce/cli
+      - run: echo "$SFDX_URL" > auth.txt
+        env: { SFDX_URL: "\${{ secrets.SFDX_URL }}" }
+      - run: sf org login sfdx-url -f auth.txt -a ci
+      - run: sf project deploy start -o ci
+      - run: >
+          sf agent test run --api-name Order_Tests
+          --wait 10 --target-org ci`,
+bb:`# bitbucket-pipelines.yml
+image: node:20
+pipelines:
+  pull-requests:
+    '**':
+      - step:
+          name: Deploy and test agent
+          script:
+            - npm i -g @salesforce/cli
+            - echo "$SFDX_URL" > auth.txt
+            - sf org login sfdx-url -f auth.txt -a ci
+            - sf project deploy start -o ci
+            - sf agent test run --api-name Order_Tests --wait 10 --target-org ci`,
+az:`# azure-pipelines.yml
+trigger: none
+pr: [main]
+pool:
+  vmImage: ubuntu-latest
+steps:
+  - script: npm i -g @salesforce/cli
+  - script: echo "$(SFDX_URL)" > auth.txt
+  - script: sf org login sfdx-url -f auth.txt -a ci
+  - script: sf project deploy start -o ci
+  - script: sf agent test run --api-name Order_Tests --wait 10 --target-org ci
+    displayName: Run agent tests`};
+const STAGES=['Install CLI','Authenticate','Deploy','Agent tests','Promote'];
+let d8p='gh',d8busy=false;
+function d8draw(){
+  $('#d8stages').innerHTML=STAGES.map((s,i)=>`<div class="stage" id="st${i}">${s}<small></small></div>`).join('');
+  $('#d8code').textContent=PIPE[d8p];
+}
+$('#d8tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;d8p=b.dataset.p;$$('#d8tabs button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('#d8code').textContent=PIPE[d8p]};
+$('#d8gate').oninput=e=>{$('#d8gv').textContent=e.target.value+'%'};
+const st=(i,c,t)=>{const e=$('#st'+i);e.className='stage '+c;e.querySelector('small').textContent=t||''};
+$('#d8run').onclick=async()=>{
+  if(d8busy)return;d8busy=true;d8draw();const msg=$('#d8msg');msg.textContent='Pipeline running...';
+  for(let i=0;i<3;i++){st(i,'run','running');await sleep(450);st(i,'pass','ok')}
+  st(3,'run','running');await sleep(700);
+  const r=suiteRate(),gate=L>=3?+$('#d8gate').value:100;
+  if(r.pct<gate){st(3,'fail',r.pct+'% (need '+gate+'%)');st(4,'skip','skipped');
+    msg.innerHTML=`<b class="bad">Build failed.</b> Agent pass rate ${r.pct}% is below the ${gate}% gate. Promotion is skipped and the merge is blocked.`;d8busy=false;return}
+  st(3,'pass',r.pct+'%');
+  if(L>=3&&$('#d8appr').checked){st(4,'run','waiting for approval');msg.innerHTML='<b>Tests passed.</b> Production needs approval. <button class="btn warn sm" id="d8ok">Approve</button>';
+    await new Promise(res=>{$('#d8ok').onclick=res});}
+  st(4,'run','promoting');await sleep(450);st(4,'pass','done');
+  msg.innerHTML=`<b class="ok">Build passed.</b> Agent pass rate ${r.pct}%${gate<100?' (gate '+gate+'%)':''}. Changes promoted.`;d8busy=false;
+};
+d8draw();
+
+/* =========================================================
+   Demo 9: tool recommender
+   ========================================================= */
+const TOOLS=[
+ {n:'CLI plus a CI platform',base:0,sc:{team:{dev:3,mixed:0,ent:0},bud:{low:3,mid:1,high:0},rel:{rare:0,weekly:1,daily:2}},why:'Cheapest and most flexible. You own the scripts, so you can add agent test gates easily.'},
+ {n:'Salesforce DevOps Center',base:0,sc:{team:{dev:1,mixed:3,ent:0},bud:{low:3,mid:1,high:0},rel:{rare:2,weekly:1,daily:0}},why:'Native and free. Work items, branches and promotion in one UI. A good first step for mixed teams.'},
+ {n:'Gearset',base:0,sc:{team:{dev:1,mixed:3,ent:1},bud:{low:-1,mid:2,high:2},rel:{rare:0,weekly:2,daily:2}},why:'Visual compare and deploy with CI jobs. Fast to adopt, popular with mixed teams.'},
+ {n:'Copado',base:0,sc:{team:{dev:0,mixed:1,ent:4},bud:{low:-2,mid:1,high:3},rel:{rare:0,weekly:1,daily:2}},why:'Enterprise pipelines, approvals and compliance tracking. Built for larger, governed teams.'}
+];
+function d9(){
+  const t=$('#d9team').value,b=$('#d9bud').value,r=$('#d9rel').value;
+  const ranked=TOOLS.map(x=>({...x,s:x.sc.team[t]+x.sc.bud[b]+x.sc.rel[r]})).sort((a,b)=>b.s-a.s);
+  const max=Math.max(1,...ranked.map(x=>x.s));
+  $('#d9out').innerHTML=ranked.map((x,i)=>`<div class="panel" style="margin-bottom:.5em"><div class="row" style="align-items:center"><b>${i===0?'Best fit: ':''}${esc(x.n)}</b><span class="tag" style="margin-left:auto">fit ${x.s}</span></div>
+   <div style="height:.45em;border-radius:99px;background:var(--line);margin:.4em 0"><div style="height:100%;width:${Math.max(4,100*Math.max(0,x.s)/max)}%;border-radius:99px;background:${i===0?'var(--teal)':'var(--muted)'}"></div></div>
+   <p style="font-size:.85em">${esc(x.why)}</p></div>`).join('')+'<p class="tag">Check each product\'s current support for agent metadata and agent tests before choosing.</p>';
+}
+['d9team','d9bud','d9rel'].forEach(id=>$('#'+id).onchange=d9);d9();
+
+/* =========================================================
+   Wrap-up flow
+   ========================================================= */
+const FLOW=[
+ ['Build','Edit instructions in Agent Builder or in the IDE. Keep changes small.','#5f6f85','Builder, VS Code'],
+ ['Preview','Poke it by hand. Read the trace. Turn every surprise into a test.','#0a8f8f','Agent Builder preview'],
+ ['Batch','Run the CSV and conversation suites in a sandbox.','#0a8f8f','Testing Center, Giuseppe\'s tool'],
+ ['PR + CI','Open a pull request. The pipeline deploys to a CI sandbox and runs the YAML tests. Failures block the merge.','#0a8f8f','GitHub, Bitbucket or Azure DevOps'],
+ ['Deploy','Promote through UAT to production with approvals and the full dependency bundle.','#c97d00','CLI or a partner tool'],
+ ['Monitor','Nightly runs catch drift. Every production surprise becomes a new test case.','#5f6f85','Scheduled pipeline, Testing Center runs']
+];
+let flowI=0;
+function flowDraw(){
+  $('#flow').innerHTML=FLOW.map((f,i)=>`<button data-i="${i}" aria-pressed="${i===flowI}"><div class="dot" style="background:${f[2]}">${i+1}</div><b>${f[0]}</b></button>`).join('');
+  const f=FLOW[flowI];$('#flowdetail').innerHTML=`<h3>${esc(f[0])}</h3><p style="margin-top:.4em">${esc(f[1])}</p><p class="tag" style="margin-top:.6em">Tools: ${esc(f[3])}</p>`;
+}
+$('#flow').onclick=e=>{const b=e.target.closest('button');if(b){flowI=+b.dataset.i;flowDraw()}};
+flowDraw();
+
+/* =========================================================
+   Boot
+   ========================================================= */
+renderAllTopics();
+slides=$$('.slide');
+$('#strip').innerHTML=SECS.map(s=>`<button data-s="${s.id}" style="flex:${s.m}" title="${esc(s.n)}, ${s.m} min"><span class="fill"></span><span>${esc(s.n)} ${s.m}</span></button>`).join('');
+$('#strip').onclick=e=>{const b=e.target.closest('button');if(b)go(firstSlideOf(b.dataset.s))};
+$('#dots').innerHTML=slides.map((s,i)=>`<button aria-label="Slide ${i+1}: ${esc(s.dataset.title||'')}" title="${i+1}. ${esc(s.dataset.title||'')}"></button>`).join('');
+$('#dots').onclick=e=>{const b=e.target.closest('button');if(b)go([...$('#dots').children].indexOf(b))};
+syncCfg();setLevel(1);fit();go(0);
+</script>
+</body>
+</html>
