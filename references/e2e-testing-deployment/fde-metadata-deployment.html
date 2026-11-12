@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ship metadata, not surprises: Salesforce deployment for new FDEs</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#edf2f6; --surface:#ffffff; --surface2:#f4f7fa; --ink:#13283b; --muted:#52677a; --line:#cfd9e2;
+  --blue:#0b63c5; --b:#17855a; --i:#955700; --a:#6b46c1; --on:#ffffff;
+  --code-bg:#0f2233; --code-ink:#d6e6f5; --good:#17855a; --bad:#b3261e; --warn:#955700;
+  --accent:var(--b);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#0c1620; --surface:#13212e; --surface2:#182938; --ink:#e6eef5; --muted:#9ab0c2; --line:#26394a;
+    --blue:#5aa7f5; --b:#4cc38a; --i:#e3a33b; --a:#a58bf0; --on:#0c1620;
+    --code-bg:#07101a; --code-ink:#cfe0f0; --good:#4cc38a; --bad:#ff8a80; --warn:#e3a33b;
+  }
+}
+html[data-level="beginner"]{--accent:var(--b)}
+html[data-level="intermediate"]{--accent:var(--i)}
+html[data-level="advanced"]{--accent:var(--a)}
+*{box-sizing:border-box}
+html{font-size:17px}
+html.present{font-size:21px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:1.25rem}
+.top{display:flex;justify-content:space-between;gap:1rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.1rem}
+h1,h2{font-family:Charter,"Iowan Old Style","Palatino Linotype",Georgia,serif;letter-spacing:-.01em}
+h1{font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.06;margin:0 0 .35rem;max-width:16ch}
+.sub{margin:0;color:var(--muted);max-width:48ch}
+.tools{display:flex;gap:.5rem;flex-wrap:wrap}
+button{font:inherit;color:inherit}
+.btn{border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:.45rem .85rem;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem}
+.lvl{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:10px;padding:.7rem .9rem;cursor:pointer;border-left:9px solid var(--c)}
+.lvl strong{display:block;font-size:1.05rem}
+.lvl span.d{display:block;color:var(--muted);font-size:.85rem;margin:.1rem 0 .45rem}
+.lvl[aria-selected="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 11%,var(--surface))}
+.bar{display:block;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--c);transition:width .3s}
+.stage{display:grid;grid-template-columns:240px 1fr;gap:1rem;align-items:start}
+.rail{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.35rem;position:sticky;top:.75rem}
+.rail button{width:100%;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:.5rem .7rem;cursor:pointer;font-size:.92rem;display:flex;gap:.55rem;align-items:baseline}
+.rail button .n{font-weight:700;color:var(--accent);min-width:1.1rem}
+.rail button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--on)}
+.rail button[aria-current="true"] .n{color:var(--on)}
+.rail button.seen:not([aria-current="true"]){border-style:dashed}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.4rem;min-width:0}
+.panel h2{font-size:1.75rem;line-height:1.15;margin:0 0 .5rem}
+.lead{font-size:1.05rem;margin:.2rem 0 1rem;max-width:70ch}
+.callout{border-left:5px solid var(--accent);background:var(--surface2);padding:.7rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0}
+.callout b{color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem}
+.box{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:.8rem 1rem}
+.box h4{margin:0 0 .3rem;font-size:1rem}
+.box p{margin:.2rem 0;font-size:.93rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.5rem 0}
+.choice{border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:.4rem .75rem;cursor:pointer}
+.choice[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on);font-weight:600}
+.pill{display:inline-block;border-radius:999px;padding:.12rem .7rem;font-size:.85rem;font-weight:700;border:1.5px solid currentColor}
+.pill.good{color:var(--good)} .pill.bad{color:var(--bad)} .pill.warn{color:var(--warn)}
+pre.code,.term{background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:.85rem 1rem;overflow-x:auto;font:.84rem/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;margin:.6rem 0;white-space:pre}
+.term{min-height:9rem;max-height:22rem;overflow:auto}
+.term .p{color:#7fd1a8} .term .o{color:#9fb6c9}
+code{font:.88em ui-monospace,"SF Mono",Menlo,Consolas,monospace;background:var(--surface2);padding:.08rem .35rem;border-radius:4px}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border-bottom:1px solid var(--line);padding:.45rem .6rem;text-align:left;vertical-align:top}
+th{width:9.5rem;color:var(--muted);font-weight:600}
+.row{display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--line)}
+.row .fb{grid-column:1/-1;font-size:.9rem;color:var(--muted)}
+.row .fb.ok{color:var(--good)} .row .fb.no{color:var(--bad)}
+.row .btns{display:flex;gap:.35rem}
+input[type=text],input[type=number],select{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:6px;padding:.3rem .5rem;max-width:100%}
+input[type=range]{width:100%;accent-color:var(--accent)}
+label{cursor:pointer}
+.nav{display:flex;justify-content:space-between;gap:.6rem;margin-top:1.4rem;flex-wrap:wrap}
+details.notes{margin-top:1.1rem;border:1.5px dashed var(--line);border-radius:8px;padding:.5rem .9rem;color:var(--muted)}
+details.notes summary{cursor:pointer;font-weight:600;color:var(--ink)}
+.stages{display:flex;flex-direction:column;gap:.45rem;margin:.6rem 0}
+.st{display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:center;border:1.5px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--surface2)}
+.st.run{border-color:var(--blue)} .st.pass{border-color:var(--good)} .st.fail{border-color:var(--bad)}
+.st small{display:block;color:var(--muted)}
+dialog{border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);max-width:min(760px,94vw);padding:1.2rem}
+dialog::backdrop{background:rgba(5,12,20,.55)}
+.xml-add{display:grid;grid-template-columns:auto 11rem 1fr;gap:.5rem;align-items:center;padding:.3rem 0}
+@media (max-width:820px){
+  .stage{grid-template-columns:1fr}
+  .rail{flex-direction:row;overflow-x:auto;position:static;padding-bottom:.3rem}
+  .rail button{white-space:nowrap;width:auto}
+  .levels{grid-template-columns:1fr}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .xml-add{grid-template-columns:auto 1fr}
+  .xml-add input{grid-column:1/-1}
+  .panel{padding:1rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Ship metadata, not surprises</h1>
+      <p class="sub">Salesforce metadata deployment for new forward deployed engineers. Pick a level, then work through each module together.</p>
+    </div>
+    <div class="tools">
+      <button class="btn" id="btnCheat">Cheat sheet</button>
+      <button class="btn" id="btnPresent" aria-pressed="false">Presenter mode</button>
+    </div>
+  </header>
+
+  <div class="levels" role="tablist" aria-label="Level" id="levels"></div>
+
+  <div class="stage">
+    <ol class="rail" id="rail" aria-label="Modules"></ol>
+    <main class="panel" id="panel" tabindex="-1"></main>
+  </div>
+  <p class="sub" style="margin-top:1rem;font-size:.85rem">Keys: left and right arrows move between modules, 1 2 3 switch level, N toggles speaker notes, P toggles presenter mode. Sample names, IDs and emails are placeholders. Check current Salesforce docs for limits and API versions.</p>
+</div>
+
+<dialog id="cheat">
+  <h2 style="margin-top:0">Deployment cheat sheet</h2>
+  <pre class="code"><code># auth
+sf org login web --alias dev-sandbox
+sf org list
+
+# pull from an org
+sf project retrieve start --manifest manifest/package.xml --target-org dev-sandbox
+
+# check only (no changes saved)
+sf project deploy start --manifest manifest/package.xml --target-org uat --dry-run --test-level RunLocalTests
+sf project deploy validate --manifest manifest/package.xml --target-org prod --test-level RunLocalTests
+
+# real deploy
+sf project deploy start --manifest manifest/package.xml --target-org uat --test-level RunLocalTests
+sf project deploy start --source-dir force-app --target-org dev-sandbox
+
+# after validation passes (production, within 10 days)
+sf project deploy quick --job-id 0AfXXXXXXXXXXXX --target-org prod
+
+# status
+sf project deploy report --use-most-recent
+sf project deploy cancel --use-most-recent
+
+# deletions
+sf project deploy start --manifest manifest/package.xml --post-destructive-changes manifest/destructiveChangesPost.xml --target-org uat
+
+# build a manifest from source
+sf project generate manifest --source-dir force-app --name manifest/package.xml</code></pre>
+  <form method="dialog"><button class="btn primary">Close</button></form>
+</dialog>
+
+<script>
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function pick(root,sel,fn){ // single-select button group
+  const b=$$(sel,root);
+  b.forEach(x=>x.addEventListener('click',()=>{b.forEach(y=>y.setAttribute('aria-pressed','false'));x.setAttribute('aria-pressed','true');fn(x.dataset.k,x);}));
+  if(b[0]){b[0].click();}
+}
+
+/* ============================= BEGINNER ============================= */
+const beginner=[
+{
+ title:'Metadata or data?',
+ notes:'Ask the room for one example of each before clicking. The surprise item is custom metadata records: they look like data but travel as metadata. This distinction decides which tool you reach for on every task.',
+ render(){return `
+  <p class="lead">Metadata describes how an org behaves. Data is what users store in it. Deployments move metadata. Sort each item.</p>
+  <div id="sorter"></div>
+  <p id="score" class="lead" style="font-weight:600"></p>
+  <div class="callout"><b>Rule of thumb.</b> If it changes what the org can do, it is metadata. If it is a row someone typed or imported, it is data.</div>`},
+ init(r){
+  const items=[
+   ['Invoice__c object definition','m','The shape of the object. It deploys.'],
+   ['Invoice INV-0042 record','d','A business record. Move it with data tools, not a deploy.'],
+   ['AccountTrigger Apex trigger','m','Code is metadata.'],
+   ['Contact record for a customer','d','A row of data.'],
+   ['Opportunity page layout','m','UI configuration is metadata.'],
+   ['Validation rule on Case','m','Business rules are metadata.'],
+   ['An Amount of 48,000 on a deal','d','A field value is data.'],
+   ['Record-triggered flow','m','Automation is metadata.'],
+   ['Custom metadata record Tax_Rate.UK','m','Surprise: records of a custom metadata type deploy as metadata.']
+  ];
+  let right=0,done=0;
+  $('#sorter',r).innerHTML=items.map((it,i)=>`<div class="row" data-i="${i}"><span>${esc(it[0])}</span><span class="btns"><button class="choice" data-a="m">Metadata</button><button class="choice" data-a="d">Data</button></span><span class="fb"></span></div>`).join('');
+  $$('.row',r).forEach(row=>{
+   $$('button',row).forEach(b=>b.addEventListener('click',()=>{
+     if(row.dataset.done)return; row.dataset.done=1; done++;
+     const it=items[row.dataset.i],ok=b.dataset.a===it[1]; if(ok)right++;
+     const fb=$('.fb',row); fb.className='fb '+(ok?'ok':'no'); fb.textContent=(ok?'Correct. ':'Not quite. ')+it[2];
+     $$('button',row).forEach(x=>x.disabled=true);
+     if(done===items.length)$('#score',r).textContent=`You got ${right} of ${items.length}.`;
+   }));
+  });
+ }
+},
+{
+ title:'Where your metadata lives',
+ notes:'Walk left to right. Emphasize that Git is the source of truth, not production. Scratch orgs prove the repo is complete because they start empty.',
+ render(){return `
+  <p class="lead">Metadata moves through a chain of environments. Click each stop.</p>
+  <div class="chips" id="orgs"></div>
+  <div class="box" id="orginfo"></div>
+  <div class="callout"><b>Source of truth.</b> Version control holds the intended state. Orgs are places to run it. Never treat production as the master copy.</div>`},
+ init(r){
+  const o=[
+   ['Scratch org','Disposable, built from your repo with a definition file. Lives 7 days by default, up to 30. Starts empty, so it proves your source is complete.','Developers'],
+   ['Developer sandbox','Copy of production metadata with little or no data. Daily refresh. Where much build and break-fix work happens.','Developers and admins'],
+   ['Integration or QA','Usually a Developer Pro or Partial Copy sandbox where merged work meets other changes. Partial Copy refreshes every 5 days with a data sample.','Dev team and QA'],
+   ['UAT or staging','Often a Full sandbox: complete copy of production data and metadata. Refresh interval is 29 days. Best for final validation and performance checks.','Customer and QA'],
+   ['Production','Live users. Deploys with Apex need tests. Agree a window and an approver, and never edit directly.','Everyone, carefully']
+  ];
+  $('#orgs',r).innerHTML=o.map((x,i)=>`<button class="choice" data-k="${i}">${esc(x[0])}</button>`).join('');
+  pick(r,'#orgs .choice',k=>{const x=o[k];$('#orginfo',r).innerHTML=`<h4>${esc(x[0])}</h4><p>${esc(x[1])}</p><p><b>Typical users:</b> ${esc(x[2])}</p>`});
+ }
+},
+{
+ title:'Pick your tool',
+ notes:'Be honest that change sets still exist on customer projects. The goal is not to shame them, it is to know their limits: no Git, no deletions, no automation.',
+ render(){return `
+  <p class="lead">Several tools move metadata. All of them end up calling the Metadata API.</p>
+  <div class="chips" id="tools"></div>
+  <div class="box"><table id="tooltbl"></table></div>`},
+ init(r){
+  const t={
+   'Change sets':['Admins moving small config changes between connected orgs.','None. Changes live in the org.','Not supported.','Manual clicks, only between connected orgs, hard to repeat.'],
+   'Salesforce CLI and Git':['Source-driven teams. Scriptable and repeatable.','Yes.','Yes, with destructive change manifests.','You need to learn source format and manifests.'],
+   'Metadata API':['The engine under every tool. Used by integrations and older tooling.','Depends on the wrapper.','Yes.','You rarely call it directly.'],
+   'DevOps Center':['Mixed admin and developer teams that want a guided pipeline.','Yes, a Git provider sits behind it.','Check current support in docs.','Follow its pipeline and work-item model.'],
+   'Unlocked packages':['Modular, versioned releases across orgs.','Yes.','Handled through package versions.','Setup and dependency planning cost up front.']
+  };
+  $('#tools',r).innerHTML=Object.keys(t).map(k=>`<button class="choice" data-k="${esc(k)}">${esc(k)}</button>`).join('');
+  pick(r,'#tools .choice',k=>{const x=t[k];$('#tooltbl',r).innerHTML=`<tr><th>Best for</th><td>${esc(x[0])}</td></tr><tr><th>Version control</th><td>${esc(x[1])}</td></tr><tr><th>Deleting items</th><td>${esc(x[2])}</td></tr><tr><th>Watch out</th><td>${esc(x[3])}</td></tr>`});
+ }
+},
+{
+ title:'Build a package.xml',
+ notes:'Let someone in the room dictate which types to include. Show that the wildcard is convenient for retrieve but often avoided for deploy so each release is explicit.',
+ render(){return `
+  <p class="lead">A manifest lists what to retrieve or deploy. Tick types, edit members, and watch the file build.</p>
+  <div id="xmlrows"></div>
+  <div class="grid2" style="margin-top:.6rem">
+   <label>API version <input type="text" id="apiv" value="65.0" size="6"></label>
+   <label>Target org alias <input type="text" id="alias" value="uat" size="12"></label>
+  </div>
+  <pre class="code"><code id="xmlout"></code></pre>
+  <pre class="code"><code id="xmlcmd"></code></pre>
+  <div class="callout"><b>Tip.</b> A <code>*</code> member means all of that type. Handy for retrieves. For releases, list members by name so the diff is reviewable.</div>`},
+ init(r){
+  const T=[['ApexClass','DiscountService, DiscountServiceTest',1],['CustomObject','Invoice__c',1],['CustomField','Invoice__c.Region__c',1],['Flow','Quote_Approval',0],['Layout','Invoice__c-Invoice Layout',0],['PermissionSet','Billing_Admin',0],['LightningComponentBundle','invoiceSummary',0]];
+  $('#xmlrows',r).innerHTML=T.map((t,i)=>`<div class="xml-add"><input type="checkbox" id="c${i}" ${t[2]?'checked':''} aria-label="Include ${t[0]}"><label for="c${i}"><code>${t[0]}</code></label><input type="text" id="m${i}" value="${esc(t[1])}" aria-label="Members of ${t[0]}"></div>`).join('');
+  const upd=()=>{
+   let x='<?xml version="1.0" encoding="UTF-8"?>\n<Package xmlns="http://soap.sforce.com/2006/04/metadata">\n';
+   T.forEach((t,i)=>{ if(!$('#c'+i,r).checked)return;
+     const m=$('#m'+i,r).value.split(',').map(s=>s.trim()).filter(Boolean);
+     if(!m.length)return;
+     x+='    <types>\n'+m.map(n=>`        <members>${esc(n)}</members>\n`).join('')+`        <name>${t[0]}</name>\n    </types>\n`;});
+   x+=`    <version>${esc($('#apiv',r).value)}</version>\n</Package>`;
+   $('#xmlout',r).textContent=x.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+   $('#xmlcmd',r).textContent=`sf project deploy start --manifest manifest/package.xml --target-org ${$('#alias',r).value||'uat'} --dry-run`;
+  };
+  // members are escaped once when written; show raw text so rebuild without double escape
+  const build=()=>{
+   let x='<?xml version="1.0" encoding="UTF-8"?>\n<Package xmlns="http://soap.sforce.com/2006/04/metadata">\n';
+   T.forEach((t,i)=>{ if(!$('#c'+i,r).checked)return;
+     const m=$('#m'+i,r).value.split(',').map(s=>s.trim()).filter(Boolean); if(!m.length)return;
+     x+='    <types>\n'+m.map(n=>`        <members>${n}</members>\n`).join('')+`        <name>${t[0]}</name>\n    </types>\n`;});
+   x+=`    <version>${$('#apiv',r).value}</version>\n</Package>`;
+   $('#xmlout',r).textContent=x;
+   $('#xmlcmd',r).textContent=`sf project deploy start --manifest manifest/package.xml --target-org ${$('#alias',r).value||'uat'} --dry-run`;
+  };
+  $$('input',r).forEach(i=>i.addEventListener('input',build)); build();
+ }
+},
+{
+ title:'Your first deploy',
+ notes:'Run this live in a sandbox if you can. The dry run before the real deploy is the habit to build: never discover a failure in the real run.',
+ render(){return `
+  <p class="lead">Step through a full cycle: authorize, retrieve, change, check, deploy, confirm.</p>
+  <div class="term" id="term" aria-live="polite"></div>
+  <p id="why" class="lead" style="margin:.4rem 0"></p>
+  <div class="chips"><button class="btn primary" id="run">Run next command</button><button class="btn" id="reset">Reset</button></div>
+  <div class="box"><h4>Before you press deploy</h4>
+   ${['Source is committed and the branch is up to date','Manifest lists exactly what you intend to ship','Dry run passed in the target org','Tests that cover the change are named or known','Someone knows a deploy is happening']
+     .map((c,i)=>`<label style="display:block"><input type="checkbox"> ${c}</label>`).join('')}
+  </div>`},
+ init(r){
+  const S=[
+   ['sf org login web --alias dev-sandbox',['Opening browser to authorize...','Successfully authorized dev@example.com with org ID 00DXXXXXXXXXXXX'],'Sign in once per org. The alias is how every later command finds it.'],
+   ['sf project retrieve start --manifest manifest/package.xml --target-org dev-sandbox',['Retrieving v65.0 metadata from dev@example.com','Status: Succeeded','Retrieved: ApexClass DiscountService, Flow Quote_Approval'],'Retrieve pulls the listed components into your local project in source format.'],
+   ['git add . && git commit -m "Add regional discount rule"',['[feature/discount 4f2a9c1] Add regional discount rule','3 files changed'],'Edit in VS Code, then commit. Git is your record of what changed and why.'],
+   ['sf project deploy start --manifest manifest/package.xml --target-org uat --dry-run --test-level RunLocalTests',['Deploy ID: 0AfXXXXXXXXXXXX','Status: Succeeded (check only)','Tests: 24 passed, 0 failed','Coverage: 82% org-wide'],'A dry run runs the full deploy and tests, then saves nothing. Fix failures here.'],
+   ['sf project deploy start --manifest manifest/package.xml --target-org uat --test-level RunLocalTests',['Deploy ID: 0AfYYYYYYYYYYYY','Status: Succeeded','Components deployed: 4'],'Same command without the dry-run flag. Now the org changes.'],
+   ['sf project deploy report --use-most-recent',['Deploy ID: 0AfYYYYYYYYYYYY','Status: Succeeded','Completed in 2m 14s'],'Confirm the result and keep the deploy ID in your release notes.']
+  ];
+  let n=0; const T=$('#term',r);
+  const draw=()=>{ T.innerHTML=S.slice(0,n).map(s=>`<div><span class="p">$ ${esc(s[0])}</span></div>`+s[1].map(l=>`<div class="o">${esc(l)}</div>`).join('')).join('<br>');
+    T.scrollTop=T.scrollHeight; $('#why',r).textContent=n?S[n-1][2]:'Press the button to run the first command.';
+    $('#run',r).disabled=n>=S.length; };
+  $('#run',r).onclick=()=>{n++;draw()}; $('#reset',r).onclick=()=>{n=0;draw()}; draw();
+ }
+}
+];
+
+/* ============================= INTERMEDIATE ============================= */
+const intermediate=[
+{
+ title:'Validate, deploy, quick deploy',
+ notes:'Quick deploy is the production time-saver: run the slow tests ahead of the window, then promote in minutes. Drag the slider past day 10 to show it expiring.',
+ render(){return `
+  <p class="lead">A validation runs a full deploy and tests, then discards the result. If it passes with tests, you can promote that exact validation later.</p>
+  <div class="grid3">
+   <div class="box"><h4>Validate</h4><p>Check only. Nothing changes.</p><code>--dry-run</code> or <code>deploy validate</code></div>
+   <div class="box"><h4>Deploy</h4><p>Applies the change and runs tests again.</p><code>deploy start</code></div>
+   <div class="box"><h4>Quick deploy</h4><p>Applies a passed validation without rerunning tests.</p><code>deploy quick --job-id</code></div>
+  </div>
+  <label style="display:block;margin-top:1rem">Days since the validation passed: <b id="dv">3</b>
+   <input type="range" id="days" min="0" max="14" value="3"></label>
+  <label style="display:block"><input type="checkbox" id="tests" checked> Validation ran tests and they passed</label>
+  <label style="display:block"><input type="checkbox" id="same" checked> The package has not changed since validating</label>
+  <p><span class="pill" id="qd"></span> <span id="qdt"></span></p>`},
+ init(r){
+  const u=()=>{const d=+$('#days',r).value;$('#dv',r).textContent=d;
+   const ok=d<=10&&$('#tests',r).checked&&$('#same',r).checked;
+   const q=$('#qd',r);q.className='pill '+(ok?'good':'bad');q.textContent=ok?'Quick deploy available':'Validate again';
+   $('#qdt',r).textContent=ok?'Run it inside your window: sf project deploy quick --job-id 0AfXXXXXXXXXXXX':(d>10?'The 10 day window has passed.':!$('#tests',r).checked?'Quick deploy needs a validation that ran tests.':'Quick deploy replays exactly what was validated. Changed contents need a fresh validation.');};
+  $$('input',r).forEach(i=>i.addEventListener('input',u));u();
+ }
+},
+{
+ title:'Choose a test level',
+ notes:'The common production mistake is RunSpecifiedTests with coverage gaps on a single class. Show the per-class rule versus the org-wide rule.',
+ render(){return `
+  <p class="lead">Test level decides which Apex tests run and what coverage rules apply.</p>
+  <div class="chips" id="tgt"><button class="choice" data-k="sandbox">Target: sandbox</button><button class="choice" data-k="prod">Target: production</button></div>
+  <div class="chips" id="tl"></div>
+  <div class="box" id="tlinfo"></div>
+  <pre class="code"><code id="tlcmd"></code></pre>`},
+ init(r){
+  const L={
+   NoTestRun:['No tests run.','Only valid for sandbox, developer and trial orgs.','Fast config iterations in dev and QA.',false],
+   RunSpecifiedTests:['Only the test classes you name.','In production, every class and trigger in the deploy needs 75% coverage from the tests you list.','Targeted production deploys when you know which tests cover the change.',true],
+   RunLocalTests:['All tests in the org except managed package tests.','Org-wide Apex coverage of 75% and every trigger covered.','The default when a production deploy includes Apex.',true],
+   RunAllTestsInOrg:['Every test, including managed packages.','Same coverage rules. Long runs, and failures you may not own.','Rare. Audits and big release checks.',true]
+  };
+  let tgt='sandbox',lv='NoTestRun';
+  $('#tl',r).innerHTML=Object.keys(L).map(k=>`<button class="choice" data-k="${k}">${k}</button>`).join('');
+  const draw=()=>{const x=L[lv],blocked=(tgt==='prod'&&lv==='NoTestRun');
+   $('#tlinfo',r).innerHTML=`<p><b>Runs:</b> ${esc(x[0])}</p><p><b>Rule:</b> ${esc(x[1])}</p><p><b>Use it for:</b> ${esc(x[2])}</p><p><span class="pill ${blocked?'bad':'good'}">${blocked?'Not allowed in production':'Allowed here'}</span></p>`;
+   $('#tlcmd',r).textContent=`sf project deploy start --manifest manifest/package.xml --target-org ${tgt==='prod'?'prod':'uat'} --test-level ${lv}`+(lv==='RunSpecifiedTests'?' \\\n  --tests DiscountServiceTest --tests InvoiceTriggerTest':'');};
+  pick(r,'#tgt .choice',k=>{tgt=k;draw()});
+  pick(r,'#tl .choice',k=>{lv=k;draw()});
+ }
+},
+{
+ title:'Dependency order puzzle',
+ notes:'Key nuance: inside one deployment Salesforce sorts out order itself. Order only matters when you split a release into several deploys, which happens with size limits or staged releases.',
+ render(){return `
+  <p class="lead">You are splitting a release into separate deploys. Click the items in the order you would ship them.</p>
+  <div class="chips" id="pool"></div>
+  <p>Your order: <b id="seq">none yet</b></p>
+  <div class="chips"><button class="btn primary" id="chk">Check order</button><button class="btn" id="clr">Clear</button></div>
+  <p id="res" class="lead"></p>
+  <div class="callout"><b>Good news.</b> Inside a single deployment, Salesforce works out the order for you. This puzzle matters when you break a release into stages.</div>`},
+ init(r){
+  const items=['Custom object Invoice__c','Custom field Region__c','Apex class DiscountService','Flow Quote_Approval','Permission set Billing_Admin','Lightning app page'];
+  const need={ 'Custom field Region__c':['Custom object Invoice__c'],
+   'Apex class DiscountService':['Custom field Region__c'],
+   'Flow Quote_Approval':['Apex class DiscountService','Custom field Region__c'],
+   'Permission set Billing_Admin':['Custom field Region__c','Apex class DiscountService'],
+   'Lightning app page':['Flow Quote_Approval'] };
+  let order=[]; const shuffled=[...items].sort((a,b)=>a.length*7%5-b.length*3%5||a.localeCompare(b)).reverse();
+  const draw=()=>{ $('#pool',r).innerHTML=shuffled.map(x=>`<button class="choice" data-x="${esc(x)}" aria-pressed="${order.includes(x)}" ${order.includes(x)?'disabled':''}>${esc(x)}</button>`).join('');
+    $('#seq',r).textContent=order.length?order.join(' , '):'none yet';
+    $$('#pool .choice',r).forEach(b=>b.onclick=()=>{order.push(b.dataset.x);draw()}); };
+  $('#clr',r).onclick=()=>{order=[];$('#res',r).textContent='';draw()};
+  $('#chk',r).onclick=()=>{
+   if(order.length<items.length){$('#res',r).textContent='Pick all six items first.';return}
+   const bad=[]; for(const k in need) for(const d of need[k]) if(order.indexOf(d)>order.indexOf(k)) bad.push(`${k} needs ${d} first.`);
+   $('#res',r).innerHTML=bad.length?'<span class="pill bad">Not yet</span> '+esc(bad[0]):'<span class="pill good">Works</span> Every item ships after the things it depends on.';
+  };
+  draw();
+ }
+},
+{
+ title:'Read the error',
+ notes:'Pick the error the room has actually seen. Teach the habit: read the component name first, then the line, then the cause. Most failures are missing dependencies or test data.',
+ render(){return `
+  <p class="lead">Deploy errors look scary but repeat. Pick one.</p>
+  <div class="chips" id="errs"></div>
+  <div class="box" id="errinfo"></div>`},
+ init(r){
+  const E=[
+   ['no CustomField named Account.Region__c found','A component references a field that is not in the target org and not in this deploy.','Add the field to the manifest, or deploy it first. Check the spelling of the API name.'],
+   ['Average test coverage across all Apex Classes and Triggers is 68%, at least 75% required','Production needs enough coverage across the org, and your deploy dragged the average down.','Add or fix tests, or run RunLocalTests and see which classes are low. Do not delete tests to pass.'],
+   ['FIELD_CUSTOM_VALIDATION_EXCEPTION during a test','A validation rule in the target org rejects the records your test inserts.','Make test data satisfy current rules. Build test data with a factory, not copied production IDs.'],
+   ['UNABLE_TO_LOCK_ROW','Parallel tests or jobs are updating the same records.','Rerun. If it repeats, isolate the records, or enable serial test execution.'],
+   ['This Apex class has batch jobs, future methods, or queued jobs pending or in progress','Changing Apex while jobs run is blocked.','Wait or abort jobs, or allow deployments with Apex jobs in the org settings for that sandbox.'],
+   ['Cannot modify a flow version that is active','You tried to overwrite an active flow in a way the target does not allow.','Deploy as a new version, or follow your flow activation process. Confirm the flow status in source.']
+  ];
+  $('#errs',r).innerHTML=E.map((e,i)=>`<button class="choice" data-k="${i}">${esc(e[0].split(' ').slice(0,5).join(' '))}...</button>`).join('');
+  pick(r,'#errs .choice',k=>{const e=E[k];$('#errinfo',r).innerHTML=`<p><code>${esc(e[0])}</code></p><p><b>Cause:</b> ${esc(e[1])}</p><p><b>Fix:</b> ${esc(e[2])}</p>`});
+ }
+},
+{
+ title:'Deletions, ignores, permissions',
+ notes:'Pick the tab that matches a mistake someone just made. Deleting without removing references first is the classic failure.',
+ render(){return `
+  <div class="chips" id="tabs"><button class="choice" data-k="d">Destructive changes</button><button class="choice" data-k="f">.forceignore</button><button class="choice" data-k="p">Permissions</button></div>
+  <div class="box" id="tabbody"></div>`},
+ init(r){
+  const B={
+   d:`<p>Deploys never delete by themselves. Use a destructive manifest. A safe field removal goes in order.</p>
+<ol><li>Remove every reference: flows, Apex, layouts, reports.</li><li>Deploy that cleanup.</li><li>Deploy the destructive change after it.</li></ol>
+<pre class="code"><code>&lt;!-- manifest/destructiveChangesPost.xml --&gt;
+&lt;Package xmlns="http://soap.sforce.com/2006/04/metadata"&gt;
+  &lt;types&gt;
+    &lt;members&gt;Invoice__c.OldRegion__c&lt;/members&gt;
+    &lt;name&gt;CustomField&lt;/name&gt;
+  &lt;/types&gt;
+&lt;/Package&gt;</code></pre>
+<p>Deleted custom fields stay in a deleted state for a while before they are purged, so export data first anyway.</p>`,
+   f:`<p>Keep noise out of deploys. The file uses gitignore style patterns.</p>
+<pre class="code"><code># .forceignore
+**/*.dup
+**/jsconfig.json
+**/.eslintrc.json
+**/profiles/**
+force-app/main/default/connectedApps/**</code></pre>
+<p>Ignoring a path means the CLI neither retrieves nor deploys it. Decide as a team and document why.</p>`,
+   p:`<p>Profiles are large, order sensitive and conflict-prone in Git. Many teams ship access with permission sets instead.</p>
+<ul><li>Retrieve and deploy only what you changed.</li><li>Give new fields access through a permission set in the same release.</li><li>Assign the permission set in a post-deploy step, since assignments are data.</li><li>Check access as a test user after deploy.</li></ul>`
+  };
+  pick(r,'#tabs .choice',k=>{$('#tabbody',r).innerHTML=B[k]});
+ }
+}
+];
+
+/* ============================= ADVANCED ============================= */
+const advanced=[
+{
+ title:'Packaging decision helper',
+ notes:'Use a real customer project as the example. The question that settles most debates is whether you need versioned upgrades, or whether source deploys through CI are enough.',
+ render(){return `
+  <p class="lead">Answer three questions to see which approach fits.</p>
+  <div class="grid3">
+   <div class="box"><h4>Who receives it?</h4><div class="chips" id="q1"><button class="choice" data-k="one">One org</button><button class="choice" data-k="many">Several customer orgs</button><button class="choice" data-k="store">AppExchange</button></div></div>
+   <div class="box"><h4>Need versioned upgrades?</h4><div class="chips" id="q2"><button class="choice" data-k="y">Yes</button><button class="choice" data-k="n">No</button></div></div>
+   <div class="box"><h4>Depends on unpackaged org setup?</h4><div class="chips" id="q3"><button class="choice" data-k="y">Yes</button><button class="choice" data-k="n">No</button></div></div>
+  </div>
+  <div class="box" id="rec" style="margin-top:1rem"></div>`},
+ init(r){
+  let a='one',b='y',c='y';
+  const draw=()=>{let t,d;
+   if(a==='store'){t='Managed second-generation package';d='Built for distribution with namespace, IP protection and upgrade paths. Plan security review for AppExchange.';}
+   else if(b==='n'){t='Source deploys through CI';d='No packaging overhead. Keep one manifest or delta per release and a strong validation habit.';}
+   else if(a==='many'){t='Unlocked package';d='Versioned, installable across customer orgs with dependency control. Reusable accelerators fit well. Use a managed package if you must protect code.';}
+   else if(c==='y'){t='Org-dependent unlocked package';d='Versioned, but allowed to depend on metadata that is not packaged in the target org. Document those dependencies.';}
+   else{t='Unlocked package';d='Versioned releases for one org with clean module boundaries. Create a version, install it through the pipeline.';}
+   $('#rec',r).innerHTML=`<h4>${esc(t)}</h4><p>${esc(d)}</p>`;};
+  pick(r,'#q1 .choice',k=>{a=k;draw()}); pick(r,'#q2 .choice',k=>{b=k;draw()}); pick(r,'#q3 .choice',k=>{c=k;draw()});
+ }
+},
+{
+ title:'Delta deployments',
+ notes:'Delta deploys shorten validation time on big orgs. Caveat out loud: deltas can miss implicit dependencies, so run a full validation on a schedule.',
+ render(){return `
+  <p class="lead">Large repos make full deploys slow. A delta sends only what changed between two commits. Toggle files in the diff.</p>
+  <div id="files"></div>
+  <div class="grid2"><div><b>package.xml</b><pre class="code"><code id="dpk"></code></pre></div><div><b>destructiveChanges.xml</b><pre class="code"><code id="ddk"></code></pre></div></div>
+  <pre class="code"><code>sf sgd source delta --from origin/main --to HEAD --output-dir changed --generate-delta</code></pre>
+  <div class="callout"><b>Watch out.</b> Deltas can miss implicit dependencies. Run a full validation on a schedule, for example nightly.</div>`},
+ init(r){
+  const F=[['M','classes/DiscountService.cls','ApexClass','DiscountService'],['A','classes/DiscountServiceTest.cls','ApexClass','DiscountServiceTest'],['A','objects/Invoice__c/fields/Region__c.field-meta.xml','CustomField','Invoice__c.Region__c'],['M','flows/Quote_Approval.flow-meta.xml','Flow','Quote_Approval'],['M','layouts/Invoice__c-Invoice Layout.layout-meta.xml','Layout','Invoice__c-Invoice Layout'],['D','classes/LegacyHelper.cls','ApexClass','LegacyHelper'],['M','README.md',null,null],['M','.github/workflows/validate.yml',null,null]];
+  $('#files',r).innerHTML=F.map((f,i)=>`<label style="display:block"><input type="checkbox" checked data-i="${i}"> <code>${f[0]}</code> ${esc(f[1])}</label>`).join('');
+  const mk=(list)=>{const g={};list.forEach(f=>{(g[f[2]]=g[f[2]]||[]).push(f[3])});
+   return '&lt;Package&gt;\n'+Object.keys(g).map(t=>`  &lt;types&gt;\n`+g[t].map(m=>`    &lt;members&gt;${esc(m)}&lt;/members&gt;\n`).join('')+`    &lt;name&gt;${t}&lt;/name&gt;\n  &lt;/types&gt;`).join('\n')+'\n&lt;/Package&gt;';};
+  const u=()=>{const on=$$('input',r).filter(x=>x.checked).map(x=>F[x.dataset.i]).filter(f=>f[2]);
+   $('#dpk',r).innerHTML=mk(on.filter(f=>f[0]!=='D')); $('#ddk',r).innerHTML=mk(on.filter(f=>f[0]==='D'));};
+  $$('input',r).forEach(i=>i.addEventListener('input',u)); u();
+ }
+},
+{
+ title:'Pipeline simulator',
+ notes:'Break a stage on purpose and show who finds out and when. The point is that production only ever sees changes that already passed validation.',
+ render(){return `
+  <p class="lead">A pull request validates against UAT. Merge promotes to production with a quick deploy. Choose a stage to fail, then run it.</p>
+  <div class="stages" id="stg"></div>
+  <div class="chips"><button class="btn primary" id="go">Run pipeline</button></div>
+  <p id="pmsg" class="lead"></p>
+  <pre class="code"><code>name: validate-pr
+on: pull_request
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: npm install --global @salesforce/cli
+      - run: sf plugins install sfdx-git-delta
+      - run: echo "${'$'}{{ secrets.UAT_AUTH_URL }}" > auth.txt
+      - run: sf org login sfdx-url --sfdx-url-file auth.txt --alias uat
+      - run: sf sgd source delta --from origin/main --to HEAD --output-dir changed --generate-delta
+      - run: sf project deploy validate --manifest changed/package/package.xml --target-org uat --test-level RunLocalTests</code></pre>
+  <div class="callout"><b>Secrets.</b> Store auth URLs in your CI secret store. Never commit them. Rotate any that leak.</div>`},
+ init(r){
+  const S=[['Lint and static analysis','Style or security rule violation found.'],['Build delta package','Could not compute the diff. Check fetch depth.'],['Validate in UAT','Test failure: DiscountServiceTest.testRegionalRule'],['Peer review and approval','Review requested changes.'],['Merge to main','Branch protection blocked the merge.'],['Quick deploy to production','Validation expired after 10 days. Validate again.']];
+  $('#stg',r).innerHTML=S.map((s,i)=>`<div class="st" id="s${i}"><span>${esc(s[0])}<small id="t${i}">Waiting</small></span><label>Fail this <input type="checkbox" data-i="${i}"></label></div>`).join('');
+  let busy=false;
+  $('#go',r).onclick=async()=>{ if(busy)return; busy=true; $('#pmsg',r).textContent='';
+   S.forEach((s,i)=>{$('#s'+i,r).className='st';$('#t'+i,r).textContent='Waiting'});
+   for(let i=0;i<S.length;i++){
+     $('#s'+i,r).className='st run';$('#t'+i,r).textContent='Running';
+     await new Promise(z=>setTimeout(z,550));
+     if($('input[data-i="'+i+'"]',r).checked){$('#s'+i,r).className='st fail';$('#t'+i,r).textContent='Failed: '+S[i][1];
+       for(let j=i+1;j<S.length;j++)$('#t'+j,r).textContent='Skipped';
+       $('#pmsg',r).innerHTML='<span class="pill bad">Stopped</span> Production was never touched.';busy=false;return;}
+     $('#s'+i,r).className='st pass';$('#t'+i,r).textContent='Passed';
+   }
+   $('#pmsg',r).innerHTML='<span class="pill good">Released</span> Production now has the validated change.';busy=false;};
+ }
+},
+{
+ title:'Environment-specific config',
+ notes:'Ask what differs between their last customer sandbox and production. Most answers fall into this table. The rule: config in Git, secrets out of Git, reference data through data tools.',
+ render(){return `
+  <p class="lead">The same package must behave correctly in every org. Click what varies.</p>
+  <div class="chips" id="cfg"></div>
+  <div class="box" id="cfginfo"></div>
+  <p>Swap values at deploy time with replacements in <code>sfdx-project.json</code>:</p>
+  <pre class="code"><code>"replacements": [
+  {
+    "filename": "force-app/main/default/namedCredentials/Billing.namedCredential-meta.xml",
+    "stringToReplace": "BILLING_HOST",
+    "replaceWithEnv": "BILLING_HOST"
+  }
+]</code></pre>`},
+ init(r){
+  const C={
+   'Endpoint URLs':'Use Named Credentials. Inject the host per environment with replacements, or keep one credential per org.',
+   'Secrets':'Never in Git. Set them in the org after deploy, or fetch from a secrets manager in a pipeline step.',
+   'Feature switches':'Use custom metadata types or custom permissions. The records deploy as metadata.',
+   'Notification emails':'Use custom metadata or replacements. Sandboxes default to restricted email after a refresh.',
+   'Reference data':'Data, not metadata. Use sf data export tree and import tree, or a seeding script.',
+   'Connected apps':'Deploy the definition. Consumer secrets differ by org, so rotate and never commit them.',
+   'Integration users':'Created per org. Assign permission sets in a post-deploy step.'
+  };
+  $('#cfg',r).innerHTML=Object.keys(C).map(k=>`<button class="choice" data-k="${esc(k)}">${esc(k)}</button>`).join('');
+  pick(r,'#cfg .choice',k=>{$('#cfginfo',r).innerHTML=`<h4>${esc(k)}</h4><p>${esc(C[k])}</p>`});
+ }
+},
+{
+ title:'Release day and rollback',
+ notes:'There is no true rollback in Salesforce production. Say that early, then let the room pick answers. Revert-by-pipeline is the habit to leave them with.',
+ render(){return `
+  <p class="lead">Salesforce has no one-click rollback in production. Plan the way back before the way forward. Choose your move.</p>
+  <div id="sc"></div>
+  <div class="box"><h4>Release runbook</h4>
+   ${['Validation passed with tests within the last 10 days','Package identical to what was validated','Window and approver confirmed','Previous good version identified in Git','Feature switch ready for a fast disable','Smoke test list written and owner named']
+     .map(c=>`<label style="display:block"><input type="checkbox"> ${c}</label>`).join('')}
+  </div>`},
+ init(r){
+  const S=[
+   ['A Flow change shipped Friday and users report errors.',['Revert the commit and run the pipeline to redeploy the previous version','Edit the flow directly in production','Refresh the sandbox from production'],0,'Reverting through the pipeline keeps Git and the org aligned and is repeatable. A feature switch can buy time while you do it. Editing production directly creates drift.'],
+   ['Your validation passed three days ago, then two more commits merged.',['Quick deploy it anyway','Validate again on the new head','Skip tests to save time'],1,'Quick deploy replays only what was validated. New commits mean a new validation.'],
+   ['You must delete a field used by a flow and a report.',['Add it to destructive changes right now','Remove references first, deploy, then delete','Rename it instead and hope'],1,'Clean the references, deploy that, then delete. Export the data first.']
+  ];
+  $('#sc',r).innerHTML=S.map((s,i)=>`<div class="box" style="margin-bottom:.7rem"><h4>${esc(s[0])}</h4><div class="chips">${s[1].map((o,j)=>`<button class="choice" data-s="${i}" data-o="${j}">${esc(o)}</button>`).join('')}</div><p class="fb" id="f${i}"></p></div>`).join('');
+  $$('#sc .choice',r).forEach(b=>b.onclick=()=>{const s=S[b.dataset.s],ok=+b.dataset.o===s[2];
+   $$('[data-s="'+b.dataset.s+'"]',r).forEach(x=>x.setAttribute('aria-pressed',x===b));
+   $('#f'+b.dataset.s,r).innerHTML=(ok?'<span class="pill good">Right call</span> ':'<span class="pill warn">Think again</span> ')+esc(s[3]);});
+ }
+}
+];
+
+/* ============================= APP ============================= */
+const LEVELS={
+ beginner:{name:'Beginner',d:'What metadata is, tools, first deploy',mods:beginner,c:'--b'},
+ intermediate:{name:'Intermediate',d:'Tests, order, errors, deletions',mods:intermediate,c:'--i'},
+ advanced:{name:'Advanced',d:'Packages, delta, CI/CD, rollback',mods:advanced,c:'--a'}
+};
+const state={level:'beginner',idx:0,seen:{beginner:new Set(),intermediate:new Set(),advanced:new Set()}};
+function drawLevels(){
+  $('#levels').innerHTML=Object.keys(LEVELS).map((k,n)=>{const L=LEVELS[k],pct=Math.round(state.seen[k].size/L.mods.length*100);
+   return `<button class="lvl" role="tab" style="--c:var(${L.c})" aria-selected="${k===state.level}" data-k="${k}"><strong>${L.name}</strong><span class="d">${L.d}</span><span class="bar" aria-label="${pct}% viewed"><i style="width:${pct}%"></i></span></button>`}).join('');
+  $$('#levels .lvl').forEach(b=>b.onclick=()=>go(b.dataset.k,0));
+}
+function go(level,idx){
+  state.level=level; state.idx=Math.max(0,Math.min(idx,LEVELS[level].mods.length-1));
+  document.documentElement.dataset.level=level;
+  const L=LEVELS[level],m=L.mods[state.idx]; state.seen[level].add(state.idx);
+  drawLevels();
+  $('#rail').innerHTML=L.mods.map((x,i)=>`<li><button data-i="${i}" ${i===state.idx?'aria-current="true"':''} class="${state.seen[level].has(i)?'seen':''}"><span class="n">${i+1}</span><span>${esc(x.title)}</span></button></li>`).join('');
+  $$('#rail button').forEach(b=>b.onclick=()=>go(level,+b.dataset.i));
+  const last=state.idx===L.mods.length-1,nextLevel=level==='beginner'?'intermediate':level==='intermediate'?'advanced':null;
+  const p=$('#panel');
+  p.innerHTML=`<h2>${esc(m.title)}</h2>${m.render()}<details class="notes" id="notes"><summary>Speaker notes</summary><p>${esc(m.notes)}</p></details>
+   <div class="nav"><button class="btn" id="prev" ${state.idx===0?'disabled':''}>Back</button>
+   <button class="btn primary" id="next" ${last&&!nextLevel?'disabled':''}>${last?(nextLevel?'Start '+LEVELS[nextLevel].name:'Finished'):'Next'}</button></div>`;
+  $('#prev').onclick=()=>go(level,state.idx-1);
+  $('#next').onclick=()=>last?(nextLevel&&go(nextLevel,0)):go(level,state.idx+1);
+  m.init&&m.init(p);
+  if(window.scrollY>200)p.scrollIntoView({block:'start'});
+}
+$('#btnCheat').onclick=()=>$('#cheat').showModal();
+function togglePresent(){const on=document.documentElement.classList.toggle('present');$('#btnPresent').setAttribute('aria-pressed',on);$('#btnPresent').textContent=on?'Exit presenter mode':'Presenter mode';}
+$('#btnPresent').onclick=togglePresent;
+document.addEventListener('keydown',e=>{
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey)return;
+  const L=LEVELS[state.level];
+  if(e.key==='ArrowRight'){ if(state.idx<L.mods.length-1)go(state.level,state.idx+1); }
+  else if(e.key==='ArrowLeft'){ if(state.idx>0)go(state.level,state.idx-1); }
+  else if(e.key==='1')go('beginner',0); else if(e.key==='2')go('intermediate',0); else if(e.key==='3')go('advanced',0);
+  else if(e.key==='n'||e.key==='N'){const d=$('#notes');d&&(d.open=!d.open);}
+  else if(e.key==='p'||e.key==='P')togglePresent();
+});
+go('beginner',0);
+</script>
+</body>
+</html>
