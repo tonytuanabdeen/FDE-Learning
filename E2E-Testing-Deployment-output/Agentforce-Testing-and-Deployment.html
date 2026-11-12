@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Agentforce Testing &amp; Deployment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============================= THEME TOKENS ============================= */
+:root{
+  --font: "Helvetica Neue", Arial, system-ui, sans-serif;
+  --mono: "SF Mono", "Consolas", "Courier New", monospace;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#EEF3FC; --bg2:#E7EEFB;
+  --card:#FFFFFF; --card2:#F6F9FE;
+  --head:#13124A; --text:#2A2A4A; --muted:#5E6192;
+  --purple:#4A17C4; --purple2:#6A2BD8; --blue:#1B96FF; --bluemid:#2E6BE6; --sky:#4A9BFF;
+  --overview:#3E4D63; --test:#B25E06; --deploy:#2347C6;
+  --navy:#13124A; --line:#DCE3F2; --green:#1F8F5F;
+  --shadow:0 10px 30px rgba(22,30,70,.10), 0 2px 8px rgba(22,30,70,.06);
+  --grad: linear-gradient(135deg,#272EC6 0%, #3C27C0 55%, #5822B4 100%);
+  --grad-glow: radial-gradient(60% 70% at 78% 26%, rgba(255,255,255,.22), transparent 70%);
+  --code-bg:#0E1A3A; --code-tx:#D6E2FF; --code-cmt:#8FB0E0; --code-kw:#79E8C0; --code-str:#FFD98A;
+  --chip-tx:#fff; --soft:#F4F0FF; --soft-line:#D9CBF5; --soft-head:#4A17C4;
+  --warn-bg:#FFF4E8; --warn-line:#F3D6AE; --warn-tx:#B56A00;
+  --tbl-head:#13124A; --tbl-col0:#E4EAF8; --hud:rgba(255,255,255,.9); --hud-line:#DCE3F2;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#070B22; --bg2:#0B1030;
+  --card:#141A3C; --card2:#111735;
+  --head:#F3F5FF; --text:#D6DEF2; --muted:#9AA3C8;
+  --purple:#9B82F5; --purple2:#B49BFF; --blue:#5FB0FF; --bluemid:#5B86E8; --sky:#6FB4FF;
+  --overview:#A9B6C9; --test:#F2A64A; --deploy:#86A2FF;
+  --navy:#C9D2F2; --line:#2A3358; --green:#3FD598;
+  --shadow:0 12px 34px rgba(0,0,0,.45), 0 2px 10px rgba(0,0,0,.35);
+  --grad: linear-gradient(135deg,#1A1E6E 0%, #2A1C78 55%, #3A1480 100%);
+  --grad-glow: radial-gradient(60% 70% at 78% 26%, rgba(120,140,255,.28), transparent 70%);
+  --code-bg:#060A1E; --code-tx:#CBD8F5; --code-cmt:#7E90C6; --code-kw:#67E6C0; --code-str:#FFD98A;
+  --chip-tx:#fff; --soft:#1C1A44; --soft-line:#3A2E6E; --soft-head:#B49BFF;
+  --warn-bg:#2A2212; --warn-line:#5A4A1E; --warn-tx:#F2C66A;
+  --tbl-head:#1C2248; --tbl-col0:#1A2046; --hud:rgba(14,20,48,.9); --hud-line:#2A3358;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%; background:#000; font-family:var(--font); overflow:hidden;}
+
+/* ============================= STAGE / SCALING ============================= */
+#deck{position:fixed; inset:0; background:#000;}
+.stage{position:absolute; top:50%; left:50%; width:1280px; height:720px;
+  transform:translate(-50%,-50%); transform-origin:center center;}
+
+/* ============================= SLIDE BASE ============================= */
+.slide{position:absolute; inset:0; width:1280px; height:720px; background:var(--bg);
+  opacity:0; visibility:hidden; transition:opacity .45s ease; overflow:hidden;
+  padding:52px 58px;}
+.slide.active{opacity:1; visibility:visible; z-index:2;}
+.slide.cover,.slide.section{background:var(--grad); color:#fff; padding:0;}
+.slide.cover::after,.slide.section::after{content:""; position:absolute; inset:0; background:var(--grad-glow);}
+
+.brand{position:absolute; top:30px; right:40px; width:92px; z-index:4;}
+.brand img{width:100%; height:auto; display:block;}
+.pagenum{position:absolute; bottom:35px; right:35px; font-size:14px; color:var(--muted); z-index:4;}
+.slide.cover .pagenum,.slide.section .pagenum{color:rgba(255,255,255,.75);}
+
+h1.title{font-size:40px; color:var(--head); font-weight:800; letter-spacing:-.5px; line-height:1.05;}
+p.sub{font-size:20px; color:var(--bluemid); margin-top:10px; font-weight:500;}
+html[data-theme="dark"] p.sub{color:var(--sky);}
+
+/* ============================= COVER ============================= */
+.cover .wrap{position:absolute; left:84px; top:250px; z-index:3;}
+.cover h1{font-size:80px; font-weight:800; letter-spacing:-1px; line-height:1.02;}
+.cover .lede{font-size:22px; color:#D9E2FF; margin-top:26px; max-width:900px;}
+.cover .tagline{margin-top:60px;}
+.cover .tagline span{display:block; font-size:48px; font-weight:800; letter-spacing:-.5px; line-height:1.18;}
+.cover .tagline .t{color:#F2A64A;}           /* mirrors reference --test accent */
+.cover .tagline .d{color:#8FA9FF;}           /* mirrors reference --deploy accent */
+.cover .by{font-size:16px; color:#D9E2FF; margin-top:16px;}
+.cover .by b{color:#fff;}
+.cover .brand{top:48px; right:60px; width:118px;}
+
+/* ============================= SECTION DIVIDER ============================= */
+.section .wrap{position:absolute; left:86px; top:250px; z-index:3; max-width:1000px;}
+.section .kick{font-size:22px; color:var(--sky); font-weight:800; margin-bottom:10px;}
+.section h1{font-size:60px; font-weight:800; letter-spacing:-1px;}
+.section .lede{font-size:21px; color:#D9E2FF; margin-top:14px;}
+
+/* ============================= CONTENT PRIMITIVES ============================= */
+.body{position:absolute; left:58px; right:58px; top:150px; bottom:58px;}
+.cards{display:grid; gap:16px; margin-top:25px;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px;
+  box-shadow:var(--shadow); padding:18px 20px;}
+.badge{width:46px; height:46px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; color:#fff; font-weight:800; font-size:19px; flex:0 0 auto;}
+.row{display:flex; align-items:center; gap:16px;}
+.ct{font-size:17px; font-weight:800; color:var(--head);}
+.cd{font-size:13px; color:var(--muted); line-height:1.3; margin-top:3px;}
+.chip{border-radius:14px; color:#fff; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; text-align:center; padding:10px 8px;}
+.chip b{font-size:16px;} .chip span{font-size:11px; opacity:.9; margin-top:3px;}
+.tag{display:inline-flex; align-items:center; gap:8px; background:var(--blue); color:#fff;
+  font-weight:800; font-size:13px; padding:7px 16px; border-radius:40px; letter-spacing:.5px;}
+.tag.demo{position:absolute; top:150px; right:58px; z-index:5;}
+pre.code{background:var(--code-bg); color:var(--code-tx); border-radius:12px; padding:16px 18px;
+  font-family:var(--mono); font-size:13.5px; line-height:1.5; box-shadow:var(--shadow); overflow:hidden;}
+pre.code .ttl{color:var(--code-cmt); font-weight:700; display:block; margin-bottom:8px; font-size:12px;}
+.cmt{color:var(--code-cmt);} .kw{color:var(--code-kw);} .str{color:var(--code-str);}
+.soft{background:var(--soft); border:1px solid var(--soft-line); border-radius:16px; padding:18px 20px;}
+.soft h3{color:var(--soft-head); font-size:17px; margin-bottom:8px;}
+.warn{background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:14px; padding:12px 16px;
+  font-size:13.5px; color:var(--text);} .warn b{color:var(--warn-tx);}
+.note{font-size:13.5px; color:var(--text);} .note b{color:var(--purple);}
+ul.bul{list-style:none; margin-top:15px} ul.bul li{font-size:14px; color:var(--text); padding:5px 0 5px 20px; position:relative; line-height:1.3;}
+ul.bul li::before{content:"•"; color:var(--purple); position:absolute; left:2px; font-weight:800;}
+.mono{font-family:var(--mono); color:var(--purple); font-weight:700;}
+.k{color:var(--head); font-weight:800;}
+
+/* ============================= SLIDE 5 — ADLC (reference branding) ============================= */
+/* Mirrors the onboarding deck: Schibsted Grotesk, surface card with left accent bar,
+   slate/orange/blue palette, surface-2 box. Scoped so the rest of the deck is untouched. */
+.slide.ref-adlc{
+  --r-bg:#EEF1F4; --r-surface:#FFFFFF; --r-surface-2:#F6F8FA; --r-ink:#16202E; --r-muted:#566273; --r-line:#D3DAE3;
+  --r-overview:#3E4D63; --r-test:#B25E06; --r-deploy:#2347C6; --r-overview2:#F2A64A;
+  --r-chip-tx:#FFFFFF;
+  --r-shadow:0 1px 2px rgba(22,32,46,.06),0 8px 24px rgba(22,32,46,.06);
+  background:var(--r-bg);
+  font-family:"Schibsted Grotesk", system-ui, sans-serif;
+}
+html[data-theme="dark"] .slide.ref-adlc{
+  --r-bg:#0F1623; --r-surface:#172131; --r-surface-2:#1C2839; --r-ink:#E6EBF2; --r-muted:#9BA6B6; --r-line:#2A3749;
+  --r-overview:#A9B6C9; --r-test:#F2A64A; --r-deploy:#86A2FF; --r-overview2:#F2A64A;
+  --r-chip-tx:#0F1623;
+  --r-shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+}
+.ref-adlc .refcard{
+  position:absolute; inset:20px 20px; background:var(--r-surface); border:1px solid var(--r-line);
+  border-left:6px solid var(--r-overview); border-radius:14px; box-shadow:var(--r-shadow);
+  padding:38px 44px; display:flex; flex-direction:column;
+}
+.ref-adlc .refcard2{
+  position:absolute; inset:20px 20px; background:var(--r-surface); border:1px solid var(--r-line);
+  border-left:6px solid var(--r-overview2); border-radius:14px; box-shadow:var(--r-shadow);
+  padding:38px 44px; display:flex; flex-direction:column;
+}
+/* Slide 9 — Testing goals & expectations: full-width rounded "pill" cards, one per line (matches reference deck image) */
+.goals-slide .title{color:var(--r-ink);}
+.goals-slide .goal-list{position:absolute; left:58px; right:58px; top:168px; bottom:46px;
+  display:flex; flex-direction:column; justify-content:space-between; gap:14px;}
+.goals-slide .goal-card{background:var(--r-surface); border-radius:30px;
+  box-shadow:0 2px 6px rgba(22,32,46,.06), 0 12px 28px rgba(22,32,46,.09);
+  padding:15px 36px; display:flex; flex-direction:column; justify-content:center; flex:1;}
+html[data-theme="dark"] .goals-slide .goal-card{border:1px solid var(--r-line); box-shadow:0 8px 22px rgba(0,0,0,.35);}
+.goals-slide .g-t{font-size:19px; font-weight:700; letter-spacing:-.01em; color:var(--r-ink); margin-bottom:3px;}
+.goals-slide .g-d{font-size:15px; color:var(--r-muted); line-height:1.4;}
+/* Slide 10 — Why Testing Matters in Agentic AI: "the stakes" card + 4 icon cards (ref theme) */
+.stakes-slide .title{color:var(--r-ink);}
+.stakes-slide .stakes-grid{flex:1; min-height:0; margin-top:18px;
+  display:grid; grid-template-columns:1fr 1.15fr; gap:24px; align-items:stretch;}
+.stakes-slide .stakes-card{background:var(--r-surface); border:2px solid var(--r-deploy); border-radius:22px;
+  box-shadow:0 12px 30px rgba(22,32,46,.10); padding:26px 32px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+.stakes-slide .stakes-eyebrow{font-size:28px; font-weight:800; letter-spacing:.10em; color:var(--r-ink); margin-bottom:24px;}
+.stakes-slide .stakes-quote{font-size:52px; font-weight:800; line-height:1.12; letter-spacing:-.02em; color:var(--r-ink);}
+.stakes-slide .stakes-list{display:flex; flex-direction:column; justify-content:space-between; gap:14px;}
+.stakes-slide .stakes-item{background:var(--r-surface); border:1px solid var(--r-line); border-radius:14px;
+  box-shadow:0 2px 6px rgba(22,32,46,.05), 0 10px 22px rgba(22,32,46,.06);
+  padding:14px 20px; display:flex; align-items:center; gap:18px; flex:1;}
+.stakes-slide .s-ico{width:50px; height:50px; flex:none; border-radius:50%;
+  background:linear-gradient(135deg,#F2A64A,#F2A64A); display:grid; place-items:center; font-size:22px;
+  border:3px solid #fff; box-shadow:0 0 0 2px #E4DCF7, 0 4px 10px rgba(74,23,196,.22);}
+.stakes-slide .si-t{font-size:24px; font-weight:700; letter-spacing:-.01em; color:var(--r-ink); margin-bottom:3px;}
+.stakes-slide .si-d{font-size:22px; color:var(--r-muted); line-height:1.3;}
+.stakes-slide .stakes-foot{position:absolute; left:58px; right:58px; bottom:28px; text-align:center;
+  font-style:italic; font-weight:700; font-size:22px; color:var(--r-deploy);}
+/* Slide 11 — Traditional vs non-deterministic (ported from PPTX): dark/light compare panels + effort bars */
+.tdt-slide .title{color:var(--r-ink); max-width:70%;}
+.tdt-slide .tdt-legend{position:absolute; top:35px; right:170px; display:flex; flex-direction:column; gap:6px; z-index:5;}
+.tdt-slide .tdt-legend span{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--r-ink);}
+.tdt-slide .sw{width:14px; height:14px; border-radius:4px; flex:none;}
+.tdt-slide .sw-build{background:linear-gradient(135deg,#001E5B,#022AC0);}
+.tdt-slide .sw-test{background:#FFB13B;}
+.tdt-slide .sw-deploy{background:#90D0FE;}
+.tdt-slide .tdt-grid{position:absolute; left:58px; right:58px; bottom:135px;
+  display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+.tdt-slide .tdt-card{border-radius:18px; box-shadow:var(--r-shadow); padding:26px 28px; display:flex; gap:20px; overflow:hidden;}
+.tdt-slide .tdt-card.dark{background:#001E5B; color:#fff;}
+.tdt-slide .tdt-card.light{background:var(--r-surface); border:1px solid var(--r-line); color:var(--r-ink);}
+.tdt-slide .tdt-main{flex:1; display:flex; flex-direction:column; min-width:0;}
+.tdt-slide .tdt-eyebrow{font-size:15px; font-weight:800; letter-spacing:.08em;}
+.tdt-slide .tdt-card.dark .tdt-eyebrow{color:#8FB0FF;}
+.tdt-slide .tdt-card.light .tdt-eyebrow{color:var(--r-deploy);}
+.tdt-slide .tdt-big{font-size:34px; font-weight:800; letter-spacing:-.02em; line-height:1.1; margin:4px 0 16px;}
+.tdt-slide .tdt-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px;}
+.tdt-slide .tdt-list li{position:relative; padding-left:22px; font-size:16px; line-height:1.35;}
+.tdt-slide .tdt-list li::before{content:""; position:absolute; left:0; top:6px; width:11px; height:11px; border-radius:3px; background:#FFB13B;}
+.tdt-slide .tdt-card.light .tdt-list li{color:var(--r-ink);}
+.tdt-slide .tdt-bar{width:62px; flex:none; display:flex; flex-direction:column; border-radius:10px; overflow:hidden;}
+.tdt-slide .tdt-stack{flex:none; width:72px; align-self:center; height:100%; object-fit:contain;}
+.tdt-slide .seg{display:flex; align-items:center; justify-content:center;}
+.tdt-slide .seg span{font-size:12px; font-weight:800;}
+.tdt-slide .seg.build{background:linear-gradient(135deg,#001E5B,#022AC0); color:#fff;}
+.tdt-slide .seg.test{background:#FFB13B; color:#001E5B;}
+.tdt-slide .seg.deploy{background:#90D0FE; color:#001E5B;}
+.tdt-slide .tdt-card.dark .tdt-bar{outline:2px solid rgba(255,255,255,.15);}
+.tdt-slide .tdt-foot{position:absolute; left:58px; right:58px; bottom:36px; text-align:center;
+  font-style:italic; font-weight:700; font-size:20px; color:var(--r-deploy);}
+/* Slide 12 — Six layers of agent testing (interactive tabs + panel, ported from onboarding reference) */
+.layers-slide{--l-teal:#0a8f8f; --l-brand:#1d64f2; --l-violet:#6b4de6; --l-coral:#d23b22; --l-green:#15875a;}
+html[data-theme="dark"] .layers-slide{--l-teal:#34c6c6; --l-brand:#5c92ff; --l-violet:#9d8bff; --l-coral:#ff8a70; --l-green:#54d191;}
+.layers-slide .layers{flex:1; min-height:0; margin-top:14px; display:grid; grid-template-columns:400px 1fr; gap:24px;}
+.layers-slide .layer-list{display:flex; flex-direction:column; gap:8px;}
+.layers-slide .layer-list button{flex:1; display:flex; justify-content:space-between; align-items:center; gap:10px;
+  text-align:left; border:1px solid var(--r-line); border-left:4px solid var(--lc,var(--r-line)); background:var(--r-surface-2); color:var(--r-ink);
+  border-radius:10px; padding:10px 16px; font-family:inherit; font-weight:700; font-size:16px; cursor:pointer; transition:background .15s;}
+.layers-slide .layer-list button span{font-weight:400; font-size:13px; color:var(--r-muted); text-align:right;}
+.layers-slide .layer-list button[aria-selected="true"]{background:#2E6BE6; color:#fff; border-color:#2E6BE6; border-left-color:var(--lc,#2E6BE6);}
+.layers-slide .layer-list button[aria-selected="true"] span{color:rgba(255,255,255,.85);}
+.layers-slide .layer-panel{background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:12px; padding:24px 28px;}
+.layers-slide .layer-panel h3{font-size:26px; font-weight:800; letter-spacing:-.02em; color:var(--r-ink); margin:0 0 16px;}
+.layers-slide .layer-panel p{font-size:16px; color:var(--r-ink); line-height:1.5; margin:0 0 12px;}
+.layers-slide .layer-panel p:last-child{margin-bottom:0;}
+.layers-slide .layer-panel p b{color:#2E6BE6;}
+/* Slide 12 — Agents aren't Apex (ported from Interactive Deck): two dark compare panels + "ask 5 times" */
+.apex-slide .apex-row{flex:1; min-height:0; margin-top:14px; display:flex; gap:20px;}
+.apex-slide .apex-col{flex:1; min-width:0; background:#141A3C; border:1px solid rgba(255,255,255,.10);
+  border-radius:14px; padding:20px 22px; box-shadow:0 12px 30px rgba(10,14,40,.28); display:flex; flex-direction:column; overflow:auto;}
+.apex-slide .apex-col h3{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em; color:#fff;}
+.apex-slide .apex-tag{font-size:13px; color:rgba(255,255,255,.6); margin:4px 0 0;}
+.apex-slide .apex-out{margin-top:12px; font-size:15px; color:#E7ECFA; line-height:1.5;}
+.apex-slide .apex-out code{font-family:var(--mono); font-size:15px; background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.14); border-radius:5px; padding:1px 6px; }
+.apex-slide .pf{display:inline-block; min-width:3.4em; text-align:center; border-radius:6px; padding:1px 8px;
+  font-size:11.5px; font-weight:800; letter-spacing:.02em;}
+.apex-slide .pf.pass{background:rgba(63,213,152,.18); color:#3FD598;}
+.apex-slide .pf.fail{background:rgba(255,138,128,.16); color:#FF8A80;}
+.apex-slide .apex-ctrl{display:flex; align-items:center; gap:16px; margin-top:16px;}
+.apex-slide .apex-btn{background:#2E6BE6; color:#fff; border:0; border-radius:10px; padding:11px 22px;
+  font-family:inherit; font-weight:700; font-size:15px; cursor:pointer;}
+.apex-slide .apex-btn:hover{filter:brightness(1.06);}
+.apex-slide .apex-msg{font-size:14px; color:var(--r-muted);}
+.apex-slide .apex-out .apex-tag{color:rgba(255,255,255,.55);}
+/* Slide 15 — Demo 1: Preview & trace (ported from Interactive Deck, deck-themed) */
+.ex-dhead{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+.ex-dhead h3{font-size:18px; font-weight:800; color:var(--head); margin:0;}
+.ex-live{background:#FFB13B; color:#1a1200; border-radius:999px; padding:2px 12px; font-weight:800; font-size:11px; letter-spacing:.04em;}
+.ex-sim{font-size:11px; color:var(--muted);}
+.ex-toggles{display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:10px;}
+.ex-chk{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text); cursor:pointer;}
+.ex-btn{border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:8px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit;}
+.ex-dbody{display:flex; gap:16px; height:296px;}
+.ex-chat{display:flex; flex-direction:column; min-height:0; flex:1.1;}
+.ex-msgs{flex:1; min-height:0; overflow:auto; background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px;}
+.ex-msg{max-width:86%; padding:7px 12px; border-radius:12px; font-size:13px; line-height:1.35;}
+.ex-msg.u{align-self:flex-end; background:var(--bluemid); color:#fff;}
+.ex-msg.a{align-self:flex-start; background:var(--card); border:1px solid var(--line); color:var(--text);}
+.ex-chips{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0;}
+.ex-chips button{border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:999px; padding:3px 11px; font-size:12px; cursor:pointer; font-family:inherit;}
+.ex-chips button:hover{border-color:var(--bluemid); color:var(--bluemid);}
+.ex-inrow{display:flex; gap:6px;}
+.ex-inrow input{flex:1; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:8px; padding:7px 11px; font-family:inherit; font-size:13px;}
+.ex-btn-pri{border:0; background:var(--purple); color:#fff; border-radius:8px; padding:7px 16px; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit;}
+.ex-trace{flex:1; min-height:0; overflow:auto; background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:14px 16px; font-size:13px; color:var(--text);}
+.ex-trace b{color:var(--head);}
+.ex-tag{font-size:12px; color:var(--muted);}
+.ex-tstep{display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:12.5px; line-height:1.4;}
+.ex-tstep:last-child{border:0;}
+.ex-tstep .n{flex:none; width:22px; height:22px; border-radius:50%; background:var(--bluemid); color:#fff; display:grid; place-items:center; font-size:11px; font-weight:800;}
+.ex-tstep.warn .n{background:#C0392B;}
+.ex-tstep code{background:var(--card); border:1px solid var(--line); border-radius:5px; padding:0 5px; font-family:var(--mono); font-size:11.5px; color:var(--purple);}
+.ex-trace .bad{color:#C0392B; font-weight:700;}
+.ex-trace pre{background:#060d17; color:var(--code-tx); border-radius:8px; padding:10px 12px; font-family:var(--mono); font-size:11px; line-height:1.45; overflow:auto; margin-top:8px;}
+/* slide 15 demo — dark panels (match slide 12) */
+.ex-chat{background:#141A3C; border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:10px; box-shadow:0 12px 30px rgba(10,14,40,.28);}
+.ex-msgs{background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.10);}
+.ex-msg.a{background:#1D2550; border-color:rgba(255,255,255,.10); color:#E7ECFA;}
+.ex-msg.u{background:#2E6BE6; color:#fff;}
+.ex-chips button{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.16); color:#E7ECFA;}
+.ex-chips button:hover{border-color:#8FB0FF; color:#fff;}
+.ex-inrow input{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.16); color:#E7ECFA;}
+.ex-inrow input::placeholder{color:rgba(255,255,255,.5);}
+.ex-trace{background:#141A3C; border-color:rgba(255,255,255,.10); color:#E7ECFA; box-shadow:0 12px 30px rgba(10,14,40,.28);}
+.ex-trace b{color:#fff;}
+.ex-trace .ex-tag{color:rgba(255,255,255,.6);}
+.ex-msgs .ex-tag{color:rgba(255,255,255,.6);}
+.ex-tstep{border-bottom-color:rgba(255,255,255,.12);}
+.ex-tstep code{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.14); color:#8FB0FF;}
+.ex-trace .bad{color:#FF8A80;}
+/* slide 15 — Target-org runtime legend pills (ref: Agent Previews) */
+.tdt-slide .tgt-rail{flex-direction:row; align-items:center; gap:8px; top:50px; right:148px; left:auto;}
+.tdt-slide .tgt-rail .tgt-label{font-size:12.5px; font-weight:800; letter-spacing:.03em; color:var(--r-ink); white-space:nowrap;}
+.tdt-slide .tgt-rail .tgt-chip{display:inline-flex; align-items:center; justify-content:center; border-radius:999px; padding:5px 13px; font-size:12.5px; font-weight:800; letter-spacing:.02em; border:1px solid transparent; white-space:nowrap;}
+.tdt-slide .tgt-rail .tgt-chip.credits{background:#FBEEDD; color:#B25E06; border-color:#F0D6AC;}
+.tdt-slide .tgt-rail .tgt-chip.data{background:#E3E9FC; color:#2347C6; border-color:#C7D4F6;}
+/* slide 16 — Demo 2: CSV suite (dark grid panel, matches slide 15) */
+.ex-sum{font-size:12.5px; color:var(--r-muted); font-weight:700;}
+.ex-sum .ok{color:#1F8F5F;} .ex-sum .bad{color:#C0392B;}
+.ex-grid{height:210px; overflow:auto; background:#141A3C; border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:8px; box-shadow:0 12px 30px rgba(10,14,40,.28);}
+.ex-grid table{border-collapse:collapse; width:100%; font-size:11.5px; color:#E7ECFA;}
+.ex-grid th{background:#1D2550; color:#fff; text-align:left; padding:6px 8px; font-weight:700; position:sticky; top:0; z-index:1; white-space:nowrap;}
+.ex-grid td{border-bottom:1px solid rgba(255,255,255,.10); padding:4px 6px; vertical-align:middle;}
+.ex-grid input{width:100%; min-width:70px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:6px; padding:3px 6px; color:#E7ECFA; font-family:inherit; font-size:11.5px;}
+.ex-grid pre{color:#E7ECFA; font-family:var(--mono); font-size:11px; line-height:1.5; white-space:pre; margin:0;}
+.ex-pf{display:inline-block; min-width:3em; text-align:center; border-radius:6px; padding:1px 7px; font-size:10.5px; font-weight:800;}
+.ex-pf.pass{background:rgba(63,213,152,.18); color:#3FD598;}
+.ex-pf.fail{background:rgba(255,138,128,.16); color:#FF8A80;}
+.ex-pf.skip{background:rgba(255,255,255,.08); color:rgba(255,255,255,.5);}
+/* slide 18 — Playwright Results (ported from premium-sports concierge) */
+.pw-slide .pw-res{margin-top:14px;}
+.pw-slide .pw-title{text-transform:uppercase; letter-spacing:.12em; font-size:13px; font-weight:800; color:var(--r-test); margin-bottom:10px;}
+.pw-slide .res-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:0 0 14px;}
+.pw-slide .res-tile{background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:12px; padding:10px 14px; text-align:center;}
+.pw-slide .res-tile .rn{font-size:26px; font-weight:800; line-height:1; color:var(--r-ink);}
+.pw-slide .res-tile .rl{font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--r-muted); font-weight:700; margin-top:6px;}
+.pw-slide .res-tile.pass .rn{color:#1F8F5F;}
+.pw-slide .res-tile.fail .rn{color:#C0392B;}
+.pw-slide .res-tile.rate .rn{color:var(--r-deploy);}
+.pw-slide .pw-rec{display:grid; grid-template-columns:1fr 340px; grid-template-rows:auto 1fr; gap:14px 18px; align-items:start;}
+.pw-slide .pw-rec .res-stats{grid-column:1; grid-row:1; margin:0;}
+.pw-slide .pw-rec .pw-info{grid-column:1; grid-row:2;}
+.pw-slide .pw-rec .res-video{grid-column:2; grid-row:1 / span 2; align-self:stretch;}
+.pw-slide .pw-eyebrow{text-transform:uppercase; letter-spacing:.1em; font-size:11px; font-weight:800; color:var(--r-deploy); margin-bottom:8px;}
+.pw-slide .res-list{list-style:none; margin:0; padding:0;}
+.pw-slide .res-list li{display:flex; align-items:center; gap:10px; font-size:13px; color:var(--r-ink); border:1px solid var(--r-line); background:var(--r-surface-2); border-radius:8px; padding:8px 12px;}
+.pw-slide .res-list li .tick{color:#1F8F5F; font-weight:800;}
+.pw-slide .res-list li .dur{margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--r-muted);}
+.pw-slide .res-vcap{font-size:12px; color:var(--r-muted); margin:10px 2px 0; line-height:1.4;}
+.pw-slide .res-vcap code{font-family:var(--mono); font-size:11px; color:var(--r-deploy);}
+.pw-slide .res-video{border:1px solid var(--r-line); border-radius:12px; overflow:hidden; background:#000;}
+.pw-slide .res-video video{display:block; width:100%; height:100%; object-fit:contain;}
+/* slide 20 — interactive four-dimension scenario designer */
+.scn-slide .scn-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:6px;}
+.scn-slide .scn-card{position:relative; text-align:left; background:var(--r-surface); border:1px solid var(--r-line); border-top:4px solid var(--c); border-radius:14px; padding:15px 18px; cursor:pointer; font-family:inherit; box-shadow:var(--r-shadow); transition:transform .15s ease, box-shadow .15s ease;}
+.scn-slide .scn-card:hover{transform:translateY(-3px);}
+.scn-slide .scn-card[aria-selected="true"]{background:var(--c); border-color:var(--c);}
+.scn-slide .scn-card[aria-selected="true"] .scn-t,.scn-slide .scn-card[aria-selected="true"] .scn-s{color:#fff;}
+.scn-slide .scn-card[aria-selected="true"] .scn-n{background:#fff; color:var(--c);}
+.scn-slide .scn-n{display:inline-grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--c); color:#fff; font-weight:800; font-size:15px; margin-bottom:10px;}
+.scn-slide .scn-t{font-size:22px; font-weight:800; letter-spacing:-.01em; color:var(--r-ink); line-height:1.1;}
+.scn-slide .scn-s{font-size:13px; color:var(--r-muted); margin-top:3px;}
+.scn-slide .scn-panel{margin-top:18px; background:var(--r-surface-2); border:1px solid var(--r-line); border-left:5px solid var(--c,transparent); border-radius:14px; padding:22px 26px; min-height:212px;}
+.scn-slide .scn-panel h3{font-size:22px; font-weight:800; letter-spacing:-.02em; color:var(--r-ink); margin:0 0 8px;}
+.scn-slide .scn-panel .pd{font-size:15px; color:var(--r-ink); line-height:1.5; margin:0 0 16px; max-width:76ch;}
+.scn-slide .scn-ex{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+.scn-slide .scn-ex div{display:flex; gap:10px; align-items:flex-start; font-size:14px; color:var(--r-ink); background:var(--r-surface); border:1px solid var(--r-line); border-radius:10px; padding:10px 14px; line-height:1.35;}
+.scn-slide .scn-ex div::before{content:"›"; color:var(--c); font-weight:800; font-size:16px; line-height:1.2;}
+.scn-slide .scn-ex code{font-family:var(--mono); font-size:12.5px; background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:5px; padding:0 5px; color:var(--r-deploy);}
+.ref-adlc h2{font-size:34px; font-weight:700; letter-spacing:-.02em; line-height:1.15; color:var(--r-ink); margin:0 0 6px; max-width:28ch;}
+.ref-adlc .lede{font-size:20px; color:var(--r-muted); margin:15px 0; max-width:60ch;}
+.ref-adlc .adlc{display:grid; grid-template-columns:380px 1fr; gap:34px; align-items:center; flex:1;}
+.ref-adlc .adlc svg{width:100%; max-width:380px; height:auto;}
+.ref-adlc .node{cursor:pointer;}
+.ref-adlc .node circle{fill:var(--r-surface-2); stroke:var(--r-line); stroke-width:2; transition:stroke .15s, fill .15s;}
+.ref-adlc .node.focus circle{stroke-width:3;}
+.ref-adlc .node[data-k="test"] circle{stroke:var(--r-test);}
+.ref-adlc .node[data-k="deploy"] circle{stroke:var(--r-deploy);}
+.ref-adlc .node.sel circle{fill:var(--r-ink);}
+.ref-adlc .node.sel text{fill:var(--r-bg);}
+.ref-adlc .node text{fill:var(--r-ink); font:600 13px "Schibsted Grotesk",sans-serif; text-anchor:middle; pointer-events:none;}
+.ref-adlc .ring{fill:none; stroke:var(--r-line); stroke-width:2; stroke-dasharray:4 6;}
+.ref-adlc .center{fill:var(--r-muted); font:500 13px "Schibsted Grotesk",sans-serif; text-anchor:middle;}
+.ref-adlc .adlc-panel{min-height:220px; background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:10px; padding:18px 20px;}
+.ref-adlc .adlc-panel h3{margin:0 0 10px; font-size:24px; font-weight:700; letter-spacing:-.02em; color:var(--r-ink);}
+.ref-adlc .adlc-panel p{font-size:16px; color:var(--r-ink); line-height:1.5; margin:0 0 10px;}
+.ref-adlc .adlc-panel p.small{font-size:14px; color:var(--r-muted); margin-bottom:0;}
+.ref-adlc .adlc-panel p.small b{color:var(--r-ink);}
+/* right column stacks the phase panel + (deploy-only) release train */
+.ref-adlc .adlc-right{display:flex; flex-direction:column; gap:16px; width:100%;}
+.ref-adlc .release-train{background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:10px; padding:16px 18px;}
+.ref-adlc .release-train[hidden]{display:none;}
+.ref-adlc .rt-title{font-size:15px; font-weight:700; color:var(--r-ink); margin-bottom:12px;}
+.ref-adlc .rt-flow{display:flex; align-items:stretch; gap:0;}
+.ref-adlc .rt-chip{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:3px; padding:10px 8px; border-radius:10px; color:var(--r-chip-tx);}
+.ref-adlc .rt-chip b{font-size:14px; letter-spacing:.02em;}
+.ref-adlc .rt-chip span{font-size:11px; opacity:.92; line-height:1.25;}
+.ref-adlc .rt-chip[data-stage="dev"]{background:var(--r-overview);}
+.ref-adlc .rt-chip[data-stage="qa"]{background:var(--r-test);}
+.ref-adlc .rt-chip[data-stage="staging"]{background:var(--r-deploy);}
+.ref-adlc .rt-chip[data-stage="prod"]{background:var(--r-ink);}
+.ref-adlc .rt-chev{flex:0 0 auto; align-self:center; color:var(--r-muted); font-size:20px; margin:0 6px;}
+.ref-adlc .rt-note{font-size:13px; color:var(--r-muted); margin-top:12px; line-height:1.4;}
+.ref-adlc .foot{font-size:14px; color:var(--r-muted); margin:18px 0 0;}
+.ref-adlc .pagenum{color:var(--r-muted);}
+
+/* ---- Slide 6: Live Request Simulator (ported from premium-sports concierge, re-skinned to ref branding) ---- */
+.ref-adlc .eyebrow{text-transform:uppercase; letter-spacing:.14em; font-size:12px; font-weight:700; color:var(--r-test);}
+.ref-adlc .reveal{opacity:0; transform:translateY(10px); transition:opacity .5s ease, transform .5s ease;}
+.ref-adlc .reveal.in{opacity:1; transform:none;}
+@media (prefers-reduced-motion: reduce){ .ref-adlc .reveal{opacity:1; transform:none; transition:none;} }
+.ref-adlc .s-chat{background:var(--r-surface); border:1px solid var(--r-line); border-radius:12px; display:flex; flex-direction:column; height:322px; overflow:hidden;}
+.ref-adlc .s-head{display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--r-line); font-size:14px; color:var(--r-ink);}
+.ref-adlc .s-dot{width:8px; height:8px; border-radius:50%; background:#1F8F5F; flex:none;}
+.ref-adlc .s-head .s-dim{margin-left:auto; font-size:11px; color:var(--r-muted); font-weight:400;}
+.ref-adlc .s-msgs{flex:1; padding:14px; overflow:auto; display:flex; flex-direction:column; gap:12px;}
+.ref-adlc .s-row{display:flex; gap:10px;}
+.ref-adlc .s-row.user{flex-direction:row-reverse;}
+.ref-adlc .s-av{width:28px; height:28px; border-radius:50%; flex:none; display:grid; place-items:center; font-size:13px; color:#fff;}
+.ref-adlc .s-av.a{background:var(--r-deploy);}
+.ref-adlc .s-av.u{background:var(--r-overview);}
+.ref-adlc .s-bub{max-width:82%; padding:9px 12px; border-radius:13px; font-size:13px; line-height:1.4; white-space:pre-line;}
+.ref-adlc .s-row.user .s-bub{background:var(--r-deploy); color:#fff; border-top-right-radius:4px;}
+.ref-adlc .s-row.a .s-bub{background:var(--r-surface-2); border:1px solid var(--r-line); color:var(--r-ink); border-top-left-radius:4px;}
+.ref-adlc .s-ev{border:1px solid var(--r-line); border-radius:10px; padding:9px 11px; background:var(--r-surface-2);}
+.ref-adlc .s-ev .top{display:flex; justify-content:space-between; gap:8px; align-items:flex-start;}
+.ref-adlc .s-ev .sport{font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--r-deploy);}
+.ref-adlc .s-ev h5{margin:2px 0 4px; font-size:13px; color:var(--r-ink);}
+.ref-adlc .s-ev .meta{font-size:11px; color:var(--r-muted); line-height:1.35;}
+.ref-adlc .s-ev .price{font-size:11px; font-weight:700; color:var(--r-test); white-space:nowrap;}
+.ref-adlc .s-cite{display:inline-flex; gap:5px; align-items:center; font-size:10px; color:var(--r-muted); border:1px solid var(--r-line); border-radius:7px; padding:2px 7px; background:var(--r-surface-2);}
+.ref-adlc .s-typing span{display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--r-deploy); margin:0 1px; animation:s-b 1s infinite;}
+.ref-adlc .s-typing span:nth-child(2){animation-delay:.15s;}
+.ref-adlc .s-typing span:nth-child(3){animation-delay:.3s;}
+@keyframes s-b{0%,60%,100%{opacity:.3; transform:translateY(0);} 30%{opacity:1; transform:translateY(-3px);}}
+.ref-adlc .s-composer{border-top:1px solid var(--r-line); padding:10px; display:flex;}
+.ref-adlc .s-composer button{flex:1; background:var(--r-deploy); color:#fff; border:0; border-radius:10px; padding:10px; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit;}
+.ref-adlc .s-composer button:disabled{opacity:.45; cursor:not-allowed;}
+.ref-adlc .s-trace{background:var(--r-surface); border:1px solid var(--r-line); border-radius:12px; padding:14px 16px; height:322px; overflow:auto;}
+.ref-adlc .s-trace h4{margin:0 0 4px; font-size:16px; color:var(--r-ink);}
+.ref-adlc .s-trace .s-sub{font-size:11px; color:var(--r-muted); margin:0 0 10px;}
+.ref-adlc .s-step{display:flex; gap:10px; padding:8px 0; border-bottom:1px dashed var(--r-line); font-size:12.5px;}
+.ref-adlc .s-step:last-child{border-bottom:0;}
+.ref-adlc .s-step .lbl{color:var(--r-muted); width:92px; flex:none; font-size:10px; text-transform:uppercase; letter-spacing:.05em; padding-top:2px;}
+.ref-adlc .s-step .val{color:var(--r-ink);}
+.ref-adlc .s-step .val code{font-family:var(--mono); font-size:11px; background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:4px; padding:0 4px; color:var(--r-deploy);}
+.ref-adlc .s-muted{font-size:12px; color:var(--r-muted);}
+/* darker, richer simulator panels — makes the demo pop on the light slide (fixed dark in both themes) */
+.ref-adlc .s-chat, .ref-adlc .s-trace{background:#141A3C; border-color:rgba(255,255,255,.10); box-shadow:0 12px 30px rgba(10,14,40,.30);}
+.ref-adlc .s-row.user .s-bub{background:#2E6BE6; color:#fff;}
+.ref-adlc .s-av.a{background:#2E6BE6; color:#fff;}
+.ref-adlc .s-av.u{background:#3A4668; color:#fff;}
+.ref-adlc .s-typing span{background:#6FA0FF;}
+.ref-adlc .s-composer button{background:#2E6BE6; color:#fff;}
+.ref-adlc .s-head{border-bottom-color:rgba(255,255,255,.10); color:#fff;}
+.ref-adlc .s-head .s-dim{color:rgba(255,255,255,.60);}
+.ref-adlc .s-row.a .s-bub{background:#1D2550; border-color:rgba(255,255,255,.10); color:#E7ECFA;}
+.ref-adlc .s-ev{background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.12);}
+.ref-adlc .s-ev h5{color:#fff;}
+.ref-adlc .s-ev .meta{color:rgba(255,255,255,.62);}
+.ref-adlc .s-ev .sport{color:#8FB0FF;}
+.ref-adlc .s-ev .price{color:#F2A64A;}
+.ref-adlc .s-cite{color:rgba(255,255,255,.72); border-color:rgba(255,255,255,.14); background:rgba(255,255,255,.05);}
+.ref-adlc .s-composer{border-top-color:rgba(255,255,255,.10);}
+.ref-adlc .s-trace h4{color:#fff;}
+.ref-adlc .s-trace .s-sub{color:rgba(255,255,255,.60);}
+.ref-adlc .s-step{border-bottom-color:rgba(255,255,255,.12);}
+.ref-adlc .s-step .lbl{color:rgba(255,255,255,.50);}
+.ref-adlc .s-step .val{color:#E7ECFA;}
+.ref-adlc .s-step .val code{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.14); color:#8FB0FF;}
+.ref-adlc .s-muted{color:rgba(255,255,255,.60);}
+
+/* Slide 7 — "Why testing & deployment matter": reference font sizes, equal card heights, reference callout theme */
+.trust-slide .cards{align-items:stretch;}
+.trust-slide .card{display:flex; flex-direction:column;}
+.trust-slide .ct{font-size:19px; letter-spacing:-.02em;}
+.trust-slide ul.bul li{font-size:17px; line-height:1.6; padding:6px 0 6px 20px;}
+.trust-slide .callout-ref{border-left:4px solid var(--overview); background:var(--card2); border-radius:0 8px 8px 0; padding:14px 18px;}
+.trust-slide .callout-ref p{margin:0; font-size:17px; line-height:1.55; color:var(--text);}
+.trust-slide .callout-ref b{color:var(--head);}
+
+/* table */
+table.cmp{width:100%; border-collapse:separate; border-spacing:0; border-radius:14px; overflow:hidden; box-shadow:var(--shadow); font-size:13.5px;}
+table.cmp th,table.cmp td{padding:11px 16px; text-align:left; vertical-align:middle; border-bottom:1px solid var(--line);}
+table.cmp thead th{background:var(--tbl-head); color:#fff; font-size:14.5px; font-weight:800;}
+table.cmp td:first-child{background:var(--tbl-col0); color:var(--head); font-weight:800; width:20%;}
+table.cmp td:nth-child(2){color:var(--text); width:32%;}
+table.cmp td:nth-child(3){color:var(--bluemid); font-weight:600;}
+html[data-theme="dark"] table.cmp td:nth-child(3){color:var(--sky);}
+table.cmp tbody tr:nth-child(even) td:not(:first-child){background:var(--card2);}
+table.cmp tbody tr:nth-child(odd) td:not(:first-child){background:var(--card);}
+table.cmp tr:last-child td{border-bottom:none;}
+
+/* arrow chevrons */
+.flow{display:flex; align-items:stretch; gap:0;}
+.chev{flex:0 0 auto; align-self:center; color:var(--muted); font-size:22px; margin:0 4px;}
+
+/* quiz */
+.quiz{display:grid; grid-template-columns:1fr 1fr; gap:14px 20px;}
+.q{background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:14px 16px; cursor:pointer; transition:transform .15s;}
+.q:hover{transform:translateY(-2px);}
+.q .qh{display:flex; gap:12px; align-items:flex-start;}
+.q .qn{width:34px; height:34px; border-radius:50%; background:var(--purple); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:15px; flex:0 0 auto;}
+.q .qt{font-size:14px; font-weight:800; color:var(--head); line-height:1.25;}
+.q .ans{margin-top:8px; max-height:0; opacity:0; overflow:hidden; transition:all .35s ease;}
+.q.open .ans{max-height:140px; opacity:1;}
+.q .ans .good{color:var(--green); font-weight:800; font-size:13.5px;}
+.q .ans .why{color:var(--muted); font-size:12px; margin-top:4px; line-height:1.3;}
+.q .hint{font-size:11px; color:var(--blue); margin-top:6px; font-weight:700;}
+.q.open .hint{display:none;}
+.takeaway{background:var(--navy); color:#fff; border-radius:14px; box-shadow:var(--shadow); padding:16px 18px; display:flex; flex-direction:column; justify-content:center;}
+html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--line);}
+.takeaway b{font-size:15px;} .takeaway span{font-size:12.5px; color:#D9E2FF; margin-top:6px; line-height:1.35;}
+.takeaway .hl{color:var(--sky); font-weight:800;}
+
+/* ============================= HUD (hidden while presenting) ============================= */
+.hud{position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:50;
+  display:flex; align-items:center; gap:8px; background:var(--hud); border:1px solid var(--hud-line);
+  backdrop-filter:blur(10px); padding:8px 10px; border-radius:40px; box-shadow:var(--shadow);
+  transition:opacity .3s;}
+.hud button{border:none; background:transparent; color:var(--text); font-family:var(--font);
+  font-size:13px; font-weight:700; padding:7px 12px; border-radius:30px; cursor:pointer;}
+.hud button:hover{background:rgba(127,127,170,.15);}
+.hud .count{font-size:13px; color:var(--muted); font-weight:700; text-align:center;}
+.hud .gotoWrap{display:flex; align-items:center; gap:6px;}
+.hud .goto{width:46px; text-align:center; font-family:var(--font); font-size:13px; font-weight:700;
+  color:var(--text); background:var(--card); border:1px solid var(--hud-line); border-radius:8px; padding:5px 4px;}
+.hud .goto:focus{outline:none; border-color:var(--purple); box-shadow:0 0 0 2px rgba(74,23,196,.2);}
+.hud .goto::-webkit-outer-spin-button,.hud .goto::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+.hud .goto{-moz-appearance:textfield; appearance:textfield;}
+.hud .sep{width:1px; height:22px; background:var(--hud-line);}
+.hud .present{background:var(--purple); color:#fff;}
+.hint-k{position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:50; font-size:12px;
+  color:var(--muted); background:var(--hud); border:1px solid var(--hud-line); padding:6px 14px;
+  border-radius:30px; opacity:.85; transition:opacity .3s;}
+
+/* presenter notes */
+.notes{position:fixed; left:0; right:0; bottom:0; z-index:60; max-height:42vh; overflow:auto;
+  background:rgba(8,12,34,.96); color:#D6DEF2; padding:18px 26px; font-size:15px; line-height:1.5;
+  border-top:2px solid var(--purple); display:none;}
+.notes.show{display:block;}
+.notes b{color:#fff;}
+
+/* presenting: hide ALL chrome */
+#deck.presenting .hud,#deck.presenting .hint-k{opacity:0; pointer-events:none;}
+#deck.presenting{cursor:none;}
+#deck.presenting.cursoractive{cursor:default;}
+</style>
+</head>
+<body>
+<div id="deck" data-theme="light">
+  <div class="stage" id="stage">
+
+  <!-- =================== SLIDE 1 — COVER =================== -->
+  <section class="slide cover active">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap">
+      <h1>Agentforce<br>Testing &amp; Deployment</h1>
+      <div class="lede tagline"><span class="t">Prove it,</span><span class="d">then ship it.</span></div>      
+    </div>
+    <div class="pagenum">1</div>
+  </section>
+
+  <!-- =================== SLIDE 2 — OBJECTIVES =================== -->
+  <section class="slide ref-adlc">
+    <div class="refcard">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Setting the objectives</h1>
+      <p class="sub">Why Agentforce testing &amp; deployment deserves its own discipline</p>
+      <div class="body">
+        <div class="cards" style="grid-template-columns:1fr 1fr; grid-auto-rows:1fr; height:100%">
+          <div class="card row"><div class="badge" style="background:var(--purple)">1</div><div><div class="ct">Building is only half the lifecycle</div><div class="cd">A working demo is not a production system. Value is realised at release, not at build.</div></div></div>
+          <div class="card row"><div class="badge" style="background:var(--bluemid)">2</div><div><div class="ct">Behave consistently &amp; reliably</div><div class="cd">Agents are probabilistic — the same question can take a different path. Prove behaviour holds.</div></div></div>
+          <div class="card row"><div class="badge" style="background:var(--purple)">3</div><div><div class="ct">Earn confidence before production</div><div class="cd">Evidence, not optimism. Replace “it worked when I tried it” with measured pass-rates.</div></div></div>
+          <div class="card row"><div class="badge" style="background:var(--bluemid)">4</div><div><div class="ct">From experimentation to engineering</div><div class="cd">Move from ad-hoc clicking to repeatable, reviewable, governed delivery.</div></div></div>
+          <div class="card row"><div class="badge" style="background:var(--purple)">5</div><div><div class="ct">Repeatable &amp; scalable practices</div><div class="cd">Tests as code, release as a pipeline — so the 50th agent ships as safely as the first.</div></div></div>
+          <div class="card row"><div class="badge" style="background:var(--bluemid)">6</div><div><div class="ct">Protect customer trust</div><div class="cd">A wrong or unsafe answer in production is a trust incident, not just a bug.</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">2</div>
+  </section>
+
+  <!-- =================== SLIDE 3 — AGENDA =================== -->
+  <section class="slide ref-adlc">
+    <div class="refcard">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">The hour, and how we spend it</h1>
+      <p class="sub">Agenda · 60 minutes</p>
+      <div class="body">
+        <div class="cards" style="grid-template-columns:repeat(4,1fr)">
+          <div class="card" style="border-top:5px solid var(--overview)">
+            <div style="font-size:40px; font-weight:800; letter-spacing:-.03em; color:var(--head)">5<span style="font-size:16px; font-weight:500; color:var(--muted)"> min</span></div>
+            <div class="ct" style="margin:6px 0 2px">Overview</div>
+            <ul class="bul" style="font-size:14.5px"><li>The Agent Development Lifecycle (ADLC)</li><li>Why testing &amp; deployment carry the most risk</li><li>The WISMO reference scenario</li></ul>
+          </div>
+          <div class="card" style="border-top:5px solid var(--test)">
+            <div style="font-size:40px; font-weight:800; letter-spacing:-.03em; color:var(--head)">30<span style="font-size:16px; font-weight:500; color:var(--muted)"> min</span></div>
+            <div class="ct" style="margin:6px 0 2px">Testing Agentforce agents</div>
+            <ul class="bul" style="font-size:14.5px"><li>Why agentic testing is different</li><li>Six layers of agent testing</li><li>The testing toolbox &amp; tools</li><li>Designing effective test coverage</li></ul>
+          </div>
+          <div class="card" style="border-top:5px solid var(--deploy)">
+            <div style="font-size:40px; font-weight:800; letter-spacing:-.03em; color:var(--head)">20<span style="font-size:16px; font-weight:500; color:var(--muted)"> min</span></div>
+            <div class="ct" style="margin:6px 0 2px">Deploying Agentforce agents</div>
+            <ul class="bul" style="font-size:14.5px"><li>An agent is linked metadata</li><li>Git, SFDX &amp; package.xml</li><li>Validate → deploy → publish → activate</li><li>Pipelines &amp; release governance</li></ul>
+          </div>
+          <div class="card" style="border-top:5px solid var(--overview)">
+            <div style="font-size:40px; font-weight:800; letter-spacing:-.03em; color:var(--head)">5<span style="font-size:16px; font-weight:500; color:var(--muted)"> min</span></div>
+            <div class="ct" style="margin:6px 0 2px">Wrap-up</div>
+            <ul class="bul" style="font-size:14.5px"><li>Knowledge check</li><li>Resources</li><li>Questions</li></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">3</div>
+  </section>
+
+  <!-- =================== SLIDE 4 — SECTION: OVERVIEW =================== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap" style="top:188px">
+      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:rgba(255,255,255,.32)">1</div>
+      <h1 style="margin-top:8px">Overview</h1>
+      <div class="lede">Foundations — lifecycle, scenario, and why testing matters.</div>
+    </div>
+    <div class="pagenum">4</div>
+  </section>
+
+  <!-- =================== SLIDE 5 — ADLC RING (phases) — reference branding =================== -->
+  <section class="slide ref-adlc">
+    <div class="refcard">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h2>The agent development lifecycle</h2>
+      <p class="lede">Testing and deployment are two phases in a continuous loop — select a phase.</p>
+      <div class="adlc">
+        <svg viewBox="0 0 420 420" role="group" aria-label="ADLC phases, select a phase for details">
+          <circle class="ring" cx="210" cy="210" r="150"/>
+          <text class="center" x="210" y="198">Production signals</text>
+          <text class="center" x="210" y="216">feed new tests</text>
+          <text class="center" x="210" y="234">and new versions</text>
+          <g class="node" data-k="ideate" tabindex="0" role="button"><circle cx="210" cy="60" r="50"/><text x="210" y="56">Ideate</text><text x="210" y="73">&amp; design</text></g>
+          <g class="node" data-k="build" tabindex="0" role="button"><circle cx="352.7" cy="163.6" r="50"/><text x="352.7" y="160">Build</text><text x="352.7" y="177">inner loop</text></g>
+          <g class="node focus" data-k="test" tabindex="0" role="button"><circle cx="298.2" cy="331.4" r="50"/><text x="298.2" y="327">Test &amp;</text><text x="298.2" y="344">validate</text></g>
+          <g class="node focus" data-k="deploy" tabindex="0" role="button"><circle cx="121.8" cy="331.4" r="50"/><text x="121.8" y="327">Deploy &amp;</text><text x="121.8" y="344">release</text></g>
+          <g class="node" data-k="monitor" tabindex="0" role="button"><circle cx="67.3" cy="163.6" r="50"/><text x="67.3" y="160">Monitor</text><text x="67.3" y="177">&amp; tune</text></g>
+        </svg>
+        <div class="adlc-right">
+          <div class="adlc-panel" id="adlcPanel" aria-live="polite"></div>
+          <div class="release-train" id="releaseTrain" hidden>
+            <div class="rt-title">The release train — promotion &amp; testing gates</div>
+            <div class="rt-flow">
+              <div class="rt-chip" data-stage="dev"><b>DEV</b><span>Build &amp; unit test</span></div><div class="rt-chev">›</div>
+              <div class="rt-chip" data-stage="qa"><b>QA</b><span>Batch, conversation &amp; red-team gate</span></div><div class="rt-chev">›</div>
+              <div class="rt-chip" data-stage="staging"><b>STAGING</b><span>UAT &amp; channel validation</span></div><div class="rt-chev">›</div>
+              <div class="rt-chip" data-stage="prod"><b>PRODUCTION</b><span>Activate, verify, monitor</span></div>
+            </div>
+            <div class="rt-note">A failing test gate blocks promotion — exactly like a failing Apex test blocks a deploy.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">5</div>
+  </section>
+
+  <!-- =================== SLIDE 6 — USE CASE =================== -->
+  <section class="slide ref-adlc">
+    <div class="refcard">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">The scenario: Sports Booking Concierge</h1>
+      <p class="sub">A modern, multi-turn conversational assistant for discovering sporting events and answering venue-related queries.</p>
+      <div class="body">
+        <div class="flow" style="margin-bottom:12px">
+          <div class="card" style="flex:1;text-align:center"><div class="ct" style="font-size:15px">React UI</div><div class="cd">Custom conversational interface</div></div><div class="chev">›</div>
+          <div class="card" style="flex:1;text-align:center"><div class="ct" style="font-size:15px">Experience Cloud</div><div class="cd">Hosts the site / channel</div></div><div class="chev">›</div>
+          <div class="card" style="flex:1;text-align:center"><div class="ct" style="font-size:15px">Headless Agentforce</div><div class="cd">Service Agent via Agent API</div></div><div class="chev">›</div>
+          <div class="card" style="flex:1;text-align:center"><div class="ct" style="font-size:15px">Salesforce data</div><div class="cd">Orders, cases, knowledge</div></div>
+        </div>
+        <div class="eyebrow reveal" style="margin-bottom:10px">▶️ Live Request Simulator</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px">
+          <div class="s-chat reveal">
+            <div class="s-head"><span class="s-dot"></span> <b>Sports Booking Concierge</b> <span class="s-dim">Premium Sports Booking</span></div>
+            <div class="s-msgs" id="simMsgs"></div>
+            <div class="s-composer"><button id="simPlay" type="button">▶ Play next turn</button></div>
+          </div>
+          <div class="s-trace reveal">
+            <h4>Behind the scenes</h4>
+            <p class="s-sub">The real flow for the current agent turn — intent → routing → action → data → response.</p>
+            <div id="simTrace"><p class="s-muted">Press <b>Play next turn</b> to replay a real Riyadh conversation.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">6</div>
+  </section>
+
+  <!-- =================== SLIDE 7 — WHY TESTING & DEPLOYMENT MATTER =================== -->  
+  <section class="slide ref-adlc trust-slide">  
+    <div class="refcard">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Testing &amp; deployment are where trust is won or lost</h1>
+      <p class="sub">Why these two phases carry the most risk — and the most value</p>
+      <div class="body">
+        <div class="cards" style="grid-template-columns:1fr 1fr; margin-bottom:18px">
+          <div class="card">
+            <div class="ct" style="margin-bottom:10px">Testing is how we earn the right to ship</div>
+            <ul class="bul">
+              <li>An agent reasons its own path through subagents and actions — so "it worked when I tried it" proves very little.</li>
+              <li>Actions write real CRM data. A wrong tool call is a data incident, not a UI bug.</li>
+              <li>Customers see the output directly. One hallucinated policy can end up on social media.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="ct" style="margin-bottom:10px">Deployment is how we stay repeatable</div>
+            <ul class="bul">
+              <li>An agent is a bundle of linked metadata plus Apex, flows, prompt templates, permissions and data.</li>
+              <li>Missing one dependency fails the deploy — or worse, deploys an agent that silently can't act.</li>
+              <li>Versions, activation and rollback must be scripted so any FDE can repeat them at 2am.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout-ref">
+          <p><b>Our team rule:</b> No agent reaches a customer-facing channel without a passing test suite and a deployment that was rehearsed in a full sandbox.</p>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">7</div>
+  </section>
+
+  <!-- =================== SLIDE 8 — SECTION: TESTING =================== -->  
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap" style="top:188px">
+      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2</div>
+      <h1>Agentforce testing</h1>
+      <div class="lede">What are we trying to prove, and what evidence is enough?</div>
+    </div>
+    <div class="pagenum">8</div>
+  </section>
+
+  <!-- =================== SLIDE 9 — TESTING GOALS & EXPECTATIONS =================== -->
+  <section class="slide ref-adlc goals-slide">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Testing goals and expectations</h1>
+      <p class="sub">Test observable behaviour and outcomes, not identical generated sentences.</p>
+      <div class="goal-list">
+        <div class="goal-card"><div class="g-t">Prove the business outcome</div><div class="g-d">Define what the user must achieve and what acceptable behaviour looks like.</div></div>
+        <div class="goal-card"><div class="g-t">Inspect the decision path</div><div class="g-d">Verify topic and action selection, grounding and the resulting response.</div></div>
+        <div class="goal-card"><div class="g-t">Challenge boundaries and recovery</div><div class="g-d">Cover permissions, ambiguity, edge cases, refusal, escalation and dependency failure.</div></div>
+        <div class="goal-card"><div class="g-t">Use the intended context</div><div class="g-d">Test the representative persona, runtime identity, data state and channel.</div></div>
+        <div class="goal-card"><div class="g-t">Make evidence executable</div><div class="g-d">Treat scenarios and expected outcomes as a repeatable, understandable design specification.</div></div>
+      </div>
+    </div>
+    <div class="pagenum">9</div>
+  </section>
+
+  <!-- =================== SLIDE 10 — WHY TESTING MATTERS IN AGENTIC AI =================== -->
+  <section class="slide ref-adlc stakes-slide">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Why Testing Matters in Agentic AI</h1>
+      <p class="sub">When agents are customer-facing, every response shapes brand trust.</p>
+      <div class="stakes-grid">
+        <div class="stakes-card">
+          <div class="stakes-eyebrow">THE STAKES</div>
+          <div class="stakes-quote">One inconsistent response can erode years of customer trust.</div>
+        </div>
+        <div class="stakes-list">
+          <div class="stakes-item">
+            <div class="s-ico">🛡️</div>
+            <div><div class="si-t">Customer-Facing Risk</div><div class="si-d">Agents act on behalf of the brand — every turn is a brand moment.</div></div>
+          </div>
+          <div class="stakes-item">
+            <div class="s-ico">🏛️</div>
+            <div><div class="si-t">Regulatory Exposure</div><div class="si-d">Inconsistent answers create compliance and legal risk.</div></div>
+          </div>
+          <div class="stakes-item">
+            <div class="s-ico">⏱️</div>
+            <div><div class="si-t">Adoption Velocity</div><div class="si-d">Trust gaps stall expansion across business units and markets.</div></div>
+          </div>
+          <div class="stakes-item">
+            <div class="s-ico">💲</div>
+            <div><div class="si-t">Operational Cost</div><div class="si-d">Late-stage defects are exponentially more expensive.</div></div>
+          </div>
+        </div>
+      </div>    
+    </div>
+    <div class="pagenum">10</div>
+  </section>
+
+  <!-- =================== SLIDE 11 — TRADITIONAL TESTING DOESN'T WORK FOR NON-DETERMINISTIC AGENTS =================== -->
+  <section class="slide ref-adlc tdt-slide trust-slide">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Traditional testing doesn't work for <br/>non-deterministic agents</h1>
+      <div class="tdt-legend">
+        <span><i class="sw sw-build"></i>Design &amp; Build</span>
+        <span><i class="sw sw-test"></i>Testing</span>
+        <span><i class="sw sw-deploy"></i>Deploy &amp; Regression</span>
+      </div>
+      <div class="tdt-grid">
+        <div class="tdt-card light">
+          <div class="tdt-main">
+            <div class="tdt-eyebrow">TRADITIONAL SOFTWARE</div>
+            <div class="tdt-big">Deterministic</div>
+            <ul class="bul">
+              <li>Same input → same output</li>
+              <li>Test once, trust forever</li>
+              <li>End-of-cycle validation works</li>
+              <li>Stable regression baselines</li>
+            </ul>
+          </div>
+          <img class="tdt-stack" src="images/Deterministic.png" alt="Effort split: 50% design &amp; build, 20% testing, 30% deploy &amp; regression — testing is one concentrated phase">
+        </div>
+        <div class="tdt-card light" style="border: 2px solid var(--r-deploy);">
+          <div class="tdt-main">
+            <div class="tdt-eyebrow">AGENTIC AI</div>
+            <div class="tdt-big">Non-Deterministic</div>
+            <ul class="bul">
+              <li>Same input → variable outputs</li>
+              <li>Behavior drifts as models evolve</li>
+              <li>Late testing = late surprises</li>
+              <li>Requires continuous validation</li>
+            </ul>
+          </div>
+          <img class="tdt-stack" src="images/Probabilistic.png" alt="Effort: testing is continuous throughout">
+        </div>      
+      </div> 
+    </div>    
+    <div class="pagenum">11</div>
+  </section>
+
+  <!-- =================== SLIDE 12 — AGENTS AREN'T APEX =================== -->
+  <section class="slide ref-adlc apex-slide">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1>An agent is probabilistic. "It worked when I tried it" <br/>proves almost nothing.</h1>
+      <p class="lede">Ask the concierge “When is the Desert Lions match?” five times and compare two kinds of test.</p>
+      <div class="apex-row">
+        <div class="apex-col reveal">
+          <h3>Apex test</h3>
+          <p class="apex-tag">Fixed input, fixed output</p>
+          <div id="whyApex" class="apex-out"></div>
+        </div>
+        <div class="apex-col reveal">
+          <h3>Agent test</h3>
+          <p class="apex-tag">Free-form input, varied wording</p>
+          <div id="whyAgent" class="apex-out"></div>
+        </div>
+      </div>
+      <div class="apex-ctrl">
+        <button class="apex-btn" id="whyBtn" type="button">Ask 5 times</button>
+        <span id="whyMsg" class="apex-msg"></span>
+      </div>
+    </div>
+    <div class="pagenum">12</div>
+  </section>
+
+  <!-- =================== SLIDE 13 — SIX LAYERS OF AGENT TESTING =================== -->
+  <section class="slide ref-adlc layers-slide">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h2>Six layers of agent testing</h2>
+      <p class="lede">Cheap and deterministic first, rich and realistic last — each layer catches what the one below misses. Select a layer.</p>
+      <div class="layers">
+        <div class="layer-list" role="tablist" aria-label="Testing layers">
+          <button role="tab" data-l="unit" style="--lc:var(--l-teal)">Unit <span>Apex, flows, prompts</span></button>
+          <button role="tab" data-l="func" style="--lc:var(--l-teal)">Functional <span>Builder preview</span></button>
+          <button role="tab" data-l="batch" style="--lc:var(--l-brand)">Batch <span>Testing Center</span></button>
+          <button role="tab" data-l="conv" style="--lc:var(--l-brand)">Conversation <span>Multi-turn personas</span></button>
+          <button role="tab" data-l="ui" style="--lc:var(--l-violet)">UI and channel <span>Playwright</span></button>
+          <button role="tab" data-l="ci" style="--lc:var(--l-green)">Automated &amp; continuous <span>CI and schedules</span></button>
+        </div>
+        <div class="layer-panel" id="layerPanel" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="pagenum">13</div>
+  </section>
+
+  <!-- =================== SLIDE 14 — SUBSECTION: TOOLS =================== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap" style="top:188px">
+      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2.1</div>
+      <h1>Testing toolbox</h1>
+      <div class="lede">The Agentforce testing ecosystem — and where each tool fits.</div>
+    </div>
+    <div class="pagenum">14</div>
+  </section>
+
+  <!-- =================== SLIDE 15 — MANUAL EXPLORATION =================== -->
+  <section class="slide tdt-slide ref-adlc">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Manual exploration</h1>
+      <div class="tdt-legend tgt-rail">
+        <span class="tgt-label">Target-org runtime</span>
+        <span class="tgt-chip credits">Credits: yes</span>
+        <span class="tgt-chip data">Data: may write</span>
+      </div>
+      <p class="sub">Your fastest feedback loop — and your weakest memory</p>      
+      <div class="body" style="top: 135px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:12px">
+          <div class="card"><div class="ct" style="margin-bottom:8px">What you explore</div>
+            <ul class="bul"><li>Agent Builder Preview &amp; <span class="mono" style="font-size:13px">sf agent preview</span></li><li>Prompts, instructions, topics &amp; actions</li><li>Expected vs. actual behaviour</li></ul></div>
+          <div class="card"><div class="ct" style="margin-bottom:8px">Simulation vs. live</div>
+            <div class="note" style="margin-bottom:6px"><b style="color:var(--purple)">Simulation</b> — isolated from org data; use while instructions still change.</div>
+            <div class="note" style="margin-bottom:6px"><b style="color:var(--bluemid)">Live</b> — runs real actions on sandbox data; use before you commit a version.</div>
+            <div class="note"><span class="k">Always read the trace:</span> subagent → action inputs → outputs → final response.</div></div>
+        </div>
+        <div class="ex-demo">
+          <div class="ex-dhead"><h3>Demo 1 — Preview &amp; trace</h3><span class="ex-live">LIVE DEMO</span><span class="ex-sim">Simulated agent, runs in this page</span></div>
+          <div class="ex-toggles">
+            <label class="ex-chk"><input type="checkbox" data-cfg="guardrail"> Guardrail: refuse off-topic requests</label>
+            <label class="ex-chk"><input type="checkbox" data-cfg="formal"> Formal tone instruction</label>
+            <button class="ex-btn" id="d1clear" type="button">Clear chat</button>
+          </div>
+          <div class="ex-dbody">
+            <div class="ex-chat">
+              <div class="ex-msgs" id="d1msgs"></div>
+              <div class="ex-chips" id="d1chips"></div>
+              <div class="ex-inrow"><input id="d1in" placeholder="Type as a customer..." aria-label="Message"><button class="ex-btn-pri" id="d1send" type="button">Send</button></div>
+            </div>
+            <div class="ex-trace" id="d1trace"><b>Trace</b><p class="ex-tag" style="margin-top:4px">Send a message to see which topic and action the agent chose.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">15</div>
+  </section>
+
+  <!-- =================== SLIDE 16 — BATCH / BULK =================== -->
+  <section class="slide tdt-slide ref-adlc">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Batch / bulk testing</h1>
+      <div class="tdt-legend tgt-rail">
+        <span class="tgt-label">Agent + evaluator runtime</span>
+        <span class="tgt-chip credits">Credits: yes</span>
+        <span class="tgt-chip data">Data: may write</span>
+      </div>
+      <p class="sub">Agentforce Testing Center — one suite, hundreds of utterances, a scored grid</p>          
+      <div class="body">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:12px">
+          <div class="card"><div class="ct" style="margin-bottom:8px">How it works</div>
+            <ul class="bul"><li>Lives as a tab in Agentforce Studio</li><li>Each case asserts expected subagent, actions &amp; outcome</li><li>Scorers: accuracy, completeness, coherence, conciseness, latency, instruction adherence</li><li>Run history compares quality across agent versions</li></ul></div>
+          <div>
+            <pre class="code"><span class="ttl">bash</span><span class="cmt"># tests as code — the FDE workflow</span>
+<span class="kw">sf agent generate test-spec</span>
+<span class="kw">sf agent test create</span> --spec <span class="str">tests/wismo.yaml</span>
+<span class="kw">sf agent test run</span> --api-name <span class="str">Service_Agent_Tests \</span>
+--wait <span class="str">15</span> --result-format <span class="str">junit</span></pre>
+            <div class="note" style="margin-top:12px">The YAML spec becomes <span class="mono">AiEvaluationDefinition</span> metadata — so tests are versioned and deployed alongside the agent.</div>
+          </div>
+        </div>
+        <div class="ex-demo">
+          <div class="ex-dhead"><h3>Demo 2 — Run a CSV suite</h3><span class="ex-live">LIVE DEMO</span><span class="ex-sim">Simulated Testing Center</span></div>
+          <div class="ex-toggles">
+            <label class="ex-chk"><input type="checkbox" data-cfg="guardrail" checked> Guardrail: refuse off-topic requests</label>
+            <button class="ex-btn-pri" id="d2run" type="button">Run suite</button>            
+            <button class="ex-btn" id="d2csv" type="button" aria-pressed="false">View as CSV</button>
+            <button class="ex-btn" id="d2clear" type="button">Clear results</button>
+            <span id="d2sum" class="ex-sum"></span>
+          </div>
+          <div class="ex-grid" id="d2wrap"></div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">16</div>
+  </section>
+
+  <!-- =================== SLIDE 17 — ACT =================== -->
+  <section class="slide tdt-slide ref-adlc">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">AF Conversational Testing (ACT)</h1>
+      <div class="tdt-legend tgt-rail">
+        <span class="tgt-label">Agent API + evaluators</span>
+        <span class="tgt-chip credits">Credits: yes</span>
+        <span class="tgt-chip data">SF rollback</span>
+      </div>
+      <p class="sub">Does the agent remember, and does it recover?</p>
+      <div class="body">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; height:100%">
+          <div style="display:grid; grid-auto-rows:1fr; gap:12px">
+            <div class="card row"><div class="badge" style="background:var(--purple)">1</div><div><div class="ct" style="font-size:15px">Multi-turn by design</div><div class="cd">Simulates a whole dialogue with a synthetic persona across many turns.</div></div></div>
+            <div class="card row"><div class="badge" style="background:var(--bluemid)">2</div><div><div class="ct" style="font-size:15px">Asserts state, not just the last line</div><div class="cd">Context carry-over and memory — not only last-answer correctness.</div></div></div>
+            <div class="card row"><div class="badge" style="background:var(--purple2)">3</div><div><div class="ct" style="font-size:15px">Scriptable scenarios</div><div class="cd">Greet → give details → ask a follow-up → change your mind.</div></div></div>
+            <div class="card row"><div class="badge" style="background:var(--navy)">4</div><div><div class="ct" style="font-size:15px">Conversational quality</div><div class="cd">Evaluate coherence and turns-to-resolution across the exchange.</div></div></div>
+          </div>
+          <div class="soft"><h3>When to use ACT vs. alternatives</h3>
+            <div class="note" style="margin-bottom:10px"><span class="k">Testing Center</span> takes a Conversation History column — earlier turns go in, the next reply is checked (last turn must be the agent).</div>
+            <div class="note" style="margin-bottom:10px"><span class="k">ACT</span> simulates the whole multi-turn dialogue with a persona — frustrated customer, non-native speaker, distracted user.</div>
+            <div class="note" style="margin-bottom:10px"><span class="k">Agent API harness</span> when you need long/branching scripts, custom LLM-as-judge scoring, or load checks — drive the agent from Python. (Needs an External Client App, client-credentials flow.)</div>
+            <div class="note"><b>Demo cue:</b> run “remember my name” with memory on (both turns pass), then off (turn 2 fails) — exactly what conversation testing is for.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">17</div>
+  </section>
+
+  <!-- =================== SLIDE 18 — PLAYWRIGHT =================== -->
+  <section class="slide tdt-slide ref-adlc pw-slide">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">UI &amp; Channel testing w/ Playwright</h1>
+      <div class="tdt-legend tgt-rail">
+        <span class="tgt-label">Real Channel</span>
+        <span class="tgt-chip credits">Credits: yes</span>
+        <span class="tgt-chip data">Data: may write</span>
+      </div>
+      <p class="sub">Testing Center checks the brain — Playwright checks what the customer sees</p>      
+      <div class="body">
+        <div style="display:grid; grid-template-columns:0.9fr 1.1fr; gap:18px">
+          <div class="card"><div class="ct" style="margin-bottom:8px">Why test the channel</div>
+            <ul class="bul"><li>Enhanced Chat on Experience Cloud / the React site</li><li>Real user journeys &amp; multi-turn interactions</li><li>Rendered responses, rich content, handoff</li><li>Session &amp; conversation continuity</li><li>Plugs into automated regression pipelines</li></ul>
+            <div class="note" style="margin-top:10px"><b>Assert loosely on agent text, strictly on UI state.</b></div></div>
+          <pre class="code" style="font-size:10px;"><span class="ttl">journey.spec.ts</span><span class="kw">test</span>(<span class="str">'full end-to-end concierge journey'</span>, async ({ page }) => {
+    await page.goto(process.env.SITE_URL)
+    await page.getByRole(<span class="str">'button'</span>, { name: /chat/i }).click()
+    const chat = page.frameLocator(<span class="str">'iframe'</span>)
+    await chat.getByRole(<span class="str">'textbox'</span>).fill(
+      <span class="str">'What sporting events are on in Riyadh?'</span>)
+    <span class="cmt">// loose on wording</span>
+    await expect(chat.getByText(/Al-Noor Arena/i))
+      .toBeVisible({ timeout: 30000 })
+    <span class="cmt">// strict on UI</span>
+    await expect(page).toHaveScreenshot()
+  })</pre>
+        </div>
+        <div class="pw-res">          
+          <div class="ex-dhead"><h3>▶️ &nbsp; Playwright</h3><span class="ex-live">RECORDED RESULTS</span></div>          
+          <div class="pw-rec">
+            <div class="res-stats">
+              <div class="res-tile"><div class="rn">9</div><div class="rl">Tests</div></div>
+              <div class="res-tile pass"><div class="rn">9</div><div class="rl">Passed</div></div>
+              <div class="res-tile fail"><div class="rn">0</div><div class="rl">Failed</div></div>
+              <div class="res-tile rate"><div class="rn">100%</div><div class="rl">Pass rate</div></div>
+            </div>
+            <div class="res-video">
+              <video controls preload="metadata" poster="assets/journey-poster.png">
+                <source src="assets/journey-e2e.webm" type="video/webm" />
+                Your browser can’t play this recording — <a href="assets/journey-e2e.webm">download it ↗</a>.
+              </video>
+            </div>
+            <div class="pw-info">
+              <div class="pw-eyebrow">journey.spec.ts — full recording</div>
+              <ul class="res-list"><li><span class="tick">✓</span> Full end-to-end concierge journey (recorded) <span class="dur">10.7s</span></li></ul>
+              <p class="res-vcap">▶ The complete multi-turn flow — greeting → discovery → preferences → event cards → venue citation — captured by the <code>journey.spec.ts</code> run.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">18</div>
+  </section>
+
+  <!-- =================== SLIDE 19 — SUBSECTION: DESIGNING =================== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap" style="top:188px">
+      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2.2</div>
+      <h1>Designing effective tests</h1>
+      <div class="lede">From running tools to designing meaningful coverage.</div>
+    </div>
+    <div class="pagenum">19</div>
+  </section>
+
+  <!-- =================== SLIDE 20 — DESIGNING SCENARIOS (INTERACTIVE) =================== -->
+  <section class="slide ref-adlc scn-slide">
+    <div class="refcard2">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Building effective agent test scenarios</h1>
+      <p class="sub">Design each test across four dimensions — select one to explore</p>
+      <div class="body">
+        <div class="scn-grid">
+          <button class="scn-card" data-dim="scenario" style="--c:var(--sky)"><span class="scn-n">1</span><div class="scn-t">Scenario</div><div class="scn-s">Define the goal</div></button>
+          <button class="scn-card" data-dim="persona" style="--c:var(--bluemid)"><span class="scn-n">2</span><div class="scn-t">Persona</div><div class="scn-s">Represent the user</div></button>
+          <button class="scn-card" data-dim="data" style="--c:var(--purple)"><span class="scn-n">3</span><div class="scn-t">Data</div><div class="scn-s">Vary the state</div></button>
+          <button class="scn-card" data-dim="outcome" style="--c:var(--navy)"><span class="scn-n">4</span><div class="scn-t">Outcome</div><div class="scn-s">Make it observable</div></button>
+        </div>
+        <div class="scn-panel" id="dimPanel" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="pagenum">20</div>
+  </section>
+
+  <!-- =================== SLIDE 21 — KNOWLEDGE CHECK (INTERACTIVE) =================== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <h1 class="title">Knowledge check</h1>
+    <p class="sub">Click a question to reveal the answer — then the one-line why</p>
+    <div class="body">
+      <div class="quiz">
+        <div class="q" onclick="this.classList.toggle('open')"><div class="qh"><div class="qn">1</div><div class="qt">Why not assert an exact string on an agent’s reply?</div></div>
+          <div class="hint">Click to reveal ▾</div>
+          <div class="ans"><div class="good">✓ Replies are non-deterministic — same input, different wording.</div><div class="why">Assert on topic, action &amp; the meaning/key-facts instead.</div></div></div>
+        <div class="q" onclick="this.classList.toggle('open')"><div class="qh"><div class="qn">2</div><div class="qt">Why wrap an Apex action test in System.runAs(agentUser)?</div></div>
+          <div class="hint">Click to reveal ▾</div>
+          <div class="ans"><div class="good">✓ To test with the agent user’s real permissions.</div><div class="why">The classic silent failure: it works for admin, not the agent user.</div></div></div>
+        <div class="q" onclick="this.classList.toggle('open')"><div class="qh"><div class="qn">3</div><div class="qt">Where should Testing Center runs happen?</div></div>
+          <div class="hint">Click to reveal ▾</div>
+          <div class="ans"><div class="good">✓ Sandboxes only.</div><div class="why">Runs consume requests/credits and can modify CRM data.</div></div></div>
+        <div class="q" onclick="this.classList.toggle('open')"><div class="qh"><div class="qn">4</div><div class="qt">A new model ships with no code change — what catches a regression?</div></div>
+          <div class="hint">Click to reveal ▾</div>
+          <div class="ans"><div class="good">✓ Scheduled (nightly) agent test runs + production monitoring.</div><div class="why">Agents drift without a commit, so testing runs on a schedule.</div></div></div>
+        <div class="q" onclick="this.classList.toggle('open')"><div class="qh"><div class="qn">5</div><div class="qt">Which tool checks what the customer actually sees in the channel?</div></div>
+          <div class="hint">Click to reveal ▾</div>
+          <div class="ans"><div class="good">✓ Playwright (UI / channel testing).</div><div class="why">Testing Center checks the brain; Playwright checks the rendered channel.</div></div></div>
+        <div class="takeaway"><b>Take it back to your first engagement</b><span><span class="hl">Test the decision, not the sentence.</span> Treat the agent as metadata — ship it with its dependencies and let the pipeline say no.</span></div>
+      </div>
+    </div>
+    <div class="pagenum">21</div>
+  </section>
+
+  </div><!-- /stage -->
+
+  <!-- ===== HUD (hidden while presenting) ===== -->
+  <div class="hint-k" id="hintk">← → navigate &nbsp;·&nbsp; F present &nbsp;·&nbsp; T theme &nbsp;·&nbsp; N notes</div>
+  <div class="hud" id="hud">
+    <button onclick="go(-1)">‹ Prev</button>
+    <span class="gotoWrap">
+      <input id="goto" class="goto" type="number" min="1" inputmode="numeric" aria-label="Go to page number"
+             onkeydown="if(event.key==='Enter'){goTo(this.value);this.blur();}"
+             onchange="goTo(this.value)">
+      <span class="count" id="count">/ 19</span>
+    </span>
+    <button onclick="go(1)">Next ›</button>
+    <span class="sep"></span>
+    <button onclick="toggleTheme()" id="themebtn">◐ Dark mode</button>
+    <button onclick="toggleNotes()">Notes</button>
+    <span class="sep"></span>
+    <button class="present" onclick="present()">▶ Present</button>
+  </div>
+  <div class="notes" id="notes"></div>
+</div>
+
+<script>
+/* ============================= DECK LOGIC ============================= */
+const deck   = document.getElementById('deck');
+const slides = Array.from(document.querySelectorAll('.slide'));
+const stage  = document.getElementById('stage');
+const countEl= document.getElementById('count');
+const notesEl= document.getElementById('notes');
+let i = 0, notesOn = false;
+
+const NOTES = [
+ "<b>Opening (~60s).</b> Establish credibility and name the topic. \"I'm a Salesforce CTA — ~400 globally — and an FDE in the Middle East. Today: Testing & Deployment.\" Pitch to leadership (confidence, governance) and engineers (patterns, CLI, trade-offs). Two take-home lines: test the decision not the sentence; treat the agent as metadata.",
+ "<b>Objectives.</b> Testing & deployment is where assumptions meet reality. Dwell on consistency and earning confidence before production. Hook: \"Which phase causes most production incidents?\" → test & deploy. Leadership framing = risk + trust; engineering framing = prototype vs product.",
+ "<b>Agenda.</b> Two parts on one shared foundation. Context first (overview, ADLC, WISMO, why testing matters). Format: demos interleaved + a knowledge check. Give the two take-home lines up front.",
+ "<b>Section divider (~15s).</b> Three things set the frame: lifecycle position, the reusable scenario, and why agentic testing needs a different mindset.",
+ "<b>ADLC ring.</b> The lifecycle is a LOOP, not a line — production signals feed new tests and new versions. Click each phase to read its job and tooling. Unlike the SDLC it doesn't end at release: deploy is day one, and monitoring output becomes the next round of test cases. Today we zoom into the two highlighted phases — Test & validate and Deploy & release.",
+ "<b>WISMO.</b> The thread for every demo. React UI on Experience Cloud → headless Service Agent via Agent API → Orders/Cases/knowledge. Headless + React forces real channel testing (iframe). Scope out loud: NOT design/build — it's test, validate, release, operate.",
+ "<b>Why it matters.</b> Testing and deployment are where trust is won or lost. Left column: testing earns the right to ship — agents reason their own path, actions write real CRM data, customers see output directly. Right column: deployment keeps us repeatable — an agent is linked metadata, one missing dependency breaks it, versioning/rollback must be scripted. Land the team rule: no customer-facing channel without a passing suite and a sandbox-rehearsed deploy. Share an anonymised go-live-delay story.",
+ "<b>Section divider.</b> Repeat: \"We test the decision, not just the sentence.\" Into goals.",
+ "<b>Goals.</b> Define \"good\" before showing tools. Give a one-line failure story per goal: flaky refund path; made-up refund window; leaking another customer's order; apologised but never cancelled. These six become acceptance criteria.",
+ "<b>Why testing matters in agentic AI.</b> Frame the stakes for leadership: when agents are customer-facing, every response shapes brand trust — one inconsistent reply can erode years of it. Walk the four risks: customer-facing risk (every turn is a brand moment), regulatory exposure (compliance/legal), adoption velocity (trust gaps stall rollout), operational cost (late defects cost exponentially more). Close on: agent reliability isn't optional — it's a must.",
+ "<b>Traditional testing doesn't work for agents.</b> Contrast the two panels. Traditional software is deterministic — same input → same output, test once/trust forever, end-of-cycle validation, stable baselines; testing is one concentrated block (50/20/30 bar). Agentic AI is non-deterministic — same input → variable outputs, behaviour drifts as models evolve, late testing = late surprises; testing must be woven continuously through the lifecycle (the interleaved bar). Land it: we need a new testing paradigm — built for agents, not for code.",
+ "<b>Agents aren't Apex.</b> The core idea before tooling. Click \"Ask 5 times\": the Apex column always exact-matches (deterministic), the agent column varies wording each run — so an exact-string check fails even when the answer is right, while a key-fact check passes. This is why agent tests assert topic, action and key facts, not exact strings, and why we repeat tests and track pass-rate.",
+ "<b>Six layers of agent testing.</b> Walk the layers bottom to top: cheap and deterministic first (Unit, Functional), then richer and more realistic (Batch, Conversation, UI/channel), then adversarial (Red team) and Automated/continuous. Click each tab to show what it proves, the tools and when to run it. Each following slide expands one layer. Nuance: keep deterministic logic OUT of the LLM, then unit-test it.",
+ "<b>Subsection divider.</b> Shift from strategy to tooling. Frame tools as an end-to-end workflow; deep-dive the ones with demos.",
+ "<b>Manual exploration (Demo 1, ~90s).</b> Fastest loop, weakest memory. Simulation isolates from org data; live runs real actions on sandbox data. Read the trace every time. Demo: ask \"When is the Desert Lions match?\" → show trace (Discover_Sporting_Events) → ask a venue question (smoking / NL1 seating) → untick the guardrail and ask the weather to force an out-of-scope answer → re-tick. \"That out-of-scope answer is now a test case.\" Memory: ask \"how much are tickets?\" and watch the event carry over. Recovery: if live is slow, use the recording.",
+ "<b>Batch/bulk (Demo 2, ~2 min).</b> One suite, hundreds of utterances, scored, comparable across versions. Three ways to create cases; sandboxes only (credits + CRM writes). Tests as code: YAML → AiEvaluationDefinition, junit for CI. Demo: generate ~20 cases, edit two, add a negative, run, open a FAILING result + scorer, compare runs. \"AI cases are a starting point — review like code.\"",
+ "<b>ACT (slide only).</b> Real chats have many messages — does it remember and recover? Distinguish Testing Center Conversation History vs ACT persona dialogue vs Agent API harness (External Client App, client-credentials). Design personas like real people; measure turns-to-resolution. Cue: \"remember my name\" memory on vs off.",
+ "<b>Playwright (Demo 3, ~90s).</b> Testing Center checks the brain; Playwright checks what the customer sees (iframe, rich content, handoff). Assert loosely on text, strictly on UI. Capture the iframe selector with codegen. Demo headed: pass → forced failure → trace viewer. Flakiest demo — drop first if behind (keep the slide).",
+ "<b>Subsection divider.</b> Pivot from 'which tool' to 'what to test'. Counter the trap: coverage = diversity of scenarios/personas/data/outcomes, not number of prompts.",
+ "<b>Designing scenarios.</b> Systematic variation across Scenario, Persona, Data, Outcome. Walk each with WISMO. Leave them a number: 5 happy / 3 edge / 2 negative per subagent, vary tone/typos/language, run each suite more than once. Boundary trio: allowed, denied, manipulated.",
+ "<b>Knowledge check.</b> Run as a poll, not a lecture. Let the room answer in chat, click to reveal, give the one-line why. Close on the two take-home lines, then open the floor (how many tests; flaky results → run N, pass at threshold; blocking gate → non-blocking ~2 weeks then blocking)."
+];
+
+const gotoEl = document.getElementById('goto');
+function render(){
+  slides.forEach((s,n)=>s.classList.toggle('active', n===i));
+  countEl.textContent = '/ '+slides.length;
+  if(gotoEl){ gotoEl.value = i+1; gotoEl.max = slides.length; }
+  notesEl.innerHTML = NOTES[i] || '';
+  // fade in any .reveal elements on the now-active slide
+  slides[i] && slides[i].querySelectorAll('.reveal').forEach((el,n)=>{ setTimeout(()=>el.classList.add('in'), 80*n); });
+}
+function go(d){ i = Math.max(0, Math.min(slides.length-1, i+d)); render(); }
+function goTo(n){ const p = parseInt(n,10); if(!isNaN(p)){ i = Math.max(0, Math.min(slides.length-1, p-1)); render(); } }
+function fit(){
+  const s = Math.min(window.innerWidth/1280, window.innerHeight/720);
+  stage.style.transform = `translate(-50%,-50%) scale(${s})`;
+}
+function toggleTheme(){
+  const dark = deck.parentElement ? document.documentElement.getAttribute('data-theme')==='dark' : false;
+  const next = (document.documentElement.getAttribute('data-theme')==='dark') ? 'light':'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('themebtn').textContent = next==='dark' ? '◑ Light mode' : '◐ Dark mode';
+  try{ localStorage.setItem('deckTheme', next);}catch(e){}
+}
+function toggleNotes(){ notesOn=!notesOn; notesEl.classList.toggle('show', notesOn); }
+function present(){
+  if(deck.requestFullscreen) deck.requestFullscreen();
+  else if(deck.webkitRequestFullscreen) deck.webkitRequestFullscreen();
+}
+document.addEventListener('fullscreenchange', ()=>{
+  deck.classList.toggle('presenting', !!document.fullscreenElement);
+});
+document.addEventListener('webkitfullscreenchange', ()=>{
+  deck.classList.toggle('presenting', !!document.webkitFullscreenElement);
+});
+
+/* keyboard */
+document.addEventListener('keydown', e=>{
+  if(e.target instanceof HTMLInputElement) return;   // don't hijack keys while typing in the page input
+  switch(e.key){
+    case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': go(1); e.preventDefault(); break;
+    case 'ArrowLeft':  case 'ArrowUp':   case 'PageUp': go(-1); e.preventDefault(); break;
+    case 'Home': i=0; render(); break;
+    case 'End': i=slides.length-1; render(); break;
+    case 'f': case 'F': present(); break;
+    case 't': case 'T': toggleTheme(); break;
+    case 'n': case 'N': toggleNotes(); break;
+  }
+});
+
+/* click navigation (left third = prev, rest = next); ignore clicks on interactive cards */
+stage.addEventListener('click', e=>{
+  if(e.target.closest('.q, .s-chat, .s-trace, .layers, .apex-row, .apex-ctrl, .ex-demo, .pw-res, .scn-grid')) return;   // interactive widgets handle their own clicks
+  const x = e.clientX / window.innerWidth;
+  go(x < 0.28 ? -1 : 1);
+});
+
+/* auto-hide cursor while presenting */
+let cursorTimer;
+document.addEventListener('mousemove', ()=>{
+  if(!deck.classList.contains('presenting')) return;
+  deck.classList.add('cursoractive');
+  clearTimeout(cursorTimer);
+  cursorTimer = setTimeout(()=>deck.classList.remove('cursoractive'), 1800);
+});
+
+/* ADLC ring interactivity (ported from onboarding reference) */
+const ADLC = {
+  ideate:{t:"Ideate and design",d:"Define the agent's job, persona, boundaries and measurable success criteria (for example, deflection above 50%, escalation below 25%). Collect a corpus of real utterances. This is where your test scenarios are born.",tools:"Workshops, journey maps, utterance corpus"},
+  build:{t:"Build (inner loop)",d:"Configure subagents, actions and instructions in Agentforce Builder, or write Agent Script in your IDE with Agentforce DX. Iterate quickly with preview.",tools:"Agentforce Builder, Agent Script, Agentforce DX, Prompt Builder"},
+  test:{t:"Test and validate",d:"Prove routing, actions, response quality and safety at scale, before customers see anything. Combine deterministic unit tests with probabilistic batch, conversation, UI and adversarial testing.",tools:"Builder preview, Testing Center, sf agent test, Python, Playwright, red-team tools"},
+  deploy:{t:"Deploy and release",d:"Move metadata through environments, publish and activate versions, connect channels and keep a rollback path. Gate releases on test results.",tools:"Salesforce CLI, package.xml, DevOps Center, CI/CD, Copado, Gearset, AutoRABIT, Flosum"},
+  monitor:{t:"Monitor and tune (outer loop)",d:"Watch real sessions for drift, failed intents and escalations. Feed every bad session back into the test suite and the next version.",tools:"Agentforce analytics and observability, session tracing, Trust Layer audit, feedback"}
+};
+function showPhase(k){
+  document.querySelectorAll('.adlc .node').forEach(n=>n.classList.toggle('sel', n.dataset.k===k));
+  const p = ADLC[k]; const el = document.getElementById('adlcPanel');
+  if(p && el) el.innerHTML = `<h3>${p.t}</h3><p>${p.d}</p><p class="small"><b>Tools:</b> ${p.tools}</p>`;
+  const rt = document.getElementById('releaseTrain');
+  if(rt) rt.hidden = (k !== 'deploy');
+}
+document.querySelectorAll('.adlc .node').forEach(n=>{
+  n.addEventListener('click', e=>{ e.stopPropagation(); showPhase(n.dataset.k); });
+  n.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); showPhase(n.dataset.k); } });
+});
+showPhase('test');
+
+/* Slide 12: Six layers of agent testing (ported from onboarding reference) */
+const LAYERS = {
+  unit:{t:"Unit testing",w:"Each action works on its own: Apex, flows, prompt templates, integrations.",tool:"Apex tests, flow tests, Prompt Builder preview",when:"Every commit; required for production deploys anyway."},
+  func:{t:"Functional testing",w:"Given a real request, the agent routes to the right subagent and calls the right action.",tool:"Agent Builder preview (simulation and live), sf agent preview",when:"Continuously while building."},
+  batch:{t:"Batch testing",w:"Hundreds of utterances checked for subagent, action and outcome, with quality scorers.",tool:"Agentforce Testing Center, CSV or YAML specs, sf agent test",when:"Before every version commit; nightly."},
+  conv:{t:"Conversation testing",w:"Multi-turn dialogues hold context, handle clarifications and recover from mistakes.",tool:"Testing Center conversation tests with personas, Python harness on the Agent API",when:"Before release and nightly."},
+  ui:{t:"UI and channel testing",w:"What customers see: chat widget, handoff, rich content, LWC panels.",tool:"Playwright (also Selenium or Provar if the customer already uses them)",when:"Before release and after channel changes."},
+  ci:{t:"Automated and continuous testing",w:"Quality holds over time, including when the model, data or knowledge changes without a commit.",tool:"GitHub Actions, Jenkins, Azure DevOps, Bitbucket Pipelines, DevOps Testing Center, observability",when:"On every PR, on a schedule and in production."}
+};
+function showLayer(k){
+  document.querySelectorAll('.layers [data-l]').forEach(b=>b.setAttribute('aria-selected', b.dataset.l===k));
+  const l = LAYERS[k]; const el = document.getElementById('layerPanel');
+  if(l && el) el.innerHTML = `<h3>${l.t}</h3><p><b>What it proves:</b> ${l.w}</p><p><b>Tools:</b> ${l.tool}</p><p><b>When:</b> ${l.when}</p>`;
+}
+document.querySelectorAll('.layers [data-l]').forEach(b=>{
+  b.addEventListener('click', e=>{ e.stopPropagation(); showLayer(b.dataset.l); });
+});
+if(document.getElementById('layerPanel')) showLayer('unit');
+
+/* Slide 12: Agents aren't Apex (ported from Interactive Deck) */
+(function(){
+  const btn=document.getElementById('whyBtn'), apex=document.getElementById('whyApex'),
+        agent=document.getElementById('whyAgent'), msg=document.getElementById('whyMsg');
+  if(!btn||!apex||!agent) return;
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const V=['Desert Lions vs Falcons is at Al-Noor Arena on Nov 8.','The Desert Lions play the Falcons on Nov 8 at Al-Noor Arena.','Catch Desert Lions vs Falcons — Nov 8, Al-Noor Arena, Riyadh.','That match is on Nov 8 at Al-Noor Arena.','Desert Lions face the Falcons on Nov 8 (Al-Noor Arena).'];
+  const prompt='<span class="apex-tag">Press the button.</span>';
+  apex.innerHTML=prompt; agent.innerHTML=prompt;
+  btn.addEventListener('click', e=>{
+    e.stopPropagation();
+    let a='',g='',exact=0,fact=0;
+    for(let i=0;i<5;i++){
+      a+='<div style="padding:4px 0"><code>assertEquals("Nov 8", event.date)</code> <span class="pf pass">PASS</span></div>';
+      const t=V[Math.floor(Math.random()*V.length)], ex=t===V[0], fk=/Nov 8/.test(t);
+      if(ex)exact++; if(fk)fact++;
+      g+='<div style="padding:4px 0">"'+esc(t)+'"<br><span class="pf '+(ex?'pass':'fail')+'">exact match</span> <span class="pf '+(fk?'pass':'fail')+'">key fact</span></div>';
+    }
+    apex.innerHTML=a; agent.innerHTML=g;
+    if(msg){const col=n=>n===5?'#1F8F5F':'#C0392B';
+      msg.innerHTML='Exact match passed <b style="color:'+col(exact)+'">'+exact+' of 5</b>. Key-fact check passed <b style="color:'+col(fact)+'">'+fact+' of 5</b>. Same agent, same question.';}
+  });
+})();
+
+/* Slide 15: Demo 1 — Preview & trace (ported from Interactive Deck, advanced mode) */
+(function(){
+  const msgsEl=document.getElementById('d1msgs'), chipsEl=document.getElementById('d1chips'),
+        inEl=document.getElementById('d1in'), sendEl=document.getElementById('d1send'),
+        clearEl=document.getElementById('d1clear'), traceEl=document.getElementById('d1trace'),
+        root=document.querySelector('.ex-demo');
+  if(!msgsEl||!traceEl||!root) return;
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cfg={guardrail:false, formal:false, memory:true};
+  const EVENTS={
+    'desert lions':{title:'Desert Lions vs Falcons',sport:'Football',date:'Nov 8'},
+    'riyadh hoops':{title:'Riyadh Hoops Classic',sport:'Basketball',date:'Nov 15'},
+    'najd open':{title:'Najd Open Finals',sport:'Tennis',date:'Nov 22'},
+    'capital derby':{title:'Capital Derby',sport:'Football',date:'Nov 29'}
+  };
+  const findEvent=l=>{
+    if(/lions|falcons/.test(l))return'desert lions';
+    if(/hoops|basketball/.test(l))return'riyadh hoops';
+    if(/najd|tennis/.test(l))return'najd open';
+    if(/derby|capital/.test(l))return'capital derby';
+    return null;};
+  const classify=u=>{const l=u.toLowerCase();
+    if(/\b(seat|seating|section|nl1|smok|entrance|gate|parking|accessib|venue|arena)\b/.test(l)) return 'Venue_Knowledge';
+    if(/\b(event|events|match|game|fixture|football|basketball|tennis|ticket|tickets|book|sport|sporting|derby|lions|falcons|hoops|najd|capital|when|where|how much|price|date)\b/.test(l)) return 'Discover_Events';
+    if(/my name|\bhello\b|\bhi\b|\bhey\b|thank/.test(l)) return 'General_Help';
+    return 'Off_Topic';};
+  function agentReply(u,hist){
+    let topic=classify(u), l=u.toLowerCase(), action='none', input='', reply='', reason='Matched '+topic+' by intent keywords', meta={};
+    const lastEvent=cfg.memory?[...hist].reverse().map(h=>h.meta&&h.meta.event).find(Boolean):null;
+    if(topic==='Discover_Events'){
+      action='Discover_Sporting_Events';
+      const key=findEvent(l)||(cfg.memory&&/\b(when|where|how much|price|ticket|tickets|date|it)\b/.test(l)?lastEvent:null);
+      if(key&&EVENTS[key]){const e=EVENTS[key];input='event='+e.title;
+        reply=e.title+' ('+e.sport+') is at Al-Noor Arena, Riyadh on '+e.date+'. Tickets from 120 SAR.';meta.event=key;
+        if(!findEvent(l))reason='Event taken from earlier in the conversation';}
+      else{input='city=Riyadh';
+        reply='Here are sporting events in Riyadh: Desert Lions vs Falcons (Nov 8), Riyadh Hoops Classic (Nov 15), Najd Open Finals (Nov 22) and Capital Derby (Nov 29) — all at Al-Noor Arena, from 120 SAR.';}
+    }else if(topic==='Venue_Knowledge'){
+      action='Retrieve_Venue_Knowledge';
+      if(/smok/.test(l)){input='topic=smoking';reply="Smoking isn't permitted inside the seating bowl or on the concourses at Al-Noor Arena. There's a designated area beyond the south exit.";}
+      else if(/nl1|north lower|seat|section/.test(l)){input='topic=seating';reply='The north lower stand (NL1) at Al-Noor Arena is a shaded, family-friendly area close to the pitch, a short step-free walk from Gate A.';}
+      else{input='venue=Al-Noor Arena';reply='Al-Noor Arena is in Riyadh. I can help with seating, entrances, parking and policies.';}
+    }else if(topic==='General_Help'){
+      const now=(u.match(/my name is (\w+)/i)||[])[1];
+      if(now)reply='Hi '+now+'! I can help you discover sporting events or answer venue questions.';
+      else if(/thank/.test(l))reply="You're welcome!";
+      else reply='Hi! I can help you discover sporting events in Riyadh or answer venue questions.';
+    }else{
+      if(cfg.guardrail){reply="I can help with sporting events and venue questions, so I can't help with that.";reason='Out of scope. Guardrail instruction applied';}
+      else{topic='General_Chat';reply='Sure! A solid tip: diversify your portfolio.';reason='No instruction limits scope, so the agent answers anything';}
+    }
+    if(cfg.formal&&topic!=='Off_Topic'&&topic!=='General_Chat')reply='Certainly. '+reply;
+    return{topic,action,input,reply,reason,meta};
+  }
+  const D1Q=['What sporting events are on in Riyadh?','When is the Desert Lions match?','Can I smoke inside Al-Noor Arena?','How is the weather today?'];
+  const hist=[];
+  chipsEl.innerHTML=D1Q.map(q=>'<button type="button">'+esc(q)+'</button>').join('');
+  function render(out){
+    msgsEl.innerHTML=hist.map(h=>'<div class="ex-msg '+(h.role==='user'?'u':'a')+'">'+esc(h.msg)+'</div>').join('')||'<span class="ex-tag">Say hello to the agent.</span>';
+    msgsEl.scrollTop=msgsEl.scrollHeight;
+    if(!out)return;
+    const bad=out.topic==='General_Chat';
+    traceEl.innerHTML='<b>Trace</b>'+
+      '<div class="ex-tstep '+(bad?'warn':'')+'"><span class="n">1</span><div>Topic selected: <code>'+esc(out.topic)+'</code>'+(bad?'<br><b class="bad">Out of scope. A test would catch this.</b>':'')+'</div></div>'+
+      '<div class="ex-tstep"><span class="n">2</span><div>Action: <code>'+esc(out.action)+'</code>'+(out.input?'<br>Input: <code>'+esc(out.input)+'</code>':'')+'</div></div>'+
+      '<div class="ex-tstep"><span class="n">3</span><div>Why: '+esc(out.reason)+'</div></div>'+
+      '<div class="ex-tstep"><span class="n">4</span><div>Reply: '+esc(out.reply)+'</div></div>'+
+      '<div style="margin-top:8px"><pre>'+esc(JSON.stringify({topic:out.topic,action:out.action,input:out.input,reply:out.reply},null,2))+'</pre></div>';
+  }
+  function send(t){t=(t||'').trim();if(!t)return;const out=agentReply(t,hist);hist.push({role:'user',msg:t},{role:'agent',msg:out.reply,meta:out.meta});render(out);inEl.value='';}
+  chipsEl.addEventListener('click',e=>{e.stopPropagation();if(e.target.tagName==='BUTTON')send(e.target.textContent);});
+  sendEl.addEventListener('click',e=>{e.stopPropagation();send(inEl.value);});
+  inEl.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')send(e.target.value);});
+  clearEl.addEventListener('click',e=>{e.stopPropagation();hist.length=0;render();traceEl.innerHTML='<b>Trace</b><p class="ex-tag" style="margin-top:4px">Send a message to see which topic and action the agent chose.</p>';});
+  root.querySelectorAll('[data-cfg]').forEach(cb=>cb.addEventListener('change',()=>{cfg[cb.dataset.cfg]=cb.checked;}));
+  render();
+})();
+
+/* Slide 16: Demo 2 — Run a CSV suite (ported from Interactive Deck) */
+(function(){
+  const wrap=document.getElementById('d2wrap'), runBtn=document.getElementById('d2run'),
+        csvBtn=document.getElementById('d2csv'), clearBtn=document.getElementById('d2clear'),
+        sumEl=document.getElementById('d2sum'), root=wrap?wrap.closest('.ex-demo'):null;
+  if(!wrap||!root) return;
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cfg={guardrail:true};
+  const EVENTS={
+    'desert lions':{title:'Desert Lions vs Falcons',sport:'Football',date:'Nov 8'},
+    'riyadh hoops':{title:'Riyadh Hoops Classic',sport:'Basketball',date:'Nov 15'},
+    'najd open':{title:'Najd Open Finals',sport:'Tennis',date:'Nov 22'},
+    'capital derby':{title:'Capital Derby',sport:'Football',date:'Nov 29'}
+  };
+  const findEvent=l=>{
+    if(/lions|falcons/.test(l))return'desert lions';
+    if(/hoops|basketball/.test(l))return'riyadh hoops';
+    if(/najd|tennis/.test(l))return'najd open';
+    if(/derby|capital/.test(l))return'capital derby';
+    return null;};
+  const classify=u=>{const l=u.toLowerCase();
+    if(/\b(seat|seating|section|nl1|smok|entrance|gate|parking|accessib|venue|arena)\b/.test(l)) return 'Venue_Knowledge';
+    if(/\b(event|events|match|game|fixture|football|basketball|tennis|ticket|tickets|book|sport|sporting|derby|lions|falcons|hoops|najd|capital|when|where|how much|price|date)\b/.test(l)) return 'Discover_Events';
+    if(/my name|\bhello\b|\bhi\b|\bhey\b|thank/.test(l)) return 'General_Help';
+    return 'Off_Topic';};
+  function agentReply(u){
+    let topic=classify(u), l=u.toLowerCase(), action='none', reply='';
+    if(topic==='Discover_Events'){action='Discover_Sporting_Events';
+      const key=findEvent(l);
+      if(key&&EVENTS[key]){const e=EVENTS[key];reply=e.title+' ('+e.sport+') is at Al-Noor Arena, Riyadh on '+e.date+'. Tickets from 120 SAR.';}
+      else{reply='Here are sporting events in Riyadh: Desert Lions vs Falcons (Nov 8), Riyadh Hoops Classic (Nov 15), Najd Open Finals (Nov 22) and Capital Derby (Nov 29) — all at Al-Noor Arena, from 120 SAR.';}
+    }else if(topic==='Venue_Knowledge'){action='Retrieve_Venue_Knowledge';
+      if(/smok/.test(l))reply="Smoking isn't permitted inside the seating bowl or on the concourses at Al-Noor Arena. There's a designated area beyond the south exit.";
+      else if(/nl1|north lower|seat|section/.test(l))reply='The north lower stand (NL1) at Al-Noor Arena is a shaded, family-friendly area close to the pitch, a short step-free walk from Gate A.';
+      else reply='Al-Noor Arena is in Riyadh. I can help with seating, entrances, parking and policies.';
+    }else if(topic==='General_Help'){reply='Hi! I can help you discover sporting events or answer venue questions.';}
+    else{if(cfg.guardrail){reply="I can help with sporting events and venue questions, so I can't help with that.";}
+      else{topic='General_Chat';reply='Sure! A solid tip: diversify your portfolio.';}}
+    return{topic,action,reply};
+  }
+  function judge(c,out){
+    const t=!c.t||out.topic===c.t;
+    const a=!c.a||((c.a==='none'||c.a==='(none)')?out.action==='none':out.action===c.a);
+    const terms=(c.r||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+    const r=terms.every(x=>out.reply.toLowerCase().includes(x));
+    return{t,a,r,pass:t&&a&&r};
+  }
+  const ROWS=[
+    {u:'What sporting events are on in Riyadh?',t:'Discover_Events',a:'Discover_Sporting_Events',r:'Al-Noor Arena'},
+    {u:'When is the Desert Lions match?',t:'Discover_Events',a:'Discover_Sporting_Events',r:'Nov 8'},
+    {u:'Can I smoke inside Al-Noor Arena?',t:'Venue_Knowledge',a:'Retrieve_Venue_Knowledge',r:'designated'},
+    {u:'Tell me about the north lower (NL1) section',t:'Venue_Knowledge',a:'Retrieve_Venue_Knowledge',r:'Gate A'},
+    {u:'How is the weather today?',t:'Off_Topic',a:'none',r:"can't help"}
+  ];
+  let rows=ROWS.map(r=>({...r})), res=[], hist=[], asCsv=false;
+  function render(){
+    if(asCsv){
+      const csv='Utterance,Expected Topic,Expected Actions,Expected Response\n'+rows.map(r=>[r.u,r.t,r.a==='none'?'':'"[""'+r.a+'""]"',r.r].map(x=>/,/.test(x)&&x[0]!=='"'?'"'+x+'"':x).join(',')).join('\n');
+      wrap.innerHTML='<pre>'+esc(csv)+'</pre>'; return;
+    }
+    wrap.innerHTML='<table><thead><tr><th>Utterance</th><th>Exp. Topic</th><th>Exp. Action</th><th>Response contains</th><th>Topic</th><th>Action</th><th>Resp.</th></tr></thead><tbody>'+
+      rows.map((r,i)=>{const x=res[i];const b=k=>x?'<span class="ex-pf '+(x[k]?'pass':'fail')+'">'+(x[k]?'pass':'fail')+'</span>':'<span class="ex-pf skip">-</span>';
+      return '<tr><td><input data-i="'+i+'" data-k="u" value="'+esc(r.u)+'"></td><td><input data-i="'+i+'" data-k="t" value="'+esc(r.t)+'"></td><td><input data-i="'+i+'" data-k="a" value="'+esc(r.a)+'"></td><td><input data-i="'+i+'" data-k="r" value="'+esc(r.r)+'"></td><td>'+b('t')+'</td><td>'+b('a')+'</td><td>'+b('r')+'</td></tr>';}).join('')+
+      '</tbody></table>';
+    wrap.querySelectorAll('input').forEach(inp=>inp.oninput=()=>{rows[+inp.dataset.i][inp.dataset.k]=inp.value;});
+  }
+  runBtn.addEventListener('click',e=>{e.stopPropagation();
+    res=rows.map(r=>judge(r,agentReply(r.u)));
+    const p=res.filter(x=>x.pass).length; hist.push(p);
+    const prev=hist.length>1?hist[hist.length-2]:null;
+    const delta=prev===null?'':(p>prev?' (+'+(p-prev)+' vs previous run)':p<prev?' ('+(p-prev)+' vs previous run)':' (same as previous run)');
+    sumEl.innerHTML='<b class="'+(p===rows.length?'ok':'bad')+'">Run '+hist.length+': '+p+'/'+rows.length+' passed</b>'+delta;
+    render();
+  });
+  csvBtn.addEventListener('click',e=>{e.stopPropagation();asCsv=!asCsv;csvBtn.setAttribute('aria-pressed',String(asCsv));csvBtn.textContent=asCsv?'Back to table':'View as CSV';render();});
+  clearBtn.addEventListener('click',e=>{e.stopPropagation();rows=ROWS.map(r=>({...r}));res=[];hist=[];asCsv=false;csvBtn.setAttribute('aria-pressed','false');csvBtn.textContent='View as CSV';sumEl.innerHTML='';render();});
+  root.querySelectorAll('[data-cfg]').forEach(cb=>cb.addEventListener('change',()=>{cfg[cb.dataset.cfg]=cb.checked;}));
+  render();
+})();
+
+/* Slide 20: interactive four-dimension scenario designer (sports concierge examples) */
+(function(){
+  const panel=document.getElementById('dimPanel'), cards=[...document.querySelectorAll('.scn-card')];
+  if(!panel||!cards.length) return;
+  const C={scenario:'var(--sky)',persona:'var(--bluemid)',data:'var(--purple)',outcome:'var(--navy)'};
+  const DIM={
+    scenario:{t:'Scenario — define the goal',
+      d:'What is the user trying to achieve, and where does the journey start and finish? Cover happy paths, ambiguous asks and unsupported requests.',
+      ex:['Discover events in Riyadh under 1,000 SAR','Venue follow-up: seating &amp; smoking policy','Ambiguous: “something for the weekend”','Unsupported: book &amp; pay for seats (out of scope)']},
+    persona:{t:'Persona — represent the user',
+      d:'Who is asking? Capture their context, language, role and permissions — and what they must be denied.',
+      ex:['Parent planning a family outing','Arabic &amp; English speakers','Distracted user, short one-line messages','Denied: another customer’s booking details']},
+    data:{t:'Data — vary the state',
+      d:'Test no / one / many matches, plus incomplete, stale and boundary values, and the integration state behind the agent.',
+      ex:['Zero events within budget','Four events at Al-Noor Arena','Event sold out or past its date','Knowledge article missing for a venue']},
+    outcome:{t:'Outcome — make it observable',
+      d:'Define the acceptable actions and responses — including clarification, refusal, escalation and safe failure handling.',
+      ex:['Right topic: <code>Discover_Sporting_Events</code>','Grounded event cards with citations','Clarify when the budget is missing','Refuse off-topic (e.g. a stock tip)']}
+  };
+  function show(k){
+    cards.forEach(c=>c.setAttribute('aria-selected', String(c.dataset.dim===k)));
+    panel.style.setProperty('--c', C[k]);
+    const d=DIM[k];
+    panel.innerHTML='<h3>'+d.t+'</h3><p class="pd">'+d.d+'</p><div class="scn-ex">'+d.ex.map(e=>'<div>'+e+'</div>').join('')+'</div>';
+  }
+  cards.forEach(c=>c.addEventListener('click',e=>{e.stopPropagation();show(c.dataset.dim);}));
+  show('scenario');
+})();
+
+/* ---------- Slide 6: Live Request Simulator (ported from premium-sports concierge) ---------- */
+(function(){
+  const msgs = document.getElementById('simMsgs');
+  const traceBody = document.getElementById('simTrace');
+  const playBtn = document.getElementById('simPlay');
+  if(!msgs || !traceBody || !playBtn) return;
+
+  const EVENTS = [
+    {sport:'Football',  title:'Desert Lions vs Falcons', venue:'Al-Noor Arena', city:'Riyadh', date:'Nov 8',  price:'from 120 SAR'},
+    {sport:'Basketball',title:'Riyadh Hoops Classic',    venue:'Al-Noor Arena', city:'Riyadh', date:'Nov 15', price:'from 120 SAR'},
+    {sport:'Tennis',    title:'Najd Open Finals',        venue:'Al-Noor Arena', city:'Riyadh', date:'Nov 22', price:'from 120 SAR'},
+    {sport:'Football',  title:'Capital Derby',           venue:'Al-Noor Arena', city:'Riyadh', date:'Nov 29', price:'from 120 SAR'}
+  ];
+  const NL1 = 'The north lower stand (section NL1) at Al-Noor Arena is a shaded, family-friendly area close to the pitch, a short step-free walk from Gate A. (Source: North Lower Seating Guide, Section NL1)';
+  const SMOKE = 'Smoking is not permitted inside the seating bowl or on the concourses at Al-Noor Arena. A designated outdoor area is located beyond the south exit. (Source: Smoking Policy, VEN-RUH-001-policy-smoking-en)';
+  const TURNS = [
+    { user:"I'm looking to book something for the upcoming school mid-term break. Could you suggest some options in Riyadh?",
+      agent:{ text:"Great — I can help you discover sporting events in Riyadh. To tailor the options, how many adults are in your group, and what's your budget?" },
+      trace:[["Utterance","\"…options in Riyadh\""],["Intent","provide_preferences / discover_events"],["Entities","city = Riyadh · missing: adults, budget"],["Routing","concierge_router → discover_sporting_events"],["Action","none yet — required-slot gate"],["Data","—"],["Response","Clarify: ask for party size + budget"]] },
+    { user:"2 adults, under 1000 SAR.",
+      agent:{ text:"Here are sporting events in Riyadh for 2 adults within a 1,000 SAR budget:", events:EVENTS, outro:"Would you like details on any of these, or the venue and seating?" },
+      trace:[["Utterance","\"2 adults, under 1000 SAR\""],["Intent","provide_preferences (refine)"],["Entities","adults = 2 · budget = 1000 SAR · city = Riyadh (retained)"],["Routing","discover_sporting_events"],["Action","PW_DiscoverSportingEventsAction(city=Riyadh, budgetAmountMinor=100000, SAR)"],["Data","EVT-0001, EVT-0002, EVT-0003, EVT-0004"],["Response","4 grounded event cards"]] },
+    { user:"Tell me about the north lower section (NL1) at Al-Noor Arena — and can I smoke inside?",
+      agent:{ text:NL1+"\n\n"+SMOKE, cites:[{t:'North Lower Seating Guide'},{t:'Smoking Policy'}] },
+      trace:[["Utterance","NL1 details + smoking policy"],["Intent","venue_question"],["Entities","venue = Al-Noor Arena (VEN-RUH-001, retained)"],["Routing","concierge_router → retrieve_venue_knowledge"],["Action","PW_RetrieveVenueKnowledgeAction(venue=Al-Noor Arena)"],["Data","seating_guide + policy docs (venue-isolated)"],["Response","Grounded answer + 2 citations"]] }
+  ];
+
+  let turn = 0;
+  const el = h => { const t=document.createElement('template'); t.innerHTML=h.trim(); return t.content.firstChild; };
+  const scroll = () => { msgs.scrollTop = msgs.scrollHeight; };
+  const addUser = txt => { msgs.append(el('<div class="s-row user"><div class="s-av u">🧑</div><div class="s-bub">'+txt+'</div></div>')); scroll(); };
+  const typing = () => { const n=el('<div class="s-row a"><div class="s-av a">✦</div><div class="s-bub"><span class="s-typing"><span></span><span></span><span></span></span></div></div>'); msgs.append(n); scroll(); return n; };
+  const eventCard = e => '<div class="s-ev"><div class="top"><div><div class="sport">'+e.sport+'</div><h5>'+e.title+'</h5>'+
+    '<div class="meta">📍 '+e.venue+' · '+e.city+'<br>📅 '+e.date+'</div></div><div class="price">🎫 '+e.price+'</div></div></div>';
+  function renderAgent(a){
+    let inner = '';
+    if(a.text) inner += '<div class="s-bub">'+a.text+'</div>';
+    if(a.events){ inner += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:100%">'+a.events.map(eventCard).join('')+'</div>'; if(a.outro) inner += '<div class="s-bub">'+a.outro+'</div>'; }
+    if(a.cites){ inner += '<div style="display:flex;gap:6px;flex-wrap:wrap">'+a.cites.map(c=>'<span class="s-cite">📄 '+c.t+'</span>').join('')+'</div>'; }
+    msgs.append(el('<div class="s-row a"><div class="s-av a">✦</div><div style="max-width:86%;display:flex;flex-direction:column;gap:8px">'+inner+'</div></div>')); scroll();
+  }
+  const renderTrace = steps => { traceBody.innerHTML = steps.map(s=>'<div class="s-step"><span class="lbl">'+s[0]+'</span><span class="val">'+s[1].replace(/PW_[A-Za-z]+|EVT-\d+|VEN-[A-Z0-9-]+/g,'<code>$&</code>')+'</span></div>').join(''); };
+  function play(){
+    if(turn>=TURNS.length) return;
+    const T = TURNS[turn]; playBtn.disabled = true;
+    addUser(T.user);
+    const ty = typing();
+    setTimeout(()=>{ ty.remove(); renderAgent(T.agent); renderTrace(T.trace); turn++;
+      if(turn>=TURNS.length){ playBtn.textContent='↺ Replay conversation'; playBtn.disabled=false; playBtn.onclick=reset; }
+      else { playBtn.textContent='▶ Play next turn ('+(turn+1)+'/'+TURNS.length+')'; playBtn.disabled=false; }
+    }, 850);
+  }
+  function reset(){ msgs.innerHTML=''; traceBody.innerHTML='<p class="s-muted">Press <b>Play next turn</b> to replay a real Riyadh conversation.</p>'; turn=0; playBtn.textContent='▶ Play next turn'; playBtn.onclick=play; }
+  playBtn.onclick = play;
+})();
+
+/* init — restore theme (localStorage) then honour URL params ?slide=N&theme=dark */
+try{ const t=localStorage.getItem('deckTheme'); if(t){ document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('themebtn').textContent = t==='dark'?'◑ Light mode':'◐ Dark mode'; } }catch(e){}
+const params = new URLSearchParams(location.search);
+if(params.get('theme')==='dark' || params.get('theme')==='light'){
+  document.documentElement.setAttribute('data-theme', params.get('theme'));
+  document.getElementById('themebtn').textContent = params.get('theme')==='dark'?'◑ Light mode':'◐ Dark mode';
+}
+const sp = parseInt(params.get('slide'),10);
+if(!isNaN(sp)) i = Math.max(0, Math.min(slides.length-1, sp-1));
+window.addEventListener('resize', fit);
+fit(); render();
+</script>
+</body>
+</html>
