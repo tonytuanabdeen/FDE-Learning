@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Agentic Deployment — Agentforce FDE Session</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============================= TOKENS ============================= */
+:root{
+  --font:"Schibsted Grotesk", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, monospace;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#EDF1F9; --bg2:#E4EBF8; --surface:#FFFFFF; --surface2:#F4F7FD; --surface3:#EAF0FB;
+  --ink:#0F1A3C; --head:#0C1533; --muted:#5A6688; --line:#D8E0F0;
+  --accent:#2347C6; --accent-ink:#17338f; --accent2:#6A2BD8; --sky:#4A9BFF;
+  --amber:#B25E06; --amber-soft:#FBEEDD; --green:#15875A; --green-soft:#D7F1E5; --coral:#C0392B; --coral-soft:#FBE3DD;
+  --navy:#0F1A3C;
+  --shadow:0 1px 2px rgba(15,26,60,.06), 0 10px 30px rgba(15,26,60,.08);
+  --shadow-lg:0 2px 6px rgba(15,26,60,.08), 0 20px 48px rgba(15,26,60,.12);
+  --grad:linear-gradient(135deg,#1A1B63 0%, #2A1C84 52%, #3C1486 100%);
+  --grad-glow:radial-gradient(58% 70% at 76% 24%, rgba(255,255,255,.20), transparent 70%);
+  --code-bg:#0C1430; --code-ink:#D8E3FF; --code-cmt:#8FA6D8; --code-kw:#7FE6C2; --code-str:#FFD98A; --code-num:#F5A3C0;
+  --hud:rgba(255,255,255,.92); --hud-line:#D8E0F0;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#070B1E; --bg2:#0B1030; --surface:#121936; --surface2:#0F1530; --surface3:#161E42;
+  --ink:#E7ECFA; --head:#F4F6FF; --muted:#9AA6CC; --line:#28315A;
+  --accent:#6E93FF; --accent-ink:#A9C1FF; --accent2:#B49BFF; --sky:#6FB4FF;
+  --amber:#F2A64A; --amber-soft:#36280F; --green:#4FD598; --green-soft:#10351F; --coral:#FF8A70; --coral-soft:#3A1C18;
+  --navy:#C9D2F2;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 34px rgba(0,0,0,.45);
+  --shadow-lg:0 2px 8px rgba(0,0,0,.5), 0 24px 56px rgba(0,0,0,.55);
+  --grad:linear-gradient(135deg,#171863 0%, #241774 52%, #351178 100%);
+  --grad-glow:radial-gradient(58% 70% at 76% 24%, rgba(130,150,255,.26), transparent 70%);
+  --code-bg:#060A1C; --code-ink:#CFDBFB; --code-cmt:#7E90C6; --code-kw:#6FE6C2; --code-str:#FFD98A; --code-num:#F5A3C0;
+  --hud:rgba(12,18,42,.92); --hud-line:#28315A;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%; background:#05070F; font-family:var(--font); overflow:hidden;}
+
+/* ============================= STAGE ============================= */
+#deck{position:fixed; inset:0; background:#05070F;}
+.stage{position:absolute; top:50%; left:50%; width:1280px; height:720px; transform:translate(-50%,-50%); transform-origin:center center;}
+.slide{position:absolute; inset:0; width:1280px; height:720px; background:var(--bg); opacity:0; visibility:hidden;
+  transition:opacity .4s ease; overflow:hidden; padding:54px 64px;}
+.slide::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(70% 50% at 85% 0%, rgba(74,155,255,.06), transparent 60%);}
+.slide.active{opacity:1; visibility:visible; z-index:2;}
+.slide.cover,.slide.section{background:var(--grad); color:#fff; padding:0;}
+.slide.cover::before,.slide.section::before{content:""; position:absolute; inset:0; background:var(--grad-glow); z-index:0;}
+.slide.cover::after,.slide.section::after{display:none;}
+
+.brand{position:absolute; top:30px; right:40px; width:92px; z-index:6;}
+.brand img{width:100%; height:auto; display:block;}
+.slide.cover .brand,.slide.section .brand{filter:brightness(0) invert(1); opacity:.95;}
+.pagenum{position:absolute; bottom:22px; right:34px; font-size:13px; color:var(--muted); z-index:6; font-variant-numeric:tabular-nums;}
+.slide.cover .pagenum,.slide.section .pagenum{color:rgba(255,255,255,.7);}
+.kicker{position:absolute; top:34px; left:64px; font-size:12.5px; font-weight:800; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--accent); z-index:6;}
+
+/* ============================= TYPE ============================= */
+h1.title{font-size:40px; font-weight:800; letter-spacing:-.02em; line-height:1.06; color:var(--head); margin-top:18px;}
+p.sub{font-size:19px; font-weight:500; color:var(--accent); margin-top:10px; letter-spacing:-.01em;}
+html[data-theme="dark"] p.sub{color:var(--sky);}
+.body{position:absolute; left:64px; right:64px; top:150px; bottom:56px;}
+
+/* ============================= COVER ============================= */
+.cover .wrap{position:absolute; left:84px; top:188px; right:84px; z-index:3;}
+.cover .eyebrow{font-size:14px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:#A9C4FF; margin-bottom:22px;}
+.cover h1{font-size:82px; font-weight:800; letter-spacing:-.03em; line-height:1; color:#fff;}
+.cover h1 .acc{background:linear-gradient(100deg,#F2A64A,#FFC98A); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.cover .lede{font-size:22px; color:#D7E0FF; margin-top:28px; max-width:860px; line-height:1.45;}
+.cover .presenter{display:flex; align-items:center; gap:16px; margin-top:52px;}
+.cover .presenter img{width:64px; height:64px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.5); box-shadow:0 6px 18px rgba(0,0,0,.35);}
+.cover .presenter b{display:block; font-size:20px; font-weight:800; color:#fff;}
+.cover .presenter span{font-size:15px; color:#CBD6FF;}
+.cover .brand{top:48px; right:60px; width:120px;}
+
+/* ============================= SECTION DIVIDER ============================= */
+.section .wrap{position:absolute; left:84px; top:176px; right:84px; z-index:3;}
+.section .num{font-size:128px; font-weight:800; line-height:.9; letter-spacing:-.05em;
+  background:linear-gradient(120deg,#F2A64A,#FFCF99); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.section h1{font-size:58px; font-weight:800; letter-spacing:-.02em; line-height:1.02; color:#fff; margin-top:8px;}
+.section .lede{font-size:21px; color:#D7E0FF; margin-top:18px; max-width:900px; line-height:1.45;}
+.section .rail{position:absolute; left:84px; bottom:70px; display:flex; gap:10px; z-index:3;}
+.section .rail span{font-size:13px; font-weight:600; color:rgba(255,255,255,.62); border:1px solid rgba(255,255,255,.25);
+  border-radius:999px; padding:6px 14px;}
+.section .rail span.on{background:#F2A64A; color:#1a1200; border-color:#F2A64A; font-weight:800;}
+
+/* ============================= PRIMITIVES ============================= */
+.cards{display:grid; gap:16px;}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:18px 20px;}
+.card.hl{border:1px solid var(--accent);}
+.ct{font-size:17px; font-weight:800; color:var(--head); letter-spacing:-.01em;}
+.cd{font-size:13.5px; color:var(--muted); line-height:1.4; margin-top:5px;}
+.row{display:flex; align-items:center; gap:14px;}
+.badge{width:40px; height:40px; border-radius:11px; flex:0 0 auto; display:grid; place-items:center; color:#fff; font-weight:800; font-size:16px;}
+ul.bul{list-style:none;} ul.bul li{font-size:15.5px; color:var(--ink); line-height:1.4; padding:5px 0 5px 22px; position:relative;}
+ul.bul li::before{content:""; position:absolute; left:2px; top:12px; width:8px; height:8px; border-radius:2px; background:var(--accent);}
+.mono{font-family:var(--mono); font-weight:600;}
+code.chip{font-family:var(--mono); font-size:.86em; background:var(--surface3); border:1px solid var(--line); border-radius:6px; padding:1px 7px; color:var(--accent-ink);}
+.note{font-size:14px; color:var(--ink); background:var(--surface2); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:0 12px 12px 0; padding:12px 16px; line-height:1.45;}
+.note b{color:var(--accent-ink);}
+.note.warn{border-left-color:var(--amber); background:var(--amber-soft);} .note.warn b{color:var(--amber);}
+.lede-p{font-size:16px; color:var(--muted); line-height:1.5; max-width:70ch;}
+
+/* code */
+pre.code{background:var(--code-bg); color:var(--code-ink); border-radius:14px; padding:16px 18px; font-family:var(--mono);
+  font-size:13px; line-height:1.55; box-shadow:var(--shadow); overflow:auto; border:1px solid rgba(255,255,255,.06);}
+pre.code .ttl{display:block; color:var(--code-cmt); font-weight:700; font-size:11.5px; letter-spacing:.04em; margin-bottom:10px; text-transform:uppercase;}
+.cmt{color:var(--code-cmt);} .kw{color:var(--code-kw);} .str{color:var(--code-str);} .num{color:var(--code-num);}
+
+/* comparison table */
+table.cmp{width:100%; border-collapse:separate; border-spacing:0; border-radius:14px; overflow:hidden; box-shadow:var(--shadow); font-size:14px;}
+table.cmp th,table.cmp td{padding:12px 16px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line);}
+table.cmp thead th{background:var(--navy); color:#fff; font-weight:800; font-size:14.5px;}
+html[data-theme="dark"] table.cmp thead th{background:#1A2248;}
+table.cmp td:first-child{background:var(--surface3); color:var(--head); font-weight:800; width:22%;}
+table.cmp tbody tr:nth-child(even) td:not(:first-child){background:var(--surface2);}
+table.cmp tbody tr:nth-child(odd) td:not(:first-child){background:var(--surface);}
+table.cmp tr:last-child td{border-bottom:0;}
+table.cmp .k{color:var(--accent-ink); font-weight:700;}
+
+/* flow / pipeline */
+.flow{display:flex; align-items:stretch; gap:0;}
+.chip{flex:1; border-radius:12px; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:12px 8px;}
+.chip b{font-size:14px; letter-spacing:.01em;} .chip span{font-size:11px; opacity:.92; margin-top:3px; line-height:1.25;}
+.chev{flex:0 0 auto; align-self:center; color:var(--muted); font-size:22px; margin:0 6px;}
+.gate{position:relative;}
+.gate::after{content:"GATE"; position:absolute; top:-9px; left:50%; transform:translateX(-50%); font-size:9px; font-weight:800;
+  letter-spacing:.1em; background:var(--coral); color:#fff; border-radius:6px; padding:1px 7px;}
+
+/* metadata explorer */
+.mx{display:grid; grid-template-columns:330px 1fr; gap:22px; height:100%;}
+.mx-list{display:flex; flex-direction:column; gap:9px;}
+.mx-list button{flex:1; display:flex; align-items:center; gap:12px; text-align:left; border:1px solid var(--line); border-left:4px solid var(--c,var(--line));
+  background:var(--surface); color:var(--head); border-radius:11px; padding:0 15px; font-family:inherit; font-weight:700; font-size:14.5px; cursor:pointer; transition:transform .12s, box-shadow .12s;}
+.mx-list button:hover{transform:translateX(3px);}
+.mx-list button[aria-selected="true"]{box-shadow:var(--shadow); border-color:var(--c); background:var(--surface2);}
+.mx-list button .mono{font-family:var(--mono); font-size:13px; color:var(--accent-ink);}
+.mx-list button .tag2{margin-left:auto; font-size:11px; font-weight:700; color:#fff; background:var(--c); border-radius:6px; padding:2px 8px;}
+.mx-panel{background:var(--surface); border:1px solid var(--line); border-top:5px solid var(--c,var(--accent)); border-radius:16px; box-shadow:var(--shadow); padding:26px 30px; display:flex; flex-direction:column;}
+.mx-panel .mh{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--head); letter-spacing:-.01em;}
+.mx-panel .ms{font-size:14px; font-weight:800; color:var(--c); text-transform:uppercase; letter-spacing:.08em; margin-top:4px;}
+.mx-panel .md{font-size:17px; color:var(--ink); line-height:1.5; margin-top:16px;}
+.mx-panel .mmeta{margin-top:auto; display:flex; flex-wrap:wrap; gap:8px; padding-top:16px;}
+.mx-panel .mmeta span{font-size:12.5px; font-weight:600; color:var(--muted); background:var(--surface2); border:1px solid var(--line); border-radius:999px; padding:5px 12px;}
+
+/* MCQ */
+.mcq-eyebrow{text-transform:uppercase; letter-spacing:.12em; font-size:12px; font-weight:800; color:var(--amber); margin:0 0 2px;}
+.qmeta{display:flex; align-items:center; gap:14px; margin:10px 0 4px;}
+.qhint{font-size:12.5px; color:var(--muted);}
+.qprog{display:flex; gap:5px;} .qprog i{width:26px; height:4px; border-radius:3px; background:var(--line);} .qprog i.on{background:var(--accent);} .qprog i.done{background:var(--green);}
+.qcount{margin-left:auto; font-size:12.5px; font-weight:700; color:var(--muted);}
+.mcq{margin-top:8px;}
+.mcq .q{font-size:21px; font-weight:800; letter-spacing:-.01em; line-height:1.25; color:var(--head);}
+.opts{display:grid; gap:10px; margin-top:16px;}
+.opt{display:flex; align-items:center; gap:12px; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:12px; padding:12px 16px; text-align:left; font-family:inherit; font-size:15.5px; cursor:pointer; transition:border-color .15s;}
+.opt:hover:not(:disabled){border-color:var(--accent);}
+.opt .key{flex:none; width:28px; height:28px; border-radius:8px; display:grid; place-items:center; font-weight:800; font-size:13px; background:var(--surface3); color:var(--muted);}
+.opt.correct{border-color:var(--green); background:var(--green-soft);} .opt.correct .key{background:var(--green); color:#fff;}
+.opt.correct::after{content:"✓"; margin-left:auto; color:var(--green); font-weight:800;}
+.opt.wrong{border-color:var(--coral); background:var(--coral-soft); opacity:.92;} .opt.wrong .key{background:var(--coral); color:#fff;}
+.opt.wrong::after{content:"✕"; margin-left:auto; color:var(--coral); font-weight:800;}
+.why-ans{margin-top:12px; font-size:14.5px; color:var(--ink); background:var(--surface2); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:0 12px 12px 0; padding:12px 16px; display:none;}
+.why-ans.show{display:block;}
+.why-ans b{color:var(--accent-ink);}
+.mcq-ctrl{display:flex; align-items:center; gap:10px; margin-top:16px;}
+.mbtn{border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:10px; padding:9px 18px; font-family:inherit; font-weight:700; font-size:13.5px; cursor:pointer;}
+.mbtn.pri{background:var(--accent); color:#fff; border-color:var(--accent);}
+
+/* misc */
+.stat{display:flex; flex-direction:column; gap:3px;}
+.stat b{font-size:34px; font-weight:800; letter-spacing:-.02em; color:var(--head); line-height:1;}
+.stat span{font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
+.foot-note{position:absolute; left:64px; right:64px; bottom:26px; font-size:12.5px; color:var(--muted); font-style:italic;}
+
+/* ============================= HUD ============================= */
+.hint-k{position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:40; font-size:12px; color:var(--muted);
+  background:var(--hud); border:1px solid var(--hud-line); padding:5px 14px; border-radius:999px; backdrop-filter:blur(8px); transition:opacity .3s;}
+.hud{position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:50; display:flex; align-items:center; gap:7px;
+  background:var(--hud); border:1px solid var(--hud-line); backdrop-filter:blur(10px); padding:7px 9px; border-radius:999px; box-shadow:var(--shadow); transition:opacity .3s;}
+.hud button{border:none; background:transparent; color:var(--ink); font-family:var(--font); font-size:13px; font-weight:700; padding:6px 11px; border-radius:30px; cursor:pointer;}
+.hud button:hover{background:rgba(127,127,170,.16);}
+.hud .present{background:var(--accent); color:#fff;} .hud .present:hover{filter:brightness(1.07); background:var(--accent);}
+.hud .sep{width:1px; height:20px; background:var(--hud-line);}
+.hud .gotoWrap{display:flex; align-items:center; gap:6px;}
+.hud .goto{width:44px; text-align:center; font-family:var(--font); font-size:13px; font-weight:700; color:var(--ink); background:var(--surface); border:1px solid var(--hud-line); border-radius:8px; padding:5px 4px; -moz-appearance:textfield; appearance:textfield;}
+.hud .goto::-webkit-outer-spin-button,.hud .goto::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+.hud .count{font-size:13px; color:var(--muted); font-weight:700;}
+.notes{position:fixed; left:18px; right:18px; bottom:74px; z-index:45; max-height:36vh; overflow:auto; background:var(--hud);
+  border:1px solid var(--hud-line); border-left:5px solid var(--accent); border-radius:12px; padding:14px 20px; box-shadow:var(--shadow-lg);
+  backdrop-filter:blur(10px); font-size:15px; line-height:1.5; color:var(--ink); display:none;}
+.notes.show{display:block;} .notes b{color:var(--accent-ink);}
+#deck.presenting .hud,#deck.presenting .hint-k{opacity:0; pointer-events:none;}
+#deck:not(.cursoractive).presenting{cursor:none;}
+</style>
+</head>
+<body>
+<div id="deck" data-theme="light">
+  <div class="stage" id="stage">
+
+  <!-- ===== 1 COVER ===== -->
+  <section class="slide cover active">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap">
+      <div class="eyebrow">Agentforce · FDE enablement · Part 2</div>
+      <h1>Agentic <span class="acc">Deployment</span></h1>
+      <div class="lede">An agent is <b>metadata</b>. Everything we know about Salesforce release management applies — ship it with its dependencies, and let the pipeline say no.</div>
+      <div class="presenter">
+        <img src="images/tuan.png" alt="Tuan Abdeen">
+        <div><b>Tuan Abdeen</b><span>FDE | CTA, Salesforce</span></div>
+      </div>
+    </div>
+    <div class="pagenum">1</div>
+  </section>
+
+  <!-- ===== 2 THE PROMISE ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">The section promise</div>
+    <h1 class="title">An agent is metadata — treat release as engineering, not a demo</h1>
+    <p class="sub">Why deployment is where trust is kept or lost</p>
+    <div class="body">
+      <div class="cards" style="grid-template-columns:1fr 1fr; grid-auto-rows:1fr; margin-bottom:16px">
+        <div class="card"><div class="row" style="margin-bottom:8px"><div class="badge" style="background:var(--accent2)">1</div><div class="ct">A working demo is not a production system</div></div><div class="cd">Value is realised at <b>release</b>, not at build. The agent only earns trust once it ships — with every dependency — and keeps behaving.</div></div>
+        <div class="card"><div class="row" style="margin-bottom:8px"><div class="badge" style="background:var(--accent)">2</div><div class="ct">Move the bundle, or it lands broken</div></div><div class="cd">Miss one dependency and the deploy fails — or worse, deploys an agent that <b>silently can't act</b>. The whole bundle moves together.</div></div>
+        <div class="card"><div class="row" style="margin-bottom:8px"><div class="badge" style="background:var(--amber)">3</div><div class="ct">Immutable versions make rollback real</div></div><div class="cd">Committed versions are frozen. Rollback is reactivating a known-good version — not re-deploying and hoping.</div></div>
+        <div class="card"><div class="row" style="margin-bottom:8px"><div class="badge" style="background:var(--green)">4</div><div class="ct">The pipeline is the governance</div></div><div class="cd">A failing agent test blocks promotion exactly like a failing Apex test blocks a deploy. The gate protects the customer, not the calendar.</div></div>
+      </div>
+      <div class="note"><b>Take-home:</b> everything you know about Salesforce release management still applies to agents — we're adding a few new metadata types and two new verbs: <code class="chip">publish</code> and <code class="chip">activate</code>.</div>
+    </div>
+    <div class="pagenum">2</div>
+  </section>
+
+  <!-- ===== 3 AGENDA ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">The next 60 minutes</div>
+    <h1 class="title">Agenda</h1>
+    <p class="sub">From mental model → source → release → tooling → the gate</p>
+    <div class="body">
+      <div class="cards" style="grid-template-columns:repeat(5,1fr)">
+        <div class="card" style="border-top:4px solid var(--accent2)"><div class="stat"><b>10<small style="font-size:14px;color:var(--muted)"> min</small></b><span>Mental model</span></div><ul class="bul" style="margin-top:10px"><li>An agent as a bundle</li><li>Draft vs runtime</li><li>Immutability</li></ul></div>
+        <div class="card" style="border-top:4px solid var(--accent)"><div class="stat"><b>12<small style="font-size:14px;color:var(--muted)"> min</small></b><span>Source &amp; manifest</span></div><ul class="bul" style="margin-top:10px"><li>Git + SFDX project</li><li>package.xml</li><li>Org Browser</li></ul></div>
+        <div class="card" style="border-top:4px solid var(--sky)"><div class="stat"><b>14<small style="font-size:14px;color:var(--muted)"> min</small></b><span>The release</span></div><ul class="bul" style="margin-top:10px"><li>Validate → quick-deploy</li><li>Publish &amp; activate</li><li>Org vs package</li></ul></div>
+        <div class="card" style="border-top:4px solid var(--amber)"><div class="stat"><b>14<small style="font-size:14px;color:var(--muted)"> min</small></b><span>Tooling</span></div><ul class="bul" style="margin-top:10px"><li>Clicks → pipelines</li><li>The CI/CD gate</li><li>ISV tools · Data 360</li></ul></div>
+        <div class="card" style="border-top:4px solid var(--green)"><div class="stat"><b>10<small style="font-size:14px;color:var(--muted)"> min</small></b><span>Check &amp; floor</span></div><ul class="bul" style="margin-top:10px"><li>Knowledge check</li><li>Go-live checklist</li><li>Your questions</li></ul></div>
+      </div>
+    </div>
+    <div class="pagenum">3</div>
+  </section>
+
+  <!-- ===== 4 SECTION 1 ===== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap">
+      <div class="num">1</div>
+      <h1>The mental model</h1>
+      <div class="lede">Deployment starts with metadata. An agent is a bundle of linked components — and the Agent Script era gives us a clean, reviewable shape for it.</div>
+    </div>
+    <div class="rail"><span class="on">Mental model</span><span>Source</span><span>Release</span><span>Tooling</span><span>Check</span></div>
+    <div class="pagenum">4</div>
+  </section>
+
+  <!-- ===== 5 METADATA EXPLORER ===== -->
+  <section class="slide mx-slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.1 · An agent is a bundle</div>
+    <h1 class="title">The Agent Script (NGA) metadata bundle</h1>
+    <p class="sub">Select a component — these move together, or the agent lands broken</p>
+    <div class="body">
+      <div class="mx">
+        <div class="mx-list" role="tablist" aria-label="Agent metadata types">
+          <button data-mx="authoring" style="--c:var(--accent2)" role="tab"><span class="mono">AiAuthoringBundle</span><span class="tag2">draft</span></button>
+          <button data-mx="agentdef" style="--c:var(--accent)" role="tab"><span class="mono">AiAgentDefinition</span><span class="tag2">runtime</span></button>
+          <button data-mx="version" style="--c:var(--sky)" role="tab"><span class="mono">…DefinitionVersion</span><span class="tag2">runtime</span></button>
+          <button data-mx="prompt" style="--c:var(--amber)" role="tab"><span class="mono">GenAiPromptTemplate</span></button>
+          <button data-mx="eval" style="--c:var(--green)" role="tab"><span class="mono">AiEvaluationDefinition</span></button>
+          <button data-mx="deps" style="--c:var(--coral)" role="tab"><span class="mono">Dependencies</span></button>
+        </div>
+        <div class="mx-panel" id="mxPanel" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="pagenum">5</div>
+  </section>
+
+  <!-- ===== 6 DRAFT VS RUNTIME ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.1 · Draft → runtime → rollback</div>
+    <h1 class="title">The draft is editable. The version is frozen.</h1>
+    <p class="sub">Commit turns reviewable source into immutable runtime — that's what makes rollback reliable</p>
+    <div class="body">
+      <div class="flow" style="margin-bottom:18px">
+        <div class="chip" style="background:var(--accent2)"><b>Author</b><span>Agent Script <span class="mono">.agent</span></span></div><div class="chev">›</div>
+        <div class="chip" style="background:var(--accent)"><b>Commit / publish</b><span>draft → runtime</span></div><div class="chev">›</div>
+        <div class="chip" style="background:var(--sky)"><b>Version vN</b><span>immutable snapshot</span></div><div class="chev">›</div>
+        <div class="chip" style="background:var(--green)"><b>Activate</b><span>one version serves</span></div><div class="chev">›</div>
+        <div class="chip" style="background:var(--navy)"><b>Rollback</b><span>re-activate v(N-1)</span></div>
+      </div>
+      <div class="cards" style="grid-template-columns:1fr 1fr">
+        <div class="card"><div class="ct" style="margin-bottom:8px">The draft — <code class="chip">AiAuthoringBundle</code></div>
+          <ul class="bul"><li>Human-readable Agent Script, diffable in a PR</li><li>Edited in the new Agentforce Builder or your IDE</li><li>This is what reviewers actually read</li></ul></div>
+        <div class="card hl"><div class="ct" style="margin-bottom:8px">The runtime — <code class="chip">AiAgentDefinition</code> + <code class="chip">AiAgentDefinitionVersion</code></div>
+          <ul class="bul"><li>Created on commit/publish from the draft</li><li>Committed versions are <b>immutable</b> — you can't edit them</li><li>Exactly one version is active &amp; serving traffic</li></ul></div>
+      </div>
+      <div class="note warn" style="margin-top:16px"><b>! Version note:</b> the new builder needs <b>API v66.0+</b>. Metadata type names and behaviour evolve — always check the Agentforce DX "Move an agent" guide and the Metadata Coverage Report for your target API version before you script a release.</div>
+    </div>
+    <div class="pagenum">6</div>
+  </section>
+
+  <!-- ===== 7 SECTION 2 ===== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap">
+      <div class="num">2</div>
+      <h1>Source &amp; manifest</h1>
+      <div class="lede">Git is the source of truth. The SFDX project is the folder shape. <span class="mono" style="color:#FFCF99">package.xml</span> is the manifest that says exactly what moves.</div>
+    </div>
+    <div class="rail"><span>Mental model</span><span class="on">Source</span><span>Release</span><span>Tooling</span><span>Check</span></div>
+    <div class="pagenum">7</div>
+  </section>
+
+  <!-- ===== 8 GIT + PACKAGE.XML ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.2 · Git, SFDX project &amp; package.xml</div>
+    <h1 class="title">Everything you click in Builder is text you can diff</h1>
+    <p class="sub">One manifest per release, committed with the change</p>
+    <div class="body">
+      <div style="display:grid; grid-template-columns:0.82fr 1.18fr; gap:18px; align-items:start">
+        <div style="display:flex; flex-direction:column; gap:14px">
+          <div class="card"><div class="ct" style="margin-bottom:8px">The three layers</div>
+            <ul class="bul"><li><b>SFDX project</b> — <code class="chip">sfdx-project.json</code> + <code class="chip">force-app/</code>: how source lives on disk</li><li><b>package.xml</b> — the manifest: which types &amp; members move</li><li><b>The <code class="chip">Agent</code> pseudo-type</b> — retrieve/deploy an agent and its parts in one go</li></ul></div>
+          <div class="note">Use <b>exact member names as retrieved</b> — don't guess suffixes. Generate a starter manifest from the org, then trim it to the release.</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px">
+          <pre class="code"><span class="ttl">generate a starter manifest, then retrieve</span><span class="cmt"># starter manifest from an org</span>
+sf project generate manifest <span class="kw">--from-org</span> <span class="str">client-dev</span> <span class="kw">--output-dir</span> manifest
+<span class="cmt"># retrieve the whole agent in one go (Agent pseudo-type)</span>
+sf project retrieve start <span class="kw">--metadata</span> <span class="str">"Agent:Service_Agent"</span> <span class="kw">--target-org</span> <span class="str">client-dev</span></pre>
+          <pre class="code"><span class="ttl">package.xml — the NGA bundle (excerpt)</span><span class="cmt">&lt;!-- draft --&gt;</span>
+&lt;types&gt;&lt;members&gt;<span class="str">Service_Agent</span>&lt;/members&gt;&lt;name&gt;<span class="kw">AiAuthoringBundle</span>&lt;/name&gt;&lt;/types&gt;
+<span class="cmt">&lt;!-- runtime: agent-level + versions --&gt;</span>
+&lt;types&gt;&lt;members&gt;<span class="str">Service_Agent</span>&lt;/members&gt;&lt;name&gt;<span class="kw">AiAgentDefinition</span>&lt;/name&gt;&lt;/types&gt;
+&lt;types&gt;&lt;members&gt;<span class="str">Service_Agent*</span>&lt;/members&gt;&lt;name&gt;<span class="kw">AiAgentDefinitionVersion</span>&lt;/name&gt;&lt;/types&gt;
+<span class="cmt">&lt;!-- dependencies travel with it --&gt;</span>
+&lt;types&gt;&lt;members&gt;<span class="str">GetOrderStatusAction</span>&lt;/members&gt;&lt;name&gt;<span class="kw">ApexClass</span>&lt;/name&gt;&lt;/types&gt;
+&lt;types&gt;&lt;members&gt;<span class="str">Service_Agent_Access</span>&lt;/members&gt;&lt;name&gt;<span class="kw">PermissionSet</span>&lt;/name&gt;&lt;/types&gt;
+&lt;types&gt;&lt;members&gt;<span class="str">Service_Agent_Tests</span>&lt;/members&gt;&lt;name&gt;<span class="kw">AiEvaluationDefinition</span>&lt;/name&gt;&lt;/types&gt;
+&lt;version&gt;<span class="num">66.0</span>&lt;/version&gt;</pre>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">8</div>
+  </section>
+
+  <!-- ===== 9 ORG BROWSER VS MANIFEST ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.2 · Discovery vs repeatability</div>
+    <h1 class="title">Org Browser to discover · manifest to repeat</h1>
+    <p class="sub">Two modes — know which one you're in</p>
+    <div class="body">
+      <div class="cards" style="grid-template-columns:1fr 1fr; grid-auto-rows:1fr">
+        <div class="card"><div class="row" style="margin-bottom:10px"><div class="badge" style="background:var(--sky)">◰</div><div class="ct">VS Code / Cursor Org Browser</div></div>
+          <ul class="bul"><li>Browse <code class="chip">AiAuthoringBundle</code>, <code class="chip">AiAgentDefinition</code>, versions</li><li>Retrieve with one click — no manifest to write</li><li>Perfect for <b>discovery</b> in an unfamiliar org</li><li>Salesforce Extension Pack (works in Cursor too)</li></ul></div>
+        <div class="card hl"><div class="row" style="margin-bottom:10px"><div class="badge" style="background:var(--accent)">⛭</div><div class="ct">Manifest-driven release</div></div>
+          <ul class="bul"><li>One <code class="chip">package.xml</code> per release, in Git</li><li>Deterministic, reviewable, re-runnable</li><li>The unit the pipeline promotes</li><li>Graduate here the moment a release must repeat</li></ul></div>
+      </div>
+      <div class="note" style="margin-top:16px"><b>Rule of thumb:</b> click to learn the org; commit a manifest to ship from it. Discovery is interactive; release is deterministic.</div>
+    </div>
+    <div class="pagenum">9</div>
+  </section>
+
+  <!-- ===== 10 SECTION 3 ===== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap">
+      <div class="num">3</div>
+      <h1>The release</h1>
+      <div class="lede">The single most valuable production habit: <span style="color:#FFCF99;font-weight:800">validate first, quick-deploy in the window</span> — then publish and activate the version.</div>
+    </div>
+    <div class="rail"><span>Mental model</span><span>Source</span><span class="on">Release</span><span>Tooling</span><span>Check</span></div>
+    <div class="pagenum">10</div>
+  </section>
+
+  <!-- ===== 11 CLI RETRIEVE VALIDATE DEPLOY ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.3 · retrieve → validate → deploy</div>
+    <h1 class="title">Validate days before · quick-deploy in the window</h1>
+    <p class="sub">Nothing is committed until the quick-deploy — so the risky step is seconds, not minutes</p>
+    <div class="body">
+      <div style="display:grid; grid-template-columns:1.25fr 0.75fr; gap:18px; align-items:start">
+        <pre class="code"><span class="ttl">the production release, in order</span><span class="cmt"># 1 · validate against prod days early — nothing is committed</span>
+sf project deploy validate <span class="kw">--manifest</span> manifest/package.xml \
+  <span class="kw">--target-org</span> <span class="str">YOUR-ORG</span> <span class="kw">--test-level</span> <span class="str">RunLocalTests</span>
+
+<span class="cmt"># 2 · quick-deploy the validated job inside the change window</span>
+sf project deploy quick <span class="kw">--job-id</span> <span class="str">0AfXX00000000001</span> <span class="kw">--target-org</span> <span class="str">YOUR-ORG</span>
+
+<span class="cmt"># 3 · turn the draft into a version, then activate it</span>
+sf agent publish authoring-bundle <span class="kw">--api-name</span> <span class="str">Service_Agent</span> <span class="kw">--target-org</span> <span class="str">YOUR-ORG</span>
+sf agent activate <span class="kw">--api-name</span> <span class="str">Service_Agent</span> <span class="kw">--version</span> <span class="num">2</span> <span class="kw">--target-org</span> <span class="str">YOUR-ORG</span></pre>
+        <div style="display:flex; flex-direction:column; gap:12px">
+          <div class="card"><div class="ct" style="margin-bottom:8px">Habits that save go-lives</div>
+            <ul class="bul"><li><code class="chip">RunLocalTests</code> for production deploys</li><li><b>Deploy dependencies before the agent</b></li><li>Agent runs <b>as a user</b> — usernames differ per org; use string replacements in <code class="chip">sfdx-project.json</code>, never hard-code</li><li>After deploy: publish the version, <b>then</b> activate</li></ul></div>
+          <div class="note">Same <code class="chip">sf</code> commands on macOS/Linux and Windows — only shell quoting differs (PowerShell uses a backtick for line continuation, not <code class="chip">\</code>).</div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">11</div>
+  </section>
+
+  <!-- ===== 12 ORG VS PACKAGE ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.4 · Org-based vs package-based</div>
+    <h1 class="title">Start org-based · graduate to packages when it pays off</h1>
+    <p class="sub">The unit of release is the real decision</p>
+    <div class="body">
+      <table class="cmp">
+        <thead><tr><th style="width:20%"></th><th>Org-based</th><th>Package-based (unlocked / 2GP)</th></tr></thead>
+        <tbody>
+          <tr><td>Unit of release</td><td>A set of changes in a manifest</td><td>A <span class="k">versioned, installable</span> package</td></tr>
+          <tr><td>Source of truth</td><td>The org (or Git via CLI / DevOps Center)</td><td><span class="k">Git, always</span></td></tr>
+          <tr><td>Best for</td><td>Single-org customers, fast first releases</td><td>Multi-team / multi-org programmes, ISVs, reusable agents</td></tr>
+          <tr><td>Rollback</td><td>Redeploy previous metadata; reactivate prior version</td><td>Install a previous package version</td></tr>
+          <tr><td>Watch out for</td><td>Org drift, missed dependencies</td><td>Setup effort, dependency design, not-yet-packageable metadata</td></tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:16px"><b>FDE guidance:</b> most engagements start org-based. Recommend packages when the customer runs <b>multiple orgs</b> or wants a <b>reusable agent</b> across business units — and check the <b>Metadata Coverage Report</b> for packaging support before committing to the design.</div>
+    </div>
+    <div class="pagenum">12</div>
+  </section>
+
+  <!-- ===== 13 SECTION 4 ===== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap">
+      <div class="num">4</div>
+      <h1>Deployment tooling</h1>
+      <div class="lede">We rarely pick the tool — the customer usually has one. Be fluent enough to plug the agent into whatever exists, and never skip the Data 360 path.</div>
+    </div>
+    <div class="rail"><span>Mental model</span><span>Source</span><span>Release</span><span class="on">Tooling</span><span>Check</span></div>
+    <div class="pagenum">13</div>
+  </section>
+
+  <!-- ===== 14 CLICKS TO PIPELINES ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.5 · From clicks to pipelines</div>
+    <h1 class="title">The spectrum — clicks, scripts, pipelines</h1>
+    <p class="sub">Same CLI underneath; the difference is who runs it and how it's governed</p>
+    <div class="body">
+      <div class="cards" style="grid-template-columns:repeat(5,1fr); grid-auto-rows:1fr; margin-bottom:16px">
+        <div class="card"><div class="ct" style="font-size:15px">Change sets</div><div class="cd">Point-and-click between connected orgs. No version control, no rollback, weak for new agent metadata. <b>Not for agent work.</b></div></div>
+        <div class="card"><div class="ct" style="font-size:15px">DevOps Center</div><div class="cd">Free, <b>Git-backed</b> release tool — work items + pipeline stages. Good for admin/mixed teams off change sets. Confirm agent-metadata support.</div></div>
+        <div class="card"><div class="ct" style="font-size:15px">CLI scripts</div><div class="cd">The commands wrapped in a shell/Node script, run by a person. Great for first releases &amp; rehearsals; graduate once stable.</div></div>
+        <div class="card hl"><div class="ct" style="font-size:15px">CI/CD platforms</div><div class="cd">GitHub Actions, Bitbucket, Azure DevOps, Jenkins, GitLab — same CLI, headless, <b>JWT auth</b>. You own pipeline, secrets, maintenance.</div></div>
+        <div class="card" style="border-top:4px solid var(--amber)"><div class="ct" style="font-size:15px">Data 360 kits</div><div class="cd">Knowledge &amp; grounding are <b>data, not metadata</b>. Move Data Cloud assets via <b>data kits</b> + index the Data Library — a separate deploy path.</div></div>
+      </div>
+      <div class="note warn"><b>! Most-forgotten step:</b> plan the Data 360 / Data Library path <b>early</b>. The agent can deploy perfectly and still answer from nothing because the grounding data never moved.</div>
+    </div>
+    <div class="pagenum">14</div>
+  </section>
+
+  <!-- ===== 15 PIPELINE + GATE ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.5 · The pipeline shape never changes</div>
+    <h1 class="title">PR → CI sandbox → publish → <span style="color:var(--coral)">test gate</span> → validate → quick-deploy</h1>
+    <p class="sub">Only the YAML syntax changes between GitHub Actions, Bitbucket &amp; Azure</p>
+    <div class="body">
+      <div class="flow" style="margin-bottom:16px">
+        <div class="chip" style="background:var(--accent2)"><b>Pull request</b><span>source in Git</span></div><div class="chev">›</div>
+        <div class="chip" style="background:var(--accent)"><b>Deploy → CI</b><span>sandbox + deps</span></div><div class="chev">›</div>
+        <div class="chip" style="background:var(--sky)"><b>Publish &amp; activate</b><span>draft → version</span></div><div class="chev">›</div>
+        <div class="chip gate" style="background:var(--coral)"><b>Agent test</b><span>red = stop</span></div><div class="chev">›</div>
+        <div class="chip" style="background:var(--amber)"><b>Validate prod</b><span>nothing committed</span></div><div class="chev">›</div>
+        <div class="chip" style="background:var(--green)"><b>Quick-deploy</b><span>in the window</span></div>
+      </div>
+      <pre class="code" style="font-size:12px"><span class="ttl">.github/workflows/agent-ci.yml — Bitbucket / Azure differ only in syntax</span><span class="kw">on:</span> pull_request
+<span class="kw">jobs:</span>
+  validate-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --global @salesforce/cli
+      - run: |                                   <span class="cmt"># JWT auth — secrets live in the store, never the repo</span>
+          sf org login jwt <span class="kw">--client-id</span> <span class="str">"${{ secrets.SF_CLIENT_ID }}"</span> <span class="kw">--jwt-key-file</span> server.key \
+            <span class="kw">--username</span> <span class="str">"${{ secrets.SF_CI_USER }}"</span> <span class="kw">--instance-url</span> <span class="str">https://test.salesforce.com</span> <span class="kw">--alias</span> ci
+      - run: sf project deploy start <span class="kw">--manifest</span> manifest/package.xml <span class="kw">--target-org</span> ci <span class="kw">--test-level</span> <span class="str">RunLocalTests</span>
+      - run: |                                   <span class="cmt"># draft → version</span>
+          sf agent publish authoring-bundle <span class="kw">--api-name</span> <span class="str">Service_Agent</span> <span class="kw">--target-org</span> ci
+          sf agent activate <span class="kw">--api-name</span> <span class="str">Service_Agent</span> <span class="kw">--version</span> <span class="str">"${{ vars.AGENT_VERSION }}"</span> <span class="kw">--target-org</span> ci
+      - run: sf agent test run <span class="kw">--api-name</span> <span class="str">Service_Agent_Tests</span> <span class="kw">--wait</span> <span class="num">20</span> <span class="kw">--result-format</span> junit <span class="kw">--target-org</span> ci  <span class="cmt"># THE GATE</span></pre>
+    </div>
+    <div class="pagenum">15</div>
+  </section>
+
+  <!-- ===== 16 ISV TOOLS ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.6 · ISV DevOps tools</div>
+    <h1 class="title">For large, governed, mixed admin/dev teams</h1>
+    <p class="sub">No tool wins everywhere — match team shape, budget &amp; cadence</p>
+    <div class="body">
+      <div class="cards" style="grid-template-columns:1fr 1fr 1fr 1fr; grid-auto-rows:1fr; margin-bottom:16px">
+        <div class="card"><div class="ct">Copado</div><div class="cd">Runs <b>natively on Salesforce</b> — user stories, pipelines, compliance tracking. Built for larger, governed teams.</div></div>
+        <div class="card"><div class="ct">Gearset</div><div class="cd"><b>Comparison-driven</b> deploys, problem analysers, documented Agentforce support. Fast to adopt, popular with mixed teams.</div></div>
+        <div class="card"><div class="ct">AutoRABIT</div><div class="cd">CI/CD with strong <b>security &amp; compliance</b> features for regulated industries.</div></div>
+        <div class="card"><div class="ct">Flosum</div><div class="cd"><b>100% native</b> on-platform; popular where <b>data residency</b> matters.</div></div>
+      </div>
+      <div class="note"><b>Ask every vendor, before you commit:</b> Do you support the agent metadata types <i>today</i> — show me a deployment. Can I run my own CLI test job as a pipeline step? Does a failing agent test <b>block promotion</b>? What's the audit trail and rollback story? <span style="color:var(--muted)">This area moves fast — verify current support.</span></div>
+    </div>
+    <div class="pagenum">16</div>
+  </section>
+
+  <!-- ===== 17 GO-LIVE + GOTCHAS ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">2.7 · Go-live &amp; gotchas</div>
+    <h1 class="title">The steps people forget — and the traps that bite</h1>
+    <p class="sub">Deploy is step one of go-live, not the finish line</p>
+    <div class="body">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; height:100%">
+        <div class="card"><div class="ct" style="margin-bottom:10px">After the deploy — in order</div>
+          <div class="flow" style="flex-wrap:wrap; gap:8px">
+            <span class="chip" style="flex:none; background:var(--accent); padding:6px 12px"><b style="font-size:12px">Confirm deps landed</b></span>
+            <span class="chip" style="flex:none; background:var(--amber); padding:6px 12px"><b style="font-size:12px">Provision data (kits / Library)</b></span>
+            <span class="chip" style="flex:none; background:var(--accent2); padding:6px 12px"><b style="font-size:12px">Publish version</b></span>
+            <span class="chip" style="flex:none; background:var(--green); padding:6px 12px"><b style="font-size:12px">Activate</b></span>
+            <span class="chip" style="flex:none; background:var(--sky); padding:6px 12px"><b style="font-size:12px">Assign permissions</b></span>
+            <span class="chip" style="flex:none; background:var(--accent); padding:6px 12px"><b style="font-size:12px">Connect channels</b></span>
+            <span class="chip" style="flex:none; background:var(--navy); padding:6px 12px"><b style="font-size:12px">Smoke test</b></span>
+            <span class="chip" style="flex:none; background:var(--green); padding:6px 12px"><b style="font-size:12px">Monitoring on</b></span>
+            <span class="chip" style="flex:none; background:var(--coral); padding:6px 12px"><b style="font-size:12px">Rollback plan ready</b></span>
+          </div>
+          <div class="note" style="margin-top:14px">Rollback = reactivate the previous <b>immutable</b> version. Have the version number written down before you start.</div>
+        </div>
+        <div class="card"><div class="ct" style="margin-bottom:10px">Common gotchas</div>
+          <ul class="bul">
+            <li>Manifest API version too low (<code class="chip">&lt;66.0</code>)</li>
+            <li>Missing action/subagent dependencies fail the version build</li>
+            <li>Agent-user username copied from the source org</li>
+            <li>Trying to edit a committed (immutable) version</li>
+            <li>Scratch orgs without Agentforce / Data Cloud provisioned — use sandboxes</li>
+            <li>"It's only a read action" — tested in production</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">17</div>
+  </section>
+
+  <!-- ===== 18 SECTION 5 ===== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap">
+      <div class="num">5</div>
+      <h1>Knowledge check &amp; floor</h1>
+      <div class="lede">Five questions, then your questions. Poll the room first — reveal second.</div>
+    </div>
+    <div class="rail"><span>Mental model</span><span>Source</span><span>Release</span><span>Tooling</span><span class="on">Check</span></div>
+    <div class="pagenum">18</div>
+  </section>
+
+  <!-- ===== 19 MCQ ===== -->
+  <section class="slide mcq-slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">Q&amp;A #2 · Deployment</div>
+    <p class="mcq-eyebrow">Reveal on click · poll the room first</p>
+    <h1 class="title" style="margin-top:4px">Five-question knowledge check</h1>
+    <div class="body" style="top:132px">
+      <div class="qmeta"><span class="qhint">Click an option to grade, or Reveal.</span><span class="qprog" id="qp"></span><span class="qcount" id="qc"></span></div>
+      <div class="mcq" id="mcq"></div>
+      <div class="mcq-ctrl">
+        <button class="mbtn" id="qprev" type="button">‹ Prev</button>
+        <button class="mbtn pri" id="qnext" type="button">Next question ›</button>
+        <button class="mbtn" id="qreveal" type="button" style="margin-left:auto">Reveal answer</button>
+      </div>
+    </div>
+    <div class="pagenum">19</div>
+  </section>
+
+  <!-- ===== 20 OPEN FLOOR ===== -->
+  <section class="slide">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="kicker">Open floor</div>
+    <h1 class="title">Two things to take back — then your questions</h1>
+    <p class="sub">Test the decision, not the sentence · treat the agent as metadata</p>
+    <div class="body">
+      <div style="display:grid; grid-template-columns:1.15fr 0.85fr; gap:18px; height:100%">
+        <div class="card"><div class="ct" style="margin-bottom:10px">Likely questions — crisp answers ready</div>
+          <ul class="bul">
+            <li><b>How many test cases?</b> Start 5 happy / 3 edge / 2 negative <i>per subagent</i>; grow from real failures.</li>
+            <li><b>Flaky results?</b> Run each case N times, pass at a threshold (4/5); track the trend, not one run.</li>
+            <li><b>Blocking gate from day one?</b> No — non-blocking ~2 weeks, then blocking once the team trusts the numbers.</li>
+            <li><b>Scratch orgs for agents?</b> Usually no — use sandboxes; scratch often lacks Agentforce / Data Cloud.</li>
+            <li><b>Which ISV tool?</b> None wins everywhere — match team shape, budget &amp; cadence; verify agent-metadata support.</li>
+          </ul></div>
+        <div class="card hl"><div class="ct" style="margin-bottom:10px">First-week homework</div>
+          <ul class="bul">
+            <li>Build a small agent in your dev sandbox</li>
+            <li>Write 10 test cases, run them from the CLI</li>
+            <li>Retrieve it, write its <code class="chip">package.xml</code>, deploy to a 2nd sandbox</li>
+            <li>Run one promptfoo red-team scan against it</li>
+          </ul>
+          <div class="note" style="margin-top:14px"><b>Then:</b> rehearse validate → quick-deploy → publish → activate once, end to end, before any customer window.</div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">20</div>
+  </section>
+
+  <!-- ===== 21 RESOURCES / CLOSE ===== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap">
+      <div class="num" style="font-size:72px">Resources</div>
+      <div class="lede" style="margin-top:22px; max-width:1040px">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px 36px; font-size:17px">
+          <div>• The Agent Development Lifecycle (Salesforce Architects)</div>
+          <div>• Agentforce DX — agent metadata</div>
+          <div>• Agentforce DX — move an agent to a new org</div>
+          <div>• Agentforce Testing Center (Salesforce Help)</div>
+          <div>• The new Agentforce metadata &amp; dev lifecycle (blog)</div>
+          <div>• OWASP Top 10 for LLM Applications</div>
+        </div>
+      </div>
+      <div class="lede" style="margin-top:34px; font-size:22px; color:#fff; font-weight:700">Treat the agent as metadata — ship it with its dependencies, and let the pipeline say no.</div>
+    </div>
+    <div class="rail"><span style="border-style:dashed">Never show tokens, auth URLs or real customer org data — all demos use placeholder names.</span></div>
+    <div class="pagenum">21</div>
+  </section>
+
+  </div><!-- /stage -->
+
+  <div class="hint-k" id="hintk">← → navigate · F present · T theme · N notes</div>
+  <div class="hud" id="hud">
+    <button onclick="go(-1)">‹ Prev</button>
+    <span class="gotoWrap"><input id="goto" class="goto" type="number" min="1" inputmode="numeric" aria-label="Go to page"
+      onkeydown="if(event.key==='Enter'){goTo(this.value);this.blur();}" onchange="goTo(this.value)"><span class="count" id="count">/ 21</span></span>
+    <button onclick="go(1)">Next ›</button>
+    <span class="sep"></span>
+    <button onclick="toggleTheme()" id="themebtn">◐ Dark</button>
+    <button onclick="toggleNotes()">Notes</button>
+    <span class="sep"></span>
+    <button class="present" onclick="present()">▶ Present</button>
+  </div>
+  <div class="notes" id="notes"></div>
+</div>
+
+<script>
+/* ============================= DECK LOGIC ============================= */
+const deck=document.getElementById('deck'), stage=document.getElementById('stage'),
+      countEl=document.getElementById('count'), notesEl=document.getElementById('notes'),
+      gotoEl=document.getElementById('goto');
+const slides=Array.from(document.querySelectorAll('.slide'));
+let i=0, notesOn=false;
+
+const NOTES=[
+ "<b>Open (~45s).</b> This is Part 2 — Agentic Deployment. One sentence sets the whole hour: <i>an agent is metadata.</i> Everything the room already knows about Salesforce release management still applies — we're adding a few metadata types and two verbs, publish and activate. Pitch to leadership as risk + governance; to engineers as the concrete release mechanics. Two take-homes to seed now: test the decision not the sentence (Part 1), and treat the agent as metadata — ship it with its dependencies and let the pipeline say no.",
+ "<b>The promise.</b> Dwell on card 2 and card 3. Card 2: the failure mode that stings is not a red deploy — it's a GREEN deploy of an agent that silently can't act because one action, permission set, or grounding source didn't travel. Card 3: immutability is the gift — committed versions are frozen, so rollback is 'reactivate v(N-1)', deterministic and fast. Card 4: the gate is governance you can show an auditor. Land the take-home: new types, two new verbs.",
+ "<b>Agenda.</b> Five beats, ~60 min. Say the arc out loud: mental model → how source lives → how a release runs → the tooling landscape and the gate → check + floor. Tell them demos are interleaved and there's a 5-question check at the end. If you're running an exec-heavy room, promise you'll stay conceptual and flip to CLI only when an engineer asks 'show me'.",
+ "<b>Section 1 — mental model (~15s).</b> The frame for everything that follows: deployment starts with metadata, and an agent is a bundle of linked components. The Agent Script (NGA) era gives that bundle a clean, reviewable shape — a .agent file you can read in a PR.",
+ "<b>Metadata explorer (interactive).</b> Click each type; give one line of why it matters. AiAuthoringBundle = the DRAFT .agent file, the thing humans review. AiAgentDefinition = agent-level runtime (type, description, context variables, settings). AiAgentDefinitionVersion = the version-specific config — planner, subagents, actions — and versions are immutable. GenAiPromptTemplate = prompt templates actions call. AiEvaluationDefinition = Testing Center suites (the gate travels WITH the agent). Dependencies = Apex, Flow, objects/fields, permission sets, and Data Library / Data Cloud. Key message: these move TOGETHER. Note we're deliberately on the new NGA types, not legacy Bot/GenAiPlanner. Verify exact type names against the Metadata Coverage Report for the target API version.",
+ "<b>Draft → runtime → rollback.</b> Walk the flow left to right. You author the .agent draft (AiAuthoringBundle); commit/publish turns it into runtime (AiAgentDefinition + AiAgentDefinitionVersion); each version is an immutable snapshot; exactly one is active; rollback = reactivate the previous version. The immutability is the point — you cannot edit a committed version, which is precisely why rollback is trustworthy. Hit the API v66.0+ caveat and the 'always check the Move-an-agent guide / Metadata Coverage Report' habit — type names and behaviour are still evolving.",
+ "<b>Section 2 — source & manifest (~15s).</b> Three nouns: Git is the source of truth; the SFDX project is the folder shape; package.xml is the manifest that says exactly what moves. Everything clicked in Builder is also text you can diff.",
+ "<b>Git & package.xml.</b> The left card is the three layers; the right is the real commands and a trimmed manifest. Two things to stress: (1) the Agent pseudo-type retrieves/deploys the agent and its parts in one go — great for pulling a whole agent down; (2) use EXACT member names as retrieved, don't guess suffixes, and generate a starter manifest from the org then trim. Point at the manifest: note it carries the DRAFT (AiAuthoringBundle), the RUNTIME (AiAgentDefinition + versions), AND the dependencies (Apex, permission set, eval suite) — one manifest per release, committed with the change. API version 66.0.",
+ "<b>Org Browser vs manifest.</b> Two modes, know which you're in. Org Browser (VS Code / Cursor, Salesforce Extension Pack) is for DISCOVERY — browse AiAuthoringBundle / AiAgentDefinition / versions and one-click retrieve in an unfamiliar org. The manifest is for REPEATABLE release — deterministic, reviewable, the unit the pipeline promotes. Rule of thumb: click to learn the org, commit a manifest to ship from it.",
+ "<b>Section 3 — the release (~15s).</b> The single most valuable production habit lives here: validate first, quick-deploy in the window. Then publish and activate the version.",
+ "<b>retrieve → validate → deploy.</b> Walk the three numbered steps. 1) Validate against prod days early — it runs tests and checks everything but commits NOTHING, returning a job id. 2) Inside the change window, quick-deploy that already-validated job — seconds, not minutes, because the work is already done. 3) Publish the authoring bundle (draft → version) then activate the version. Right-side habits: RunLocalTests for prod; deploy dependencies BEFORE the agent; the agent runs as a user and usernames differ per org, so use string replacements in sfdx-project.json — never hard-code; publish then activate. Windows note: same sf commands, only quoting differs.",
+ "<b>Org vs package.</b> The real decision is the unit of release. Org-based = a manifest of changes, org (or Git) as truth, great for single-org and fast first releases, rollback by redeploy/reactivate. Package-based (unlocked/2GP) = a versioned installable, Git always the truth, best for multi-org / reusable agents / ISVs, rollback by installing a prior version. FDE guidance: START org-based; recommend packages when there are multiple orgs or a reusable agent. Check the Metadata Coverage Report for packaging support first — not everything is packageable yet.",
+ "<b>Section 4 — tooling (~15s).</b> We rarely pick the tool; the customer has one. Be fluent enough to plug the agent into whatever exists — and never skip the Data 360 path.",
+ "<b>Clicks → pipelines.</b> Five points on a spectrum, same CLI underneath. Change sets: no VC, no rollback, weak on new agent metadata — not for agent work. DevOps Center: free, Git-backed, work items + stages — good step off change sets, confirm agent-metadata support. CLI scripts: the commands wrapped, run by a person — perfect for first releases and rehearsals. CI/CD: GitHub Actions / Bitbucket / Azure / Jenkins / GitLab — same CLI headless with JWT auth, you own secrets and maintenance. Data 360 kits: knowledge and grounding are DATA not metadata — data kits + Data Library indexing, a separate deploy path. Land the warning: this is the most-forgotten step — the agent can deploy perfectly and answer from nothing.",
+ "<b>The pipeline shape.</b> This shape never changes — only the YAML syntax differs between GitHub Actions, Bitbucket and Azure. Walk the stages: PR → deploy to CI sandbox (with deps) → publish & activate the version → AGENT TEST GATE → validate prod → quick-deploy. Put your finger on the red GATE: a failing agent test blocks promotion exactly like a failing Apex test blocks a deploy. In the YAML, point out JWT login (secrets in the store, never the repo), the deploy with RunLocalTests, the publish+activate pair, and the final 'sf agent test run ... --result-format junit' — that junit output is what the CI dashboard reads to pass or fail the merge.",
+ "<b>ISV tools.</b> Keep this fast — a landscape, not a recommendation. Copado: native on-platform, user stories + compliance, built for large governed teams. Gearset: comparison-driven, problem analysers, documented Agentforce support, fast to adopt. AutoRABIT: strong security/compliance for regulated industries. Flosum: 100% native, data-residency-friendly. The value is the vendor question list at the bottom — read it aloud: do you support the agent types TODAY (show me), can I run my own CLI test as a pipeline step, does a failing agent test block promotion, what's the audit + rollback story. Verify current support — this area moves fast.",
+ "<b>Go-live & gotchas.</b> Left: deploy is step ONE of go-live, not the finish. Walk the ordered chips — confirm deps → provision data (kits/Library) → publish → activate → permissions → channels → smoke test → monitoring → rollback plan ready. Stress: write the previous version number down BEFORE you start so rollback is instant. Right: read the gotchas as war stories — low API version, missing action/subagent deps failing the version build, the agent-user username copied from source (the classic silent failure), editing an immutable version, scratch orgs lacking provisioning, and 'it's only a read action' tested in prod.",
+ "<b>Section 5 — check & floor (~15s).</b> Five quick questions, poll the room first and reveal second, then open the floor. Keep each question to about a minute.",
+ "<b>Knowledge check (interactive).</b> Five MCQs. For each: read it, let the room answer in chat/poll, THEN click Reveal (or click an option to grade instantly), then give the one-line why. Q1 draft lives in AiAuthoringBundle — commit turns it into AiAgentDefinition + AiAgentDefinitionVersion. Q2 validate checks without committing; quick-deploy with the job id in the window. Q3 package.xml is the manifest — generate a starter from the org, one per release in Git. Q4 multiple orgs + reusable agent → package-based (2GP); check the Metadata Coverage Report. Q5 Data Cloud grounding deploys as a SEPARATE path via data kits / Data Library — data is not metadata.",
+ "<b>Open floor.</b> Say the transition line first: two things to take back — test the decision not the sentence, and treat the agent as metadata, ship it with its dependencies and let the pipeline say no. Then work the likely-questions card from memory so you're looking at the room, not the slide. Point at the homework card and challenge them: rehearse validate → quick-deploy → publish → activate once, end to end, before any customer window.",
+ "<b>Resources & close.</b> Drop the links in chat (don't read them). Close on the one line on screen: treat the agent as metadata — ship it with its dependencies, and let the pipeline say no. Final reminder to the team: never show tokens, auth URLs, or real customer org data; all demos use placeholder names."
+];
+
+function render(){
+  slides.forEach((s,n)=>s.classList.toggle('active', n===i));
+  countEl.textContent='/ '+slides.length;
+  if(gotoEl){ gotoEl.value=i+1; gotoEl.max=slides.length; }
+  notesEl.innerHTML=NOTES[i]||'';
+}
+function go(d){ i=Math.max(0,Math.min(slides.length-1,i+d)); render(); }
+function goTo(n){ const p=parseInt(n,10); if(!isNaN(p)){ i=Math.max(0,Math.min(slides.length-1,p-1)); render(); } }
+function fit(){ const s=Math.min(window.innerWidth/1280, window.innerHeight/720); stage.style.transform=`translate(-50%,-50%) scale(${s})`; }
+function toggleTheme(){
+  const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  document.getElementById('themebtn').textContent=next==='dark'?'◑ Light':'◐ Dark';
+  try{ localStorage.setItem('depTheme',next); }catch(e){}
+}
+function toggleNotes(){ notesOn=!notesOn; notesEl.classList.toggle('show',notesOn); }
+function present(){ if(deck.requestFullscreen)deck.requestFullscreen(); else if(deck.webkitRequestFullscreen)deck.webkitRequestFullscreen(); }
+document.addEventListener('fullscreenchange',()=>deck.classList.toggle('presenting',!!document.fullscreenElement));
+document.addEventListener('webkitfullscreenchange',()=>deck.classList.toggle('presenting',!!document.webkitFullscreenElement));
+
+document.addEventListener('keydown',e=>{
+  if(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+  switch(e.key){
+    case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': go(1); e.preventDefault(); break;
+    case 'ArrowLeft': case 'ArrowUp': case 'PageUp': go(-1); e.preventDefault(); break;
+    case 'Home': i=0; render(); break;
+    case 'End': i=slides.length-1; render(); break;
+    case 'f': case 'F': present(); break;
+    case 't': case 'T': toggleTheme(); break;
+    case 'n': case 'N': toggleNotes(); break;
+  }
+});
+stage.addEventListener('click',e=>{
+  if(e.target.closest('.mx-list, .mcq, .mcq-ctrl')) return;
+  const x=e.clientX/window.innerWidth; go(x<0.28?-1:1);
+});
+let cursorTimer;
+document.addEventListener('mousemove',()=>{
+  if(!deck.classList.contains('presenting')) return;
+  deck.classList.add('cursoractive'); clearTimeout(cursorTimer);
+  cursorTimer=setTimeout(()=>deck.classList.remove('cursoractive'),1800);
+});
+
+/* ---------- metadata explorer ---------- */
+(function(){
+  const panel=document.getElementById('mxPanel'); if(!panel) return;
+  const MX={
+    authoring:{t:'AiAuthoringBundle', s:'Draft · the reviewable source', c:'var(--accent2)',
+      d:'The <b>draft</b> agent as an Agent Script <span class="mono">.agent</span> file — the new Agentforce Builder format. Human-readable and easy to review in a pull request. This is the artefact your team actually reads and approves.',
+      meta:['Edited in Builder or IDE','Diffable in Git','Becomes runtime on commit']},
+    agentdef:{t:'AiAgentDefinition', s:'Runtime · agent-level', c:'var(--accent)',
+      d:'The <b>agent-level</b> definition — its type, description, <b>context variables</b>, and other agent-wide settings. The stable identity the versions hang off.',
+      meta:['Created on commit/publish','Agent type & settings','Context variables']},
+    version:{t:'AiAgentDefinitionVersion', s:'Runtime · version-specific', c:'var(--sky)',
+      d:'The <b>version-specific</b> configuration — the <b>planner, subagents and actions</b>. Committed versions are <b>immutable</b>; exactly one version is active and serving traffic.',
+      meta:['Planner + subagents + actions','Immutable once committed','One active version']},
+    prompt:{t:'GenAiPromptTemplate', s:'Behaviour · prompts', c:'var(--amber)',
+      d:'The <b>prompt templates</b> used by the agent\'s actions. Versioned alongside the agent so the wording that was tested is the wording that ships.',
+      meta:['Called by actions','Reviewed with the agent','Deployed in the bundle']},
+    eval:{t:'AiEvaluationDefinition', s:'Quality · the gate travels with it', c:'var(--green)',
+      d:'<b>Testing Center test suites</b> as metadata. The gate ships <b>with</b> the agent, so the same suite runs in every org and in CI — behaviour is proven, not assumed.',
+      meta:['Runs in Testing Center & CLI','Versioned with the agent','Powers the CI gate']},
+    deps:{t:'Dependencies', s:'Everything it calls', c:'var(--coral)',
+      d:'The components the agent actually calls: <span class="mono">ApexClass</span>, <span class="mono">Flow</span>, custom objects &amp; fields, <b>permission sets</b> for the agent user, and <b>Data Library / Data Cloud</b> assets. Miss one and the deploy fails — or deploys an agent that silently can\'t act.',
+      meta:['Apex · Flow','Objects · fields · perms','Data Library / Data Cloud']}
+  };
+  const cards=[...panel.parentElement.querySelectorAll('.mx-list [data-mx]')];
+  function show(k){
+    cards.forEach(c=>c.setAttribute('aria-selected', String(c.dataset.mx===k)));
+    const m=MX[k]; panel.style.setProperty('--c', m.c);
+    panel.innerHTML='<div class="mh">'+m.t+'</div><div class="ms" style="color:'+m.c+'">'+m.s+'</div>'+
+      '<div class="md">'+m.d+'</div><div class="mmeta">'+m.meta.map(x=>'<span>'+x+'</span>').join('')+'</div>';
+  }
+  cards.forEach(c=>c.addEventListener('click',e=>{e.stopPropagation(); show(c.dataset.mx);}));
+  show('authoring');
+})();
+
+/* ---------- MCQ ---------- */
+(function(){
+  const mount=document.getElementById('mcq'); if(!mount) return;
+  const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const Q=[
+    {q:'Where does the <i>draft</i> of an Agent Script agent live as metadata?',o:['AiAgentDefinitionVersion','AiAuthoringBundle','CustomObject','GenAiPromptTemplate'],c:1,w:'Committing / publishing turns the draft into AiAgentDefinition + AiAgentDefinitionVersion runtime metadata.'},
+    {q:'Which command checks a production deployment <i>without committing</i> it?',o:['sf org open','sf project deploy validate','sf project deploy start (no flags)','sf agent activate'],c:1,w:'Validate first (returns a job id), then sf project deploy quick --job-id inside the change window.'},
+    {q:'What is the package.xml in a deployment?',o:['The agent’s reasoning configuration','A log of past deployments','The manifest listing which metadata types & members to retrieve/deploy','The CI/CD pipeline definition'],c:2,w:'Generate a starter with sf project generate manifest --from-org; keep one per release in Git.'},
+    {q:'Multiple orgs, one reusable agent across business units — which approach fits best?',o:['Change sets','Org-based development','Package-based development (unlocked / 2GP)','Manual metadata copy'],c:2,w:'Package-based gives versioned, installable units with Git as the source of truth; check the Metadata Coverage Report first.'},
+    {q:'Agent knowledge / grounding data from Data Cloud (Data 360) is deployed how?',o:['Inside package.xml with the rest of the metadata','As a separate path — Data Cloud data kits / Data Library indexing','It deploys automatically with the agent','Via change sets only'],c:1,w:'Data is not metadata — plan the data-kit path early; it’s the most-forgotten go-live step.'}
+  ];
+  const prog=document.getElementById('qp'), count=document.getElementById('qc');
+  let qi=0, graded=Array(Q.length).fill(null);
+  function applyGrade(picked){
+    const m=Q[qi];
+    mount.querySelectorAll('.opt').forEach(b=>{const n=+b.dataset.i;
+      if(n===m.c)b.classList.add('correct'); else if(n===picked)b.classList.add('wrong'); b.disabled=true;});
+    const why=mount.querySelector('.why-ans'); if(why)why.classList.add('show'); graded[qi]=picked;
+  }
+  function renderQ(){
+    const m=Q[qi];
+    prog.innerHTML=Q.map((_,n)=>'<i class="'+(n===qi?'on':graded[n]!=null?'done':'')+'"></i>').join('');
+    count.textContent='Q'+(qi+1)+' / '+Q.length;
+    mount.innerHTML='<div class="q">'+(qi+1)+'. '+m.q+'</div><div class="opts">'+
+      m.o.map((o,n)=>'<button class="opt" type="button" data-i="'+n+'"><span class="key">'+'ABCD'[n]+'</span><span>'+esc(o)+'</span></button>').join('')+
+      '</div><div class="why-ans"><b>Why:</b> '+m.w+'</div>';
+    if(graded[qi]!=null)applyGrade(graded[qi]);
+  }
+  mount.addEventListener('click',e=>{e.stopPropagation(); const b=e.target.closest('.opt'); if(!b||graded[qi]!=null)return; applyGrade(+b.dataset.i);});
+  document.getElementById('qreveal').addEventListener('click',e=>{e.stopPropagation(); if(graded[qi]==null)applyGrade(Q[qi].c);});
+  document.getElementById('qnext').addEventListener('click',e=>{e.stopPropagation(); qi=Math.min(Q.length-1,qi+1); renderQ();});
+  document.getElementById('qprev').addEventListener('click',e=>{e.stopPropagation(); qi=Math.max(0,qi-1); renderQ();});
+  renderQ();
+})();
+
+/* ---------- init ---------- */
+try{ const t=localStorage.getItem('depTheme'); if(t){ document.documentElement.setAttribute('data-theme',t); document.getElementById('themebtn').textContent=t==='dark'?'◑ Light':'◐ Dark'; } }catch(e){}
+const params=new URLSearchParams(location.search);
+if(params.get('theme')){ document.documentElement.setAttribute('data-theme',params.get('theme')); document.getElementById('themebtn').textContent=params.get('theme')==='dark'?'◑ Light':'◐ Dark'; }
+const sp=parseInt(params.get('slide'),10); if(!isNaN(sp)) i=Math.max(0,Math.min(slides.length-1,sp-1));
+window.addEventListener('resize',fit);
+fit(); render();
+</script>
+</body>
+</html>

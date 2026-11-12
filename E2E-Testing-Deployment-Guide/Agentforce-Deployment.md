@@ -1,25 +1,5 @@
 # Agentforce Testing & Deployment — FDE Presenter Guide
 
-> **Audience:** 60 FDEs / Technical Architects · **Format:** Virtual · **Duration:** 60 minutes
-> **Presenter:** [YOUR NAME], Agentforce FDE
-> **Goal:** By the end, every attendee can explain how we *prove* an Agentforce agent is ready, and how we move it *safely* from sandbox to production.
-
-This is a speaker script, not slides. Each section has a **time budget**, the **key message**, **what to say**, and **demo cues**. All examples use placeholders — `Service_Agent`, `client-dev`, `YOUR-ORG`. Never show a real customer org, credential, or auth URL on screen.
-
----
-
-## Timebox at a glance
-
-| # | Segment | Minutes | Running total |
-|---|---------|---------|---------------|
-| 1 | **Part 1 — Agentic Testing** | 25 | 25 |
-| 2 | **Q&A #1 — Testing (5 MCQs on slide)** | 5 | 30 |
-| 3 | **Part 2 — Agentic Deployment** | 15 | 45 |
-| 4 | **Q&A #2 — Deployment (5 MCQs on slide)** | 5 | 50 |
-| 5 | **Open floor — audience questions** | 10 | 60 |
-
-> **Pacing rule:** If you fall behind in Part 1, cut the Playwright *demo* (keep the slide) before you cut Red Team or Continuous Testing. Protect both MCQ rounds — they are what keeps 60 people awake on a virtual call.
-
 # PART 2 — AGENTIC DEPLOYMENT *(15 minutes)*
 
 **Section promise:** *"An agent is metadata. Everything we know about Salesforce release management applies — with a few new steps."*

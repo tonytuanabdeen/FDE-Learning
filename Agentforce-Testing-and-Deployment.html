@@ -74,11 +74,13 @@ html[data-theme="dark"] p.sub{color:var(--sky);}
 /* ============================= COVER ============================= */
 .cover .wrap{position:absolute; left:84px; top:250px; z-index:3;}
 .cover h1{font-size:80px; font-weight:800; letter-spacing:-1px; line-height:1.02;}
+.wrap h1 .test {background: linear-gradient(100deg, #F2A64A, #FFC98A);-webkit-background-clip: text;background-clip: text;color: transparent;}
+.wrap h1 .deploy {background: linear-gradient(100deg, #8FA9FF, #5B86E8);-webkit-background-clip: text;background-clip: text;color: transparent;}
 .cover .lede{font-size:22px; color:#D9E2FF; margin-top:26px; max-width:900px;}
 .cover .tagline{margin-top:60px;}
-.cover .tagline span{display:block; font-size:48px; font-weight:800; letter-spacing:-.5px; line-height:1.18;}
-.cover .tagline .t{color:#F2A64A;}           /* mirrors reference --test accent */
-.cover .tagline .d{color:#8FA9FF;}           /* mirrors reference --deploy accent */
+.cover .tagline span{font-size:48px; font-weight:800; letter-spacing:-.5px; line-height:1.18;}
+.cover .tagline .t{background: linear-gradient(100deg, #F2A64A, #FFC98A); -webkit-background-clip: text; background-clip: text; color: transparent;}           /* mirrors reference --test accent */
+.cover .tagline .d{background: linear-gradient(100deg, #8FA9FF, #5B86E8); -webkit-background-clip: text; background-clip: text; color: transparent;}           /* mirrors reference --deploy accent */
 .cover .presenter{display:flex; align-items:center; gap:16px; margin-top:48px;}
 .cover .presenter .pf-avatar{width:66px; height:66px; border-radius:50%; object-fit:cover;
   border:2px solid rgba(255,255,255,.55); box-shadow:0 6px 18px rgba(0,0,0,.35);}
@@ -104,7 +106,7 @@ html[data-theme="dark"] p.sub{color:var(--sky);}
   justify-content:center; color:#fff; font-weight:800; font-size:19px; flex:0 0 auto;}
 .row{display:flex; align-items:center; gap:16px;}
 .ct{font-size:17px; font-weight:800; color:var(--head);}
-.cd{font-size:13px; color:var(--muted); line-height:1.3; margin-top:3px;}
+.cd{font-size:15.5px; color:var(--muted); line-height:1.5; margin-top:3px;}
 .chip{border-radius:14px; color:#fff; display:flex; flex-direction:column; align-items:center;
   justify-content:center; text-align:center; padding:10px 8px;}
 .chip b{font-size:16px;} .chip span{font-size:11px; opacity:.9; margin-top:3px;}
@@ -117,6 +119,8 @@ pre.code .ttl{color:var(--code-cmt); font-weight:700; display:block; margin-bott
 .cmt{color:var(--code-cmt);} .kw{color:var(--code-kw);} .str{color:var(--code-str);}
 .soft{background:var(--soft); border:1px solid var(--soft-line); border-radius:16px; padding:18px 20px;}
 .soft h3{color:var(--soft-head); font-size:17px; margin-bottom:8px;}
+.good{background:#EBF7E6; border:1px solid #1F8F5F; border-radius:14px; padding:12px 16px;
+  font-size:13.5px; color:var(--text);} .warn b{color:var(--warn-tx);}
 .warn{background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:14px; padding:12px 16px;
   font-size:13.5px; color:var(--text);} .warn b{color:var(--warn-tx);}
 .note{font-size:13.5px; color:var(--text);} .note b{color:var(--purple);}
@@ -125,12 +129,12 @@ ul.bul li::before{content:"•"; color:var(--purple); position:absolute; left:2p
 .mono{font-family:var(--mono); color:var(--purple); font-weight:700;}
 .k{color:var(--head); font-weight:800;}
 
-/* ============================= SLIDE 5 — ADLC (reference branding) ============================= */
+/* ============================= SLIDE 4 — ADLC (reference branding) ============================= */
 /* Mirrors the onboarding deck: Schibsted Grotesk, surface card with left accent bar,
    slate/orange/blue palette, surface-2 box. Scoped so the rest of the deck is untouched. */
 .slide.ref-adlc{
   --r-bg:#EEF1F4; --r-surface:#FFFFFF; --r-surface-2:#F6F8FA; --r-ink:#16202E; --r-muted:#566273; --r-line:#D3DAE3;
-  --r-overview:#3E4D63; --r-test:#B25E06; --r-deploy:#2347C6; --r-overview2:#F2A64A;
+  --r-overview:#3E4D63; --r-test:#B25E06; --r-deploy:#2347C6; --r-overview2:#F2A64A; --r-overview3:#86A2FF;
   --r-chip-tx:#FFFFFF;
   --r-shadow:0 1px 2px rgba(22,32,46,.06),0 8px 24px rgba(22,32,46,.06);
   background:var(--r-bg);
@@ -150,6 +154,11 @@ html[data-theme="dark"] .slide.ref-adlc{
 .ref-adlc .refcard2{
   position:absolute; inset:20px 20px; background:var(--r-surface); border:1px solid var(--r-line);
   border-left:6px solid var(--r-overview2); border-radius:14px; box-shadow:var(--r-shadow);
+  padding:38px 44px; display:flex; flex-direction:column;
+}
+.ref-adlc .refcard3{
+  position:absolute; inset:20px 20px; background:var(--r-surface); border:1px solid var(--r-line);
+  border-left:6px solid var(--r-overview3); border-radius:14px; box-shadow:var(--r-shadow);
   padding:38px 44px; display:flex; flex-direction:column;
 }
 /* Slide 9 — Testing goals & expectations: full-width rounded "pill" cards, one per line (matches reference deck image) */
@@ -364,6 +373,190 @@ html[data-theme="dark"] .layers-slide{--l-teal:#34c6c6; --l-brand:#5c92ff; --l-v
 .scn-slide .scn-ex div{display:flex; gap:10px; align-items:flex-start; font-size:14px; color:var(--r-ink); background:var(--r-surface); border:1px solid var(--r-line); border-radius:10px; padding:10px 14px; line-height:1.35;}
 .scn-slide .scn-ex div::before{content:"›"; color:var(--c); font-weight:800; font-size:16px; line-height:1.2;}
 .scn-slide .scn-ex code{font-family:var(--mono); font-size:12.5px; background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:5px; padding:0 5px; color:var(--r-deploy);}
+/* slide 17 — ACT: two define/evaluate panels, matched to slide 11's card metrics */
+.act-slide .act-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:6px;}
+.act-slide .act-card{background:var(--r-surface); border:1px solid var(--r-line); color:var(--r-ink); border-radius:18px; box-shadow:var(--r-shadow); padding:26px 28px; overflow:hidden; display:flex; flex-direction:column;}
+.act-slide .act-h{font-size:34px; font-weight:800; letter-spacing:-.02em; line-height:1.1; color:var(--r-ink); margin:0 0 16px;}
+.act-slide .act-bul{margin:0; padding:0;}
+.act-slide .act-bul li{font-size:17px; line-height:1.6; padding:6px 0 6px 20px;}
+.act-slide .act-foot{margin-top:16px; font-size:13.5px; color:var(--r-muted); line-height:1.4;}
+.act-slide .act-foot b{color:var(--r-ink);}
+/* slide 23 — flat metadata table matched to onboarding reference (light) */
+.bundle-slide table.cmp{border-collapse:collapse; border-spacing:0; width:100%; font-size:15px; box-shadow:none; border-radius:0; overflow:visible;}
+.bundle-slide table.cmp thead th{background:var(--r-surface-2); color:var(--r-ink); font-weight:700; font-size:15px; text-align:left; padding:10px 12px; border-bottom:1px solid var(--r-line);}
+.bundle-slide table.cmp td{background:transparent; color:var(--r-ink); text-align:left; padding:10px 12px; border-bottom:1px solid var(--r-line); vertical-align:top;}
+.bundle-slide table.cmp td:first-child{background:transparent; color:var(--r-ink); font-weight:600; width:34%;}
+.bundle-slide table.cmp tbody tr:nth-child(even) td:not(:first-child),
+.bundle-slide table.cmp tbody tr:nth-child(odd) td:not(:first-child){background:transparent;}
+.bundle-slide table.cmp tbody tr:last-child td{border-bottom:0;}
+.bundle-slide table.cmp .mono{color:var(--r-ink); font-weight:600;}
+/* slide 24 — where your metadata lives: release train + interactive environment chain */
+.metaloc-slide .body{display:flex; flex-direction:column; gap:14px;}
+/* release-train panel */
+.metaloc-slide .rt-panel{background:var(--r-surface); border:1px solid var(--r-line); border-radius:14px; box-shadow:var(--r-shadow); padding:15px 20px 17px;}
+.metaloc-slide .rt-title{margin:0 0 13px;}
+.metaloc-slide .rt-flow{gap:0;}
+.metaloc-slide .rt-chip{padding:9px 8px; border-radius:9px;}
+/* section label */
+.metaloc-slide .ml-label{display:flex; align-items:center; gap:11px; font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--r-muted); margin:2px 2px 0;}
+.metaloc-slide .ml-label::before{content:""; flex:none; width:4px; height:16px; border-radius:3px; background:var(--r-deploy);}
+/* environment chain */
+.metaloc-slide .ml-chain{display:flex; align-items:stretch; gap:0;}
+.metaloc-slide .ml-stop{flex:1; border:1px solid var(--r-line); border-top:4px solid var(--c); background:var(--r-surface); color:var(--r-ink);
+  border-radius:11px; padding:13px 10px; font-family:inherit; font-weight:800; font-size:14.5px; letter-spacing:-.01em; cursor:pointer;
+  box-shadow:var(--r-shadow); transition:transform .12s ease, box-shadow .12s ease;}
+.metaloc-slide .ml-stop:hover{transform:translateY(-3px);}
+.metaloc-slide .ml-stop[aria-selected="true"]{background:var(--c); color:#fff; border-color:var(--c);}
+.metaloc-slide .ml-chev{flex:0 0 auto; align-self:center; color:var(--r-muted); font-size:20px; margin:0 7px; opacity:.6;}
+/* lower zone: detail + callout side by side */
+.metaloc-slide .ml-lower{flex:1; min-height:0; display:grid; grid-template-columns:1.5fr 1fr; gap:16px;}
+.metaloc-slide .ml-info{min-height:0; background:var(--r-surface-2); border:1px solid var(--r-line);
+  border-left:5px solid var(--c,var(--r-deploy)); border-radius:14px; padding:20px 24px; display:flex; flex-direction:column; justify-content:center;}
+.metaloc-slide .ml-info h4{font-size:23px; font-weight:800; letter-spacing:-.01em; color:var(--r-ink); margin:0 0 10px;}
+.metaloc-slide .ml-info p{font-size:16px; line-height:1.5; color:var(--r-ink); margin:0;}
+.metaloc-slide .ml-info .who{margin-top:12px; font-size:13.5px; color:var(--r-muted);}
+.metaloc-slide .ml-info .who b{color:var(--r-ink);}
+.metaloc-slide .ml-callout{background:var(--navy); color:#fff; border-radius:14px; box-shadow:var(--r-shadow); padding:20px 22px; display:flex; flex-direction:column; justify-content:center;}
+html[data-theme="dark"] .metaloc-slide .ml-callout{background:#1A2248; border:1px solid var(--r-line);}
+.metaloc-slide .ml-callout b{font-size:16px; font-weight:800; color:#fff;}
+.metaloc-slide .ml-callout span{font-size:14px; line-height:1.45; color:#D7E0FF; margin-top:8px;}
+/* slide 25 — interactive package.xml builder */
+.pxb-slide .pxb{display:flex; flex-direction:column; gap:12px; height:100%;}
+.pxb-slide .pxb-ctrls{background:var(--r-surface); border:1px solid var(--r-line); border-radius:12px; box-shadow:var(--r-shadow); padding:14px 16px;}
+.pxb-slide .pxb-head{font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--r-muted); margin-bottom:10px;}
+.pxb-slide .pxb-row{display:flex; align-items:center; gap:11px; padding:5px 0;}
+.pxb-slide .pxb-row input[type=checkbox]{width:16px; height:16px; accent-color:var(--r-deploy); flex:none; cursor:pointer;}
+.pxb-slide .pxb-t{font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--r-ink); width:124px; flex:none;}
+.pxb-slide .pxb-m{flex:1; min-width:0; font-family:var(--mono); font-size:12px; color:var(--r-ink); background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:7px; padding:5px 9px;}
+.pxb-slide .pxb-m:focus{outline:none; border-color:var(--r-deploy);}
+.pxb-slide .pxb-row.off .pxb-t,.pxb-slide .pxb-row.off .pxb-m{opacity:.42;}
+.pxb-slide .pxb-api{display:flex; align-items:center; gap:9px; font-size:13px; font-weight:700; color:var(--r-ink); margin-top:10px; padding-top:10px; border-top:1px solid var(--r-line);}
+.pxb-slide .pxb-api input{width:74px; font-family:var(--mono); font-size:12.5px; background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:7px; padding:5px 9px; color:var(--r-ink);}
+.pxb-slide .pxb-api input:focus{outline:none; border-color:var(--r-deploy);}
+.pxb-slide .pxb-out{flex:1; min-height:0; margin:0; font-size:11.5px; overflow:auto;}
+.pxb-slide .pxb-out code{font-family:var(--mono); white-space:pre; display:block;}
+/* slide 26 — CLI first-deploy terminal walkthrough */
+.fd-slide .fd-grid{display:grid; grid-template-columns:1.4fr 0.6fr; gap:20px; height:100%;}
+.fd-slide .fd-left{display:flex; flex-direction:column; min-height:0;}
+.fd-slide .fd-term{flex:1; min-height:0; overflow:auto; background:#0C1430; border:1px solid rgba(255,255,255,.12); border-radius:14px;
+  padding:16px 18px; font-family:var(--mono); font-size:12.5px; line-height:1.55; box-shadow:var(--r-shadow);}
+.fd-slide .fd-term .p{color:#6FE0B0;}
+.fd-slide .fd-term .o{color:#9FB4DF;}
+.fd-slide .fd-term .empty{color:rgba(255,255,255,.4);}
+.fd-slide .fd-why{font-size:14px; color:var(--r-ink); font-style:italic; line-height:1.4; margin:12px 2px; min-height:40px;}
+.fd-slide .fd-ctrl{display:flex; align-items:center; gap:12px;}
+.fd-slide .fd-step{margin-left:auto; font-size:12.5px; font-weight:700; color:var(--r-muted); font-variant-numeric:tabular-nums;}
+.fd-slide .fd-check{display:flex; flex-direction:column;}
+.fd-slide .fd-cl{display:flex; align-items:flex-start; gap:10px; font-size:14px; color:var(--r-ink); line-height:1.35; padding:7px 0; cursor:pointer;}
+.fd-slide .fd-cl input{width:16px; height:16px; margin-top:2px; accent-color:var(--r-green,#1F8F5F); flex:none; cursor:pointer;}
+/* slide 28 — deployment options tabs */
+.dopt-slide .body{display:flex; flex-direction:column;}
+.dopt-slide .dopt-tabs{display:flex; gap:8px; margin-top:6px;}
+.dopt-slide .dopt-tabs button{flex:1; border:1px solid var(--r-line); background:var(--r-surface); color:var(--r-ink); border-radius:10px;
+  padding:11px 10px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer; transition:background .15s, border-color .15s;}
+.dopt-slide .dopt-tabs button:hover{border-color:#2E6BE6;}
+.dopt-slide .dopt-tabs button[aria-selected="true"]{background:#2E6BE6; color:#fff; border-color:#2E6BE6;}
+.dopt-slide .dopt-panel{flex:1; min-height:0; margin-top:16px; background:var(--r-surface-2); border:1px solid var(--r-line);
+  border-radius:14px; padding:22px 26px; flex-direction:column;}
+.dopt-slide .dopt-panel h3{font-size:22px; font-weight:800; letter-spacing:-.01em; color:var(--r-ink); margin:0 0 6px;}
+.dopt-slide .dopt-lead{font-size:15.5px; color:var(--r-muted); line-height:1.5; margin:0 0 16px;}
+.dopt-slide .dopt-rows{display:flex; flex-direction:column; gap:12px;}
+.dopt-slide .dopt-row{display:flex; gap:14px; align-items:flex-start; font-size:16px; line-height:1.45; color:var(--r-ink);}
+.dopt-slide .dopt-row .lbl{flex:none; width:96px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; padding-top:3px;}
+.dopt-slide .dopt-row.good .lbl{color:var(--r-green,#1F8F5F);}
+.dopt-slide .dopt-row.warn .lbl{color:var(--r-test);}
+/* ISV cards */
+.dopt-slide .dopt-cards{display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; flex:1; min-height:0; margin: 15px 0;}
+.dopt-slide .dopt-cards .card{display:flex; flex-direction:column; padding:16px 18px; border-top:4px solid var(--c);}
+.dopt-slide .dopt-cards .card .ct{font-size:17px; margin-bottom:6px;}
+.dopt-slide .dopt-cards .card .cd{font-size:13.5px;}
+.dopt-slide .dopt-foot{font-size:13px; color:var(--r-muted); margin-top:14px; line-height:1.4;}
+.dopt-slide .dopt-foot b{color:var(--r-ink);}
+/* slide 29 — enterprise CI/CD pathway diagram */
+.cicd-slide .cicd{display:flex; flex-direction:column; height:100%; gap:14px;}
+.cicd-slide .cicd-grid{flex:1; min-height:0; display:grid; grid-template-columns:0.72fr 1.05fr 1.5fr 1fr 0.82fr; gap:12px;}
+.cicd-slide .lane{display:flex; flex-direction:column; align-items:center; gap:9px; border-radius:14px; padding:12px 10px 14px; border:1px solid var(--r-line);}
+.cicd-slide .lane-plan{background:color-mix(in srgb, #8893A8 10%, var(--r-surface));}
+.cicd-slide .lane-code{background:color-mix(in srgb, #4A9BFF 11%, var(--r-surface));}
+.cicd-slide .lane-qa{background:color-mix(in srgb, #D14D86 11%, var(--r-surface));}
+.cicd-slide .lane-uat{background:color-mix(in srgb, #1F8F5F 11%, var(--r-surface));}
+.cicd-slide .lane-release{background:color-mix(in srgb, #D9A23B 14%, var(--r-surface));}
+.cicd-slide .lane-h{width:100%; text-align:center; font-size:13.5px; font-weight:800; letter-spacing:-.01em; color:var(--r-ink); padding-bottom:7px; border-bottom:1px solid var(--r-line); margin-bottom:3px;}
+.cicd-slide .plan-circle{margin-top:auto; margin-bottom:auto; width:118px; height:118px; border-radius:50%; background:#6B7488; color:#fff;
+  display:grid; place-items:center; text-align:center; font-size:13px; font-weight:700; line-height:1.3; box-shadow:var(--r-shadow);}
+.cicd-slide .cyl{position:relative; width:100%; color:#fff; border-radius:11px; padding:22px 10px 13px; text-align:center; font-weight:800; font-size:14px; box-shadow:var(--r-shadow); margin-top:7px;}
+.cicd-slide .cyl::before{content:""; position:absolute; top:-7px; left:3px; right:3px; height:13px; border-radius:50%; background:rgba(255,255,255,.4);}
+.cicd-slide .cyl.dev{background:#2E6BE6;}
+.cicd-slide .cyl.ci{background:#4A9BFF; padding:16px 10px 11px;}
+.cicd-slide .cyl.sit{background:#D9B93B; color:#3a2e00;}
+.cicd-slide .cyl.sit::before{background:rgba(255,255,255,.55);}
+.cicd-slide .cyl.uat{background:#1F8F5F;}
+.cicd-slide .cyl.prod{background:#D9534F;}
+.cicd-slide .cap{font-size:11px; color:var(--r-muted); text-align:center; line-height:1.4;}
+.cicd-slide .cap code{font-family:var(--mono); font-size:10.5px; color:var(--r-ink); background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:4px; padding:0 4px;}
+.cicd-slide .cap b{color:var(--r-ink);}
+.cicd-slide .star{color:#E8912A; font-size:13px;}
+.cicd-slide .cicd-legend{display:flex; align-items:center; gap:22px; flex-wrap:wrap; background:var(--r-surface); border:1px solid var(--r-line); border-radius:12px; padding:11px 16px;}
+.cicd-slide .leg-branches{display:flex; gap:8px;}
+.cicd-slide .br{font-size:12px; font-weight:800; color:#fff; border-radius:6px; padding:4px 11px;}
+.cicd-slide .br.master{background:#8FB6E8; color:#143b66;}
+.cicd-slide .br.release{background:#13124A;}
+.cicd-slide .br.develop{background:#B5368E;}
+.cicd-slide .br.feature{background:#15806B;}
+.cicd-slide .leg-keys{display:flex; align-items:center; gap:18px; margin-left:auto; font-size:12.5px; font-weight:600; color:var(--r-ink); flex-wrap:wrap;}
+.cicd-slide .leg-keys span{display:flex; align-items:center; gap:7px;}
+.cicd-slide .leg-keys .sw{width:14px; height:14px; border-radius:4px; flex:none;}
+.cicd-slide .leg-keys .muted{color:var(--r-muted); font-weight:500;}
+.cicd-slide .cicd-svg{flex:1; min-height:0; width:100%; display:block; font-family:var(--font);}
+.cicd-slide .cicd-svg .ph{font-size:14px; font-weight:800; fill:var(--r-ink);}
+.cicd-slide .cicd-svg .orgt{font-size:14px; font-weight:800; fill:#fff;}
+.cicd-slide .cicd-svg .orgt.d{fill:#3a2e00;}
+.cicd-slide .cicd-svg .cap{font-size:10.5px; fill:var(--r-muted);}
+.cicd-slide .cicd-svg .chip-t{font-size:11px; font-weight:800; fill:#fff;}
+.cicd-slide .cicd-svg .chip-t.dk{fill:#11325c;}
+.cicd-slide .cicd-svg .star{fill:#E8912A;}
+/* slide 30 — release run sheet */
+.rsheet-slide .body{display:flex; flex-direction:column;}
+.rsheet-slide .rs-grid{flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px; align-items:stretch; margin-top:22px;}
+.rsheet-slide .rs-card{position:relative; background:var(--r-surface); border:1px solid var(--r-line); border-radius:18px; box-shadow:var(--r-shadow); padding:40px 24px 20px; display:flex; flex-direction:column;}
+.rsheet-slide .rs-card.hl{border:2px solid var(--r-deploy);}
+.rsheet-slide .rs-ico{position:absolute; top:-26px; left:50%; transform:translateX(-50%); width:56px; height:56px; border-radius:50%;
+  display:grid; place-items:center; box-shadow:0 8px 20px rgba(74,23,196,.30);}
+.rsheet-slide .rs-ico.p1,.rsheet-slide .rs-ico.p3{background:linear-gradient(135deg,#4A17C4,#6A2BD8);}
+.rsheet-slide .rs-ico.p2{background:linear-gradient(135deg,#3C6FE6,#2E6BE6);}
+.rsheet-slide .rs-h{font-size:21px; font-weight:800; letter-spacing:-.01em; color:var(--r-ink); margin-bottom:12px; text-align: center;}
+.rsheet-slide .rs-card.hl .rs-h{color:var(--r-deploy);}
+.rsheet-slide .rs-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+.rsheet-slide .rs-list li{position:relative; padding-left:20px; font-size:14.5px; line-height:1.35; color:var(--r-ink);}
+.rsheet-slide .rs-list li::before{content:""; position:absolute; left:3px; top:8px; width:7px; height:7px; border-radius:50%; background:var(--r-deploy);}
+.rsheet-slide .rs-foot{margin-top:16px; font-size:13.5px; color:var(--r-muted); line-height:1.45;}
+.rsheet-slide .rs-foot b{color:var(--r-ink);}
+/* slide 33 — thank you */
+.thanks{display:grid; place-items:center;}
+.thanks .thx{text-align:center; z-index:3;}
+.thanks .thx h1{font-size:134px; font-weight:800; letter-spacing:-.03em; line-height:.94; color:#fff;}
+.thanks .thx-sub{margin-top:26px; font-size:24px; font-weight:600; color:#D7E0FF; letter-spacing:.01em;}
+.thanks .spark{position:absolute; color:#FFD54A; z-index:2; filter:drop-shadow(0 3px 10px rgba(0,0,0,.28)); animation:sparkle 3.4s ease-in-out infinite;}
+.thanks .s1{font-size:38px; top:28%; right:25%; animation-delay:0s;}
+.thanks .s2{font-size:22px; top:22%; right:21%; animation-delay:.5s;}
+.thanks .s3{font-size:44px; left:27%; bottom:26%; animation-delay:1.1s;}
+.thanks .s4{font-size:26px; left:32%; bottom:20%; animation-delay:1.7s;}
+@keyframes sparkle{0%,100%{opacity:.5; transform:scale(.85) rotate(0deg);} 50%{opacity:1; transform:scale(1.1) rotate(15deg);}}
+@media (prefers-reduced-motion: reduce){ .thanks .spark{animation:none;} }
+/* slide 31 — Data 360 / Data Kits coverage */
+.d360-slide .body{display:flex; flex-direction:column;}
+.d360-slide .d360-grid{flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:6px;}
+.d360-slide .d360-card{background:var(--r-surface); border:1px solid var(--r-line); border-radius:18px; box-shadow:var(--r-shadow); padding:26px 30px; display:flex; flex-direction:column;}
+.d360-slide .d360-card.hl{border:2px solid var(--r-deploy); background:color-mix(in srgb, var(--r-deploy) 5%, var(--r-surface));}
+.d360-slide .d360-h{font-size:24px; font-weight:800; letter-spacing:-.01em; margin-bottom:16px; color:var(--r-ink);}
+.d360-slide .d360-card.hl .d360-h{color:var(--r-deploy);}
+.d360-slide .d360-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:13px;}
+.d360-slide .d360-list li{position:relative; padding-left:24px; font-size:17px; line-height:1.6; color:var(--r-ink);}
+.d360-slide .d360-list li::before{content:""; position:absolute; left:3px; top:9px; width:8px; height:8px; border-radius:50%; background:var(--r-deploy);}
+.d360-slide .d360-list.warn li::before{background:var(--r-test);}
+.d360-slide .d360-list .dim{color:var(--r-muted); font-style:italic;}
+.d360-slide .d360-foot{margin-top:16px; font-size:13.5px; color:var(--r-muted); line-height:1.45;}
+.d360-slide .d360-foot b{color:var(--r-ink);}
 /* slide 6 — architecture flow cards */
 .wismo-slide .arch-flow{display:flex; align-items:stretch; gap:0;}
 .wismo-slide .arch-card{flex:1; position:relative; text-align:center; background:var(--r-surface); border:1px solid var(--r-line); border-top:4px solid var(--c); border-radius:16px; box-shadow:var(--r-shadow); padding:18px 16px 16px; display:flex; flex-direction:column; align-items:center; transition:transform .15s ease, box-shadow .15s ease;}
@@ -423,7 +616,10 @@ html[data-theme="dark"] .layers-slide{--l-teal:#34c6c6; --l-brand:#5c92ff; --l-v
 .ref-adlc .adlc-right{display:flex; flex-direction:column; gap:16px; width:100%;}
 .ref-adlc .release-train{background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:10px; padding:16px 18px;}
 .ref-adlc .release-train[hidden]{display:none;}
-.ref-adlc .rt-title{font-size:15px; font-weight:700; color:var(--r-ink); margin-bottom:12px;}
+.ref-adlc .rt-title{display:flex; align-items:center; gap:11px; font-size:14px; font-weight:800; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--r-deploy); margin:6px 2px 18px;}
+.ref-adlc .rt-title::before{content:""; flex:none; width:4px; height:17px; border-radius:3px;
+  background:linear-gradient(180deg, var(--r-test), var(--r-deploy));}
 .ref-adlc .rt-flow{display:flex; align-items:stretch; gap:0;}
 .ref-adlc .rt-chip{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:3px; padding:10px 8px; border-radius:10px; color:var(--r-chip-tx);}
 .ref-adlc .rt-chip b{font-size:14px; letter-spacing:.02em;}
@@ -508,6 +704,7 @@ html[data-theme="dark"] .layers-slide{--l-teal:#34c6c6; --l-brand:#5c92ff; --l-v
 .trust-slide .card{display:flex; flex-direction:column;}
 .trust-slide .ct{font-size:19px; letter-spacing:-.02em;}
 .trust-slide ul.bul li{font-size:17px; line-height:1.6; padding:6px 0 6px 20px;}
+.trust-slide ul.rs-list li{font-size:17px; line-height:1.6;}
 .trust-slide .callout-ref{border-left:4px solid var(--overview); background:var(--card2); border-radius:0 8px 8px 0; padding:14px 18px;}
 .trust-slide .callout-ref p{margin:0; font-size:17px; line-height:1.55; color:var(--text);}
 .trust-slide .callout-ref b{color:var(--head);}
@@ -566,6 +763,17 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
 .hint-k{position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:50; font-size:12px;
   color:var(--muted); background:var(--hud); border:1px solid var(--hud-line); padding:6px 14px;
   border-radius:30px; opacity:.85; transition:opacity .3s;}
+.deck-timer{position:fixed; top:14px; right:18px; z-index:60; display:flex; align-items:center; gap:9px;
+  font-family:var(--mono); font-size:17px; font-weight:700; letter-spacing:.02em; color:var(--ink);
+  background:var(--hud); border:1px solid var(--hud-line); border-radius:999px; padding:7px 16px 7px 14px;
+  box-shadow:var(--shadow); backdrop-filter:blur(8px); cursor:pointer; font-variant-numeric:tabular-nums; transition:color .3s, border-color .3s;}
+.deck-timer .tdot{width:9px; height:9px; border-radius:50%; background:var(--muted); flex:none; transition:background .3s;}
+.deck-timer.running .tdot{background:#1F8F5F; box-shadow:0 0 0 4px rgba(31,143,95,.18); animation:tpulse 1.8s ease-in-out infinite;}
+.deck-timer.paused .tdot{background:var(--amber);}
+.deck-timer.warn{color:var(--amber); border-color:var(--amber);}
+.deck-timer.danger{color:var(--coral,#C0392B); border-color:var(--coral,#C0392B);}
+.deck-timer.danger .tdot{background:var(--coral,#C0392B); box-shadow:0 0 0 4px rgba(192,57,43,.18);}
+@keyframes tpulse{0%,100%{opacity:1;}50%{opacity:.45;}}
 
 /* presenter notes */
 .notes{position:fixed; left:0; right:0; bottom:0; z-index:60; max-height:42vh; overflow:auto;
@@ -589,36 +797,16 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
     <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
     <div class="wrap">
       <h1>Agentforce<br>Testing &amp; Deployment</h1>
-      <div class="lede tagline"><span class="t">Prove it,</span><span class="d">then ship it.</span></div>
+      <div class="lede tagline"><span class="t"><i>Prove it,</i></span><span class="d"> <i>then ship it.</i></span></div>      
       <div class="presenter">
         <img class="pf-avatar" src="images/tuan.png" alt="Tuan Abdeen">
-        <div class="pf-meta"><b>Tuan Abdeen</b><span>FDE | CTA, Salesforce</span></div>
+        <div class="pf-meta"><b>Tuan Abdeen</b><span>Senior Forwared Deployed Engineer | CTA, Salesforce</span></div>
       </div>
     </div>
     <div class="pagenum">1</div>
   </section>
 
-  <!-- =================== SLIDE 2 — OBJECTIVES =================== -->
-  <section class="slide ref-adlc">
-    <div class="refcard">
-      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
-      <h1 class="title">Setting the objectives</h1>
-      <p class="sub">Why Agentforce testing &amp; deployment deserves its own discipline</p>
-      <div class="body">
-        <div class="cards" style="grid-template-columns:1fr 1fr; grid-auto-rows:1fr; height:100%">
-          <div class="card row"><div class="badge" style="background:var(--purple)">1</div><div><div class="ct">Building is only half the lifecycle</div><div class="cd">A working demo is not a production system. Value is realised at release, not at build.</div></div></div>
-          <div class="card row"><div class="badge" style="background:var(--bluemid)">2</div><div><div class="ct">Behave consistently &amp; reliably</div><div class="cd">Agents are probabilistic — the same question can take a different path. Prove behaviour holds.</div></div></div>
-          <div class="card row"><div class="badge" style="background:var(--purple)">3</div><div><div class="ct">Earn confidence before production</div><div class="cd">Evidence, not optimism. Replace “it worked when I tried it” with measured pass-rates.</div></div></div>
-          <div class="card row"><div class="badge" style="background:var(--bluemid)">4</div><div><div class="ct">From experimentation to engineering</div><div class="cd">Move from ad-hoc clicking to repeatable, reviewable, governed delivery.</div></div></div>
-          <div class="card row"><div class="badge" style="background:var(--purple)">5</div><div><div class="ct">Repeatable &amp; scalable practices</div><div class="cd">Tests as code, release as a pipeline — so the 50th agent ships as safely as the first.</div></div></div>
-          <div class="card row"><div class="badge" style="background:var(--bluemid)">6</div><div><div class="ct">Protect customer trust</div><div class="cd">A wrong or unsafe answer in production is a trust incident, not just a bug.</div></div></div>
-        </div>
-      </div>
-    </div>
-    <div class="pagenum">2</div>
-  </section>
-
-  <!-- =================== SLIDE 3 — AGENDA =================== -->
+  <!-- =================== SLIDE 2 — AGENDA =================== -->
   <section class="slide ref-adlc">
     <div class="refcard">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -629,7 +817,7 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
           <div class="card" style="border-top:5px solid var(--overview)">
             <div style="font-size:40px; font-weight:800; letter-spacing:-.03em; color:var(--head)">5<span style="font-size:16px; font-weight:500; color:var(--muted)"> min</span></div>
             <div class="ct" style="margin:6px 0 2px">Overview</div>
-            <ul class="bul" style="font-size:14.5px"><li>The Agent Development Lifecycle (ADLC)</li><li>Why testing &amp; deployment carry the most risk</li><li>The WISMO reference scenario</li></ul>
+            <ul class="bul" style="font-size:14.5px"><li>The Agent Development Lifecycle (ADLC)</li><li>Why testing &amp; deployment carry the most risk</li><li>The Use-Case reference scenario</li></ul>
           </div>
           <div class="card" style="border-top:5px solid var(--test)">
             <div style="font-size:40px; font-weight:800; letter-spacing:-.03em; color:var(--head)">30<span style="font-size:16px; font-weight:500; color:var(--muted)"> min</span></div>
@@ -649,10 +837,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">3</div>
+    <div class="pagenum">2</div>
   </section>
 
-  <!-- =================== SLIDE 4 — SECTION: OVERVIEW =================== -->
+  <!-- =================== SLIDE 3 — SECTION: OVERVIEW =================== -->
   <section class="slide section">
     <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
     <div class="wrap" style="top:188px">
@@ -660,10 +848,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
       <h1 style="margin-top:8px">Overview</h1>
       <div class="lede">Foundations — lifecycle, scenario, and why testing matters.</div>
     </div>
-    <div class="pagenum">4</div>
+    <div class="pagenum">3</div>
   </section>
 
-  <!-- =================== SLIDE 5 — ADLC RING (phases) — reference branding =================== -->
+  <!-- =================== SLIDE 4 — ADLC RING (phases) — reference branding =================== -->
   <section class="slide ref-adlc">
     <div class="refcard">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -696,10 +884,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">5</div>
+    <div class="pagenum">4</div>
   </section>
 
-  <!-- =================== SLIDE 6 — USE CASE =================== -->
+  <!-- =================== SLIDE 5 — USE CASE =================== -->
   <section class="slide ref-adlc wismo-slide">
     <div class="refcard">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -730,10 +918,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">6</div>
+    <div class="pagenum">5</div>
   </section>
 
-  <!-- =================== SLIDE 7 — WHY TESTING & DEPLOYMENT MATTER =================== -->  
+  <!-- =================== SLIDE 6 — WHY TESTING & DEPLOYMENT MATTER =================== -->  
   <section class="slide ref-adlc trust-slide">  
     <div class="refcard">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -763,21 +951,21 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">7</div>
+    <div class="pagenum">6</div>
   </section>
 
-  <!-- =================== SLIDE 8 — SECTION: TESTING =================== -->  
+  <!-- =================== SLIDE 7 — SECTION: TESTING =================== -->  
   <section class="slide section">
     <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
     <div class="wrap" style="top:188px">
-      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2</div>
-      <h1>Agentforce testing</h1>
+      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2</div>      
+      <h1>Agentforce <span class="test">Testing</span></h1>
       <div class="lede">What are we trying to prove, and what evidence is enough?</div>
     </div>
-    <div class="pagenum">8</div>
+    <div class="pagenum">7</div>
   </section>
 
-  <!-- =================== SLIDE 9 — TESTING GOALS & EXPECTATIONS =================== -->
+  <!-- =================== SLIDE 8 — TESTING GOALS & EXPECTATIONS =================== -->
   <section class="slide ref-adlc goals-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -791,10 +979,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <div class="goal-card"><div class="g-t">Make evidence executable</div><div class="g-d">Treat scenarios and expected outcomes as a repeatable, understandable design specification.</div></div>
       </div>
     </div>
-    <div class="pagenum">9</div>
+    <div class="pagenum">8</div>
   </section>
 
-  <!-- =================== SLIDE 10 — WHY TESTING MATTERS IN AGENTIC AI =================== -->
+  <!-- =================== SLIDE 9 — WHY TESTING MATTERS IN AGENTIC AI =================== -->
   <section class="slide ref-adlc stakes-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -825,10 +1013,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>    
     </div>
-    <div class="pagenum">10</div>
+    <div class="pagenum">9</div>
   </section>
 
-  <!-- =================== SLIDE 11 — TRADITIONAL TESTING DOESN'T WORK FOR NON-DETERMINISTIC AGENTS =================== -->
+  <!-- =================== SLIDE 10 — TRADITIONAL TESTING DOESN'T WORK FOR NON-DETERMINISTIC AGENTS =================== -->
   <section class="slide ref-adlc tdt-slide trust-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -839,7 +1027,7 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <span><i class="sw sw-deploy"></i>Deploy &amp; Regression</span>
       </div>
       <div class="tdt-grid">
-        <div class="tdt-card light">
+        <div class="tdt-card light" style="border-top: 5px solid var(--test);">
           <div class="tdt-main">
             <div class="tdt-eyebrow">TRADITIONAL SOFTWARE</div>
             <div class="tdt-big">Deterministic</div>
@@ -852,7 +1040,7 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
           </div>
           <img class="tdt-stack" src="images/Deterministic.png" alt="Effort split: 50% design &amp; build, 20% testing, 30% deploy &amp; regression — testing is one concentrated phase">
         </div>
-        <div class="tdt-card light" style="border: 2px solid var(--r-deploy);">
+        <div class="tdt-card light" style="border-top: 5px solid var(--deploy);">
           <div class="tdt-main">
             <div class="tdt-eyebrow">AGENTIC AI</div>
             <div class="tdt-big">Non-Deterministic</div>
@@ -867,10 +1055,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>      
       </div> 
     </div>    
-    <div class="pagenum">11</div>
+    <div class="pagenum">10</div>
   </section>
 
-  <!-- =================== SLIDE 12 — AGENTS AREN'T APEX =================== -->
+  <!-- =================== SLIDE 11 — AGENTS AREN'T APEX =================== -->
   <section class="slide ref-adlc apex-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -893,10 +1081,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <span id="whyMsg" class="apex-msg"></span>
       </div>
     </div>
-    <div class="pagenum">12</div>
+    <div class="pagenum">11</div>
   </section>
 
-  <!-- =================== SLIDE 13 — SIX LAYERS OF AGENT TESTING =================== -->
+  <!-- =================== SLIDE 12 — SIX LAYERS OF AGENT TESTING =================== -->
   <section class="slide ref-adlc layers-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -914,21 +1102,21 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <div class="layer-panel" id="layerPanel" aria-live="polite"></div>
       </div>
     </div>
-    <div class="pagenum">13</div>
+    <div class="pagenum">12</div>
   </section>
 
-  <!-- =================== SLIDE 14 — SUBSECTION: TOOLS =================== -->
+  <!-- =================== SLIDE 13 — SUBSECTION: TOOLS =================== -->
   <section class="slide section">
     <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
     <div class="wrap" style="top:188px">
-      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2.1</div>
-      <h1>Testing toolbox</h1>
+      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2.1</div>      
+      <h1>Agentforce <span class="test">Toolbox</span></h1>
       <div class="lede">The Agentforce testing ecosystem — and where each tool fits.</div>
     </div>
-    <div class="pagenum">14</div>
+    <div class="pagenum">13</div>
   </section>
 
-  <!-- =================== SLIDE 15 — MANUAL EXPLORATION =================== -->
+  <!-- =================== SLIDE 14 — MANUAL EXPLORATION =================== -->
   <section class="slide tdt-slide ref-adlc">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -968,10 +1156,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">15</div>
+    <div class="pagenum">14</div>
   </section>
 
-  <!-- =================== SLIDE 16 — BATCH / BULK =================== -->
+  <!-- =================== SLIDE 15 — BATCH / BULK =================== -->
   <section class="slide tdt-slide ref-adlc">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1009,11 +1197,11 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">16</div>
+    <div class="pagenum">15</div>
   </section>
 
-  <!-- =================== SLIDE 17 — ACT =================== -->
-  <section class="slide tdt-slide ref-adlc">
+  <!-- =================== SLIDE 16 — ACT =================== -->   
+  <section class="slide tdt-slide ref-adlc act-slide trust-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
       <h1 class="title">AF Conversational Testing (ACT)</h1>
@@ -1022,27 +1210,38 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <span class="tgt-chip credits">Credits: yes</span>
         <span class="tgt-chip data">SF rollback</span>
       </div>
-      <p class="sub">Does the agent remember, and does it recover?</p>
-      <div class="body">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; height:100%">
-          <div style="display:grid; grid-auto-rows:1fr; gap:12px">
-            <div class="card row"><div class="badge" style="background:var(--purple)">1</div><div><div class="ct" style="font-size:15px">Multi-turn by design</div><div class="cd">Simulates a whole dialogue with a synthetic persona across many turns.</div></div></div>
-            <div class="card row"><div class="badge" style="background:var(--bluemid)">2</div><div><div class="ct" style="font-size:15px">Asserts state, not just the last line</div><div class="cd">Context carry-over and memory — not only last-answer correctness.</div></div></div>
-            <div class="card row"><div class="badge" style="background:var(--purple2)">3</div><div><div class="ct" style="font-size:15px">Scriptable scenarios</div><div class="cd">Greet → give details → ask a follow-up → change your mind.</div></div></div>
-            <div class="card row"><div class="badge" style="background:var(--navy)">4</div><div><div class="ct" style="font-size:15px">Conversational quality</div><div class="cd">Evaluate coherence and turns-to-resolution across the exchange.</div></div></div>
+      <p class="sub">Use ACT for multi-turn evaluation as an unsupported internal practice tool.</p>
+      <div class="body" style="display:flex; flex-direction:column">
+        <div class="act-grid">
+          <div class="card act-card" style="border-top: 5px solid var(--test);">
+            <div class="act-h">Define and simulate</div>
+            <ul class="bul act-bul">
+              <li>Personas with background, goal and style</li>
+              <li>Scenarios with context and custom variables</li>
+              <li>Autopilot generates multi-turn user responses</li>
+              <li>Playlists scale agent × persona × scenario runs</li>
+            </ul>
           </div>
-          <div class="soft"><h3>When to use ACT vs. alternatives</h3>
-            <div class="note" style="margin-bottom:10px"><span class="k">Testing Center</span> takes a Conversation History column — earlier turns go in, the next reply is checked (last turn must be the agent).</div>
-            <div class="note" style="margin-bottom:10px"><span class="k">ACT</span> simulates the whole multi-turn dialogue with a persona — frustrated customer, non-native speaker, distracted user.</div>
-            <div class="note" style="margin-bottom:10px"><span class="k">Agent API harness</span> when you need long/branching scripts, custom LLM-as-judge scoring, or load checks — drive the agent from Python. (Needs an External Client App, client-credentials flow.)</div>
-            <div class="note"><b>Demo cue:</b> run “remember my name” with memory on (both turns pass), then off (turn 2 fails) — exactly what conversation testing is for.</div></div>
+          <div class="card act-card" style="border-top: 5px solid var(--deploy);">
+            <div class="act-h">Evaluate and verify</div>
+            <ul class="bul act-bul">
+              <li>Deterministic field checks and model-based criteria</li>
+              <li>Responsible AI, business rules and conversational goals</li>
+              <li>Conversation transcript plus before/after state snapshots</li>
+              <li>Captured Salesforce record changes roll back after chat</li>
+            </ul>
+          </div>
         </div>
-      </div>
+        <div class="callout-ref" style="margin-top:50px;">
+          <h3>When to use ACT vs. alternatives</h3>          
+          <div class="note" style="margin-top:10px"><span class="k">Testing Center</span> takes a Conversation History column — earlier turns go in, the next reply is checked (last turn must be the agent).</div>
+          <div class="note" style="margin-top:10px"><span class="k">ACT</span> simulates the whole multi-turn dialogue with a persona — frustrated customer, non-native speaker, distracted user.</div>          
+        </div>        
     </div>
-    <div class="pagenum">17</div>
+    <div class="pagenum">16</div>
   </section>
 
-  <!-- =================== SLIDE 18 — PLAYWRIGHT =================== -->
+  <!-- =================== SLIDE 17 — PLAYWRIGHT =================== -->
   <section class="slide tdt-slide ref-adlc pw-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1096,10 +1295,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">18</div>
+    <div class="pagenum">17</div>
   </section>
 
-  <!-- =================== SLIDE 19 — AUTOMATED TESTING (PYTHON + YAML) =================== -->
+  <!-- =================== SLIDE 18 — AUTOMATED TESTING (PYTHON + YAML) =================== -->
   <section class="slide tdt-slide ref-adlc pw-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1115,13 +1314,17 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
           <div style="display:flex; flex-direction:column; gap:14px">
             <div class="card" style="border-top: 5px solid var(--test);">
               <div class="ct" style="margin-bottom:8px">Tests as plain text, run by a script</div>
-              <ul class="bul"><li>A YAML file lists questions &amp; expected results</li><li>A Python script sends each to the agent and prints PASS / FAIL</li><li>Assert on topic, action &amp; key facts — not exact wording</li><li>Exit non-zero on failure; run locally, then in CI on every PR</li></ul></div>            
+              <ul class="bul"><li>A YAML file lists questions &amp; expected results</li><li>A Python script sends each to the agent and prints PASS / FAIL</li><li>Assert on topic, action &amp; key facts — not exact wording</li><li>Run locally, then in CI <span class="mono" style="font-size:13px">smoke</span> (every PR) and <span class="mono" style="font-size:13px">full</span> (nightly)</li></ul></div>            
           </div>
-          <div style="display:flex; flex-direction:column; gap:12px">
-            <div class="card" style="border-top: 5px solid var(--deploy);">
-              <div class="ct" style="margin-bottom:8px">Handle non-determinism &amp; scale</div>
-              <ul class="bul"><li>Run each case N times, pass at a threshold (e.g. 4 of 5)</li><li>Tag cases: <span class="mono" style="font-size:13px">smoke</span> (every PR) vs <span class="mono" style="font-size:13px">full</span> (nightly)</li></ul></div>
-          </div>
+          <div style="display:flex; flex-direction:column; gap:12px">            
+            <div>
+              <pre class="code"><span class="ttl">bash</span><span class="cmt"># tests as code — the FDE workflow</span>
+<span class="kw">sf agent generate test-spec</span>
+<span class="kw">sf agent test create</span> --spec <span class="str">tests/sports-concierge.yaml</span>
+<span class="kw">sf agent test run</span> --api-name <span class="str">Service_Agent_Tests \</span>
+--wait <span class="str">15</span> --result-format <span class="str">json</span></pre>            
+            </div>
+          </div>          
         </div>
         <div class="ex-demo yaml-demo">
           <div class="ex-dhead" style="margin-top: 20px;"><h3>Demo 3 — Headless YAML runner</h3><span class="ex-live">LIVE DEMO</span><span class="ex-sim">Simulated runner · edit the YAML</span></div>
@@ -1137,21 +1340,21 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">19</div>
+    <div class="pagenum">18</div>
   </section>
 
-  <!-- =================== SLIDE 20 — SUBSECTION: DESIGNING =================== -->
+  <!-- =================== SLIDE 19 — SUBSECTION: DESIGNING =================== -->
   <section class="slide section">
     <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
     <div class="wrap" style="top:188px">
-      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2.2</div>
-      <h1>Designing effective tests</h1>
+      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2.2</div>      
+      <h1>Designing <span class="test">effective tests</span></h1>
       <div class="lede">From running tools to designing meaningful coverage.</div>
     </div>
-    <div class="pagenum">20</div>
+    <div class="pagenum">19</div>
   </section>
 
-  <!-- =================== SLIDE 21 — DESIGNING SCENARIOS (INTERACTIVE) =================== -->
+  <!-- =================== SLIDE 20 — DESIGNING SCENARIOS (INTERACTIVE) =================== -->
   <section class="slide ref-adlc scn-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1167,10 +1370,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <div class="scn-panel" id="dimPanel" aria-live="polite"></div>
       </div>
     </div>
-    <div class="pagenum">21</div>
+    <div class="pagenum">20</div>
   </section>
 
-  <!-- =================== SLIDE 22 — FOUR-QUESTION KNOWLEDGE CHECK (MCQ) =================== -->
+  <!-- =================== SLIDE 21 — FOUR-QUESTION KNOWLEDGE CHECK (MCQ) =================== -->
   <section class="slide ref-adlc mcq-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1184,12 +1387,295 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <button class="mcq-btn" id="q1reveal" type="button" style="margin-left:auto">Reveal answer</button>
       </div>
     </div>
+    <div class="pagenum">21</div>
+  </section>
+
+  <!-- =================== SLIDE 22 — SECTION: DEPLOYMENT =================== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap" style="top:188px">
+      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#86A2FF;">3</div>      
+      <h1>Agentforce <span class="deploy">Deployment</span></h1>
+      <div class="lede">Deployment starts with metadata. <span style="color:#F2A64A;">Ship metadata, not surprises</span></div>
+    </div>
     <div class="pagenum">22</div>
+  </section>
+
+  <!-- =================== SLIDE 23 — AN AGENT IS A BUNDLE OF METADATA =================== -->
+  <section class="slide ref-adlc bundle-slide">
+    <div class="refcard3">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">An agent is a bundle of linked metadata</h1>
+      <p class="sub">Move it all together — miss one dependency and the agent lands broken</p>
+      <div class="body">
+        <table class="cmp">
+          <thead><tr><th style="width:34%">Metadata type</th><th>What it represents</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mono">AiAuthoringBundle</span></td><td>The <b>draft</b> agent as an Agent Script <span class="mono">.agent</span> file (new Agentforce Builder) — human-readable, easy to review in PRs.</td></tr>
+            <tr><td><span class="mono">AiAgentDefinition</span></td><td>Agent-level definition — its type, description, context variables and other agent-wide settings (runtime, created on commit).</td></tr>
+            <tr><td><span class="mono">AiAgentDefinitionVersion</span></td><td>Version-specific configuration — the planner, subagents and actions. Committed versions are <b>immutable</b>; one is active.</td></tr>
+            <tr><td><span class="mono">GenAiPromptTemplate</span></td><td>Prompt templates used by actions.</td></tr>
+            <tr><td><span class="mono">AiEvaluationDefinition</span></td><td>Testing Center test suites — the gate ships <b>with</b> the agent.</td></tr>
+            <tr><td><span class="mono">Dependencies</span></td><td>ApexClass, Flow, custom objects &amp; fields, permission sets, and Data Library / Data Cloud assets.</td></tr>
+          </tbody>
+        </table>
+        <div class="note" style="margin-top:16px; font-size:13.5px; color:var(--text); background:var(--card2); border:1px solid var(--line); border-left:4px solid var(--bluemid); border-radius:0 10px 10px 0; padding:12px 16px; line-height:1.45">
+          <b style="color:var(--bluemid)">Draft vs runtime:</b> the draft lives in <span class="mono">AiAuthoringBundle</span>; the runtime (<span class="mono">AiAgentDefinition</span> + <span class="mono">AiAgentDefinitionVersion</span>) is created on commit — and committed versions are immutable, which is exactly what makes rollback reliable. Needs <b>API v66.0+</b>;
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">23</div>
+  </section>
+
+  <!-- =================== SLIDE 24 — WHERE YOUR METADATA LIVES =================== -->
+  <section class="slide ref-adlc metaloc-slide">
+    <div class="refcard3">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Where your metadata lives</h1>
+      <p class="sub">Metadata moves through a chain of environments — select each stop</p>
+      <div class="body">
+        <div class="rt-panel" style="background: #D3DAE3;">
+          <div class="rt-title" style="color: var(--r-muted);">The release train — promotion &amp; testing gates</div>
+          <div class="rt-flow">
+            <div class="rt-chip" data-stage="dev"><b>DEV</b><span>Build &amp; unit test</span></div><div class="rt-chev">›</div>
+            <div class="rt-chip" data-stage="qa"><b>QA</b><span>Batch, conversation &amp; red-team gate</span></div><div class="rt-chev">›</div>
+            <div class="rt-chip" data-stage="staging"><b>STAGING</b><span>UAT &amp; channel validation</span></div><div class="rt-chev">›</div>
+            <div class="rt-chip" data-stage="prod"><b>PRODUCTION</b><span>Activate, verify, monitor</span></div>
+          </div>
+        </div>
+        <div class="ml-label" style="margin-top: 20px;">The environments it runs in — select a stop</div>
+        <div class="ml-chain">
+          <button class="ml-stop" data-ml="0" style="--c:var(--r-overview)" role="tab">Scratch org</button><span class="ml-chev">›</span>
+          <button class="ml-stop" data-ml="1" style="--c:var(--r-overview)" role="tab">Developer sandbox</button><span class="ml-chev">›</span>
+          <button class="ml-stop" data-ml="2" style="--c:var(--r-test)" role="tab">Integration / QA</button><span class="ml-chev">›</span>
+          <button class="ml-stop" data-ml="3" style="--c:var(--r-deploy)" role="tab">UAT / staging</button><span class="ml-chev">›</span>
+          <button class="ml-stop" data-ml="4" style="--c:var(--r-ink)" role="tab">Production</button>
+        </div>
+        <div class="ml-lower">
+          <div class="ml-info" id="mlInfo" aria-live="polite"></div>
+          <div class="ml-callout"><b>Source of truth</b><span>Version control holds the intended state. Orgs are places to run it — never treat production as the master copy.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">24</div>
+  </section>
+
+  <!-- =================== SLIDE 25 — PACKAGE.XML (interactive builder) =================== -->
+  <section class="slide ref-adlc pxb-slide">
+    <div class="refcard3">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">package.xml — the manifest that says what moves</h1>      
+      <div class="body" style="top: 100px;">
+        <div style="display:grid; grid-template-columns:0.82fr 1.18fr; gap:20px; align-items:start; height:100%">          
+          <div class="pxb">
+            <div class="pxb-ctrls">
+              <div class="pxb-head">Tick types · edit members · watch it build</div>
+              <div id="pxbRows"></div>
+              <label class="pxb-api">API version <input id="pxbApi" type="text" value="68.0" spellcheck="false"></label>
+            </div>    
+            <div class="card"><ul class="bul" style="margin-top: 0px;">
+              <li>A manifest lists metadata <b>types &amp; members</b> to retrieve or deploy.</li>
+              <li>Use <b>exact member names as retrieved</b> — don't guess version suffixes.</li>
+              <li>Generate a starter with <span class="mono" style="font-size:12.5px">sf project generate manifest --from-org</span>.</li>
+              <li>Use the Agent pseudo-type to retrieve/deploy an agent and its parts in one go.</li>
+              <li>Keep <b>one manifest per release</b> and commit it with the change.</li>
+            </ul></div>        
+          </div>
+          <pre class="code pxb-out" style="font-size: 10.5px;"><span class="ttl">manifest/package.xml</span><code id="pxbOut"></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">25</div>
+  </section>
+
+  <!-- =================== SLIDE 26 — CLI: RETRIEVE, VALIDATE, DEPLOY (interactive) =================== -->
+  <section class="slide ref-adlc fd-slide">
+    <div class="refcard3">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Salesforce CLI: retrieve, validate, deploy</h1>
+      <p class="sub">Step through a full cycle — authorize → retrieve → validate → deploy</p>
+      <div class="body">
+        <div class="fd-grid">
+          <div class="fd-left">
+            <div class="fd-term" id="fdTerm" aria-live="polite"></div>
+            <div class="fd-why" id="fdWhy"></div>
+            <div class="fd-ctrl">
+              <button class="ex-btn-pri" id="fdRun" type="button">Run next command ›</button>
+              <button class="ex-btn" id="fdReset" type="button">Reset</button>
+              <span class="fd-step" id="fdStep"></span>
+            </div>
+          </div>
+          <div class="fd-check card">
+            <div class="ct" style="margin-bottom:12px">Before you press deploy</div>
+            <label class="fd-cl"><input type="checkbox"> Source is committed &amp; the branch is up to date</label>
+            <label class="fd-cl"><input type="checkbox"> Manifest lists exactly what you intend to ship</label>            
+            <label class="fd-cl"><input type="checkbox"> Dependencies deploy before the agent</label>          
+            <label class="fd-cl"><input type="checkbox"> Someone knows a deploy is happening</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">26</div>
+  </section>
+
+  <!-- =================== SLIDE 27 — SUBSECTION: DEPLOYMENT TOOLING =================== -->
+  <section class="slide section">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <div class="wrap" style="top:188px">
+      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#86A2FF;">3.1</div>
+      <h1>Deployment <span class="deploy">Tooling</span></h1>
+      <div class="lede">We rarely pick the tool — the customer usually has one. <br/>Be fluent enough to plug the agent into whatever exists, and never skip the Data 360 path.</div>
+    </div>
+    <div class="pagenum">27</div>
+  </section>
+
+  <!-- =================== SLIDE 28 — DEPLOYMENT OPTIONS (tabs) =================== -->
+  <section class="slide ref-adlc dopt-slide">
+    <div class="refcard3">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Deployment options, from clicks to pipelines</h1>
+      <p class="sub">Same CLI underneath; the difference is who runs it and how it's governed</p>
+      <div class="body">
+        <div class="dopt-tabs" role="tablist" aria-label="Deployment options">
+          <button data-tab="cs" role="tab" type="button">Change sets</button>
+          <button data-tab="doc" role="tab" type="button">DevOps Center</button>
+          <button data-tab="cli" role="tab" type="button">CLI scripts</button>
+          <button data-tab="cicd" role="tab" type="button">CI/CD platforms</button>
+          <button data-tab="isv" role="tab" type="button">ISV DevOps tools</button>
+        </div>
+        <div class="dopt-panel" id="doptPanel" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="pagenum">28</div>
+  </section>
+
+  <!-- =================== SLIDE 29 — ENTERPRISE CI/CD PATHWAY =================== -->
+  <section class="slide ref-adlc cicd-slide">
+    <div class="refcard3">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">The enterprise CI/CD pathway</h1>
+      <p class="sub">How Git branches map to orgs and approval gates across Plan → Code → Test → UAT → Release</p>
+      <div class="body">
+        <div class="cicd">
+          <img src="images/CICD.png" alt="CICD">          
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">29</div>
+  </section>
+
+  <!-- =================== SLIDE 30 — RELEASE RUN SHEET =================== -->   
+  <section class="slide ref-adlc rsheet-slide trust-slide">
+    <div class="refcard3">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Version the complete release</h1>
+      <p class="sub">Your release run sheet — package everything deployable; defer manual work unless it's a prerequisite</p>
+      <div class="body">
+        <div class="rs-grid">
+          <div class="rs-card">
+            <div class="rs-ico p1"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-11a7 7 0 1 0-14 0c0 4.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
+            <div class="rs-h">Pre-deployment</div>
+            <ul class="rs-list">
+              <li>Only dependencies required before deployment</li>
+              <li>Feature, licence and connection readiness</li>
+              <li>External or Data 360 prerequisites</li>
+              <li>Exact clicks, values, owner and evidence</li>
+              <li>Automate where possible; define the stop check</li>
+            </ul>
+          </div>
+          <div class="rs-card hl">
+            <div class="rs-ico p2"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.2 10.9 15.8 7.1M8.2 13.1l7.6 3.8"/></svg></div>
+            <div class="rs-h">Deployment package</div>
+            <ul class="rs-list">
+              <li>Agent and supporting metadata</li>
+              <li>Apex, Flows, prompts and tests</li>
+              <li>Permissions, schema and configuration</li>
+              <li>Environment-safe defaults</li>
+              <li>One reviewed source version</li>
+            </ul>
+          </div>
+          <div class="rs-card">
+            <div class="rs-ico p3"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M7 18v-6M12 18V7M17 18v-4"/></svg></div>
+            <div class="rs-h">Post-deployment</div>
+            <ul class="rs-list">
+              <li>Default home for remaining manual steps</li>
+              <li>Target configuration and authorization</li>
+              <li>Publish, activate and channel setup</li>
+              <li>Validation, PVT and evidence capture</li>
+              <li>Exact clicks or automated command, plus recovery</li>
+            </ul>
+          </div>
+        </div>
+        <div class="rs-foot"><b>Make every manual step executable:</b> document the full path, every click, each value, the expected result and recovery.</div>
+      </div>
+    </div>
+    <div class="pagenum">30</div>
+  </section>
+
+  <!-- =================== SLIDE 31 — DATA 360 / DATA KITS COVERAGE =================== -->
+  <section class="slide ref-adlc d360-slide">
+    <div class="refcard3">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Data 360 — what Data Kits move</h1>
+      <p class="sub">Data Kits move definitions, not operational readiness — plan the state as a separate path</p>
+      <div class="body">
+        <div class="d360-grid">          
+          <div class="d360-card">
+            <div class="d360-h">Common dependencies</div>
+            <ul class="d360-list">
+              <li>Some dependencies need extra sequencing, target setup or verification.</li>
+              <li>Package and automate them wherever possible.</li>  
+            </ul>
+          </div>
+          <div class="d360-card hl">
+            <div class="d360-h">Commonly supported definitions</div>
+            <ul class="d360-list">
+              <li>Data streams, DLOs and stream bundles</li>
+              <li>DMOs, mappings and relationships</li>
+              <li>Transforms and calculated insights</li>
+              <li>Identity rules, data graphs and segments <span class="dim">(where supported)</span></li>
+              <li>Search index and retriever definitions <span class="dim">(where supported)</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="d360-foot"><b>Check current coverage:</b> support varies by release, Data Kit type, connector and feature; activation targets and other unsupported types need a separate path.</div>
+      </div>
+    </div>
+    <div class="pagenum">31</div>
+  </section>
+
+  <!-- =================== SLIDE 32 — DEPLOYMENT KNOWLEDGE CHECK (MCQ) =================== -->
+  <section class="slide ref-adlc mcq-slide">
+    <div class="refcard3">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <p class="mcq-eyebrow">Q&amp;A · Deployment</p>
+      <h2>Four-question knowledge check</h2>
+      <div class="qmeta"><span class="qhint">Reveal on click. Poll the room first.</span><span class="qprog" id="qp2"></span><span class="qcount" id="qc2"></span></div>
+      <div class="mcq" id="mcq2"></div>
+      <div class="mcq-ctrl">
+        <button class="mcq-btn" id="q2prev" type="button">‹ Prev</button>
+        <button class="mcq-btn pri" id="q2next" type="button">Next question ›</button>
+        <button class="mcq-btn" id="q2reveal" type="button" style="margin-left:auto">Reveal answer</button>
+      </div>
+    </div>
+    <div class="pagenum">32</div>
+  </section>
+
+  <!-- =================== SLIDE 33 — THANK YOU =================== -->
+  <section class="slide section thanks">
+    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+    <span class="spark s1">✦</span><span class="spark s2">✦</span><span class="spark s3">✦</span><span class="spark s4">✦</span>
+    <div class="thx">
+      <h1>Thank&nbsp;you</h1>
+      <div class="thx-sub">Prove it, then ship it.</div>
+    </div>
+    <div class="pagenum">33</div>
   </section>
 
   </div><!-- /stage -->
 
   <!-- ===== HUD (hidden while presenting) ===== -->
+  <div class="deck-timer" id="deckTimer" title="Session timer — click to pause / resume"><span class="tdot"></span><span id="deckTimerT">60:00</span></div>
   <div class="hint-k" id="hintk">← → navigate &nbsp;·&nbsp; F present &nbsp;·&nbsp; T theme &nbsp;·&nbsp; N notes</div>
   <div class="hud" id="hud">
     <button onclick="go(-1)">‹ Prev</button>
@@ -1220,7 +1706,6 @@ let i = 0, notesOn = false;
 
 const NOTES = [
  "<b>Opening (~60s).</b> Establish credibility and name the topic. \"I'm a Salesforce CTA — ~400 globally — and an FDE in the Middle East. Today: Testing & Deployment.\" Pitch to leadership (confidence, governance) and engineers (patterns, CLI, trade-offs). Two take-home lines: test the decision not the sentence; treat the agent as metadata.",
- "<b>Objectives.</b> Testing & deployment is where assumptions meet reality. Dwell on consistency and earning confidence before production. Hook: \"Which phase causes most production incidents?\" → test & deploy. Leadership framing = risk + trust; engineering framing = prototype vs product.",
  "<b>Agenda.</b> Two parts on one shared foundation. Context first (overview, ADLC, WISMO, why testing matters). Format: demos interleaved + a knowledge check. Give the two take-home lines up front.",
  "<b>Section divider (~15s).</b> Three things set the frame: lifecycle position, the reusable scenario, and why agentic testing needs a different mindset.",
  "<b>ADLC ring.</b> The lifecycle is a LOOP, not a line — production signals feed new tests and new versions. Click each phase to read its job and tooling. Unlike the SDLC it doesn't end at release: deploy is day one, and monitoring output becomes the next round of test cases. Today we zoom into the two highlighted phases — Test & validate and Deploy & release.",
@@ -1235,12 +1720,24 @@ const NOTES = [
  "<b>Subsection divider.</b> Shift from strategy to tooling. Frame tools as an end-to-end workflow; deep-dive the ones with demos.",
  "<b>Manual exploration (Demo 1, ~90s).</b> Fastest loop, weakest memory. Simulation isolates from org data; live runs real actions on sandbox data. Read the trace every time. Demo: ask \"When is the Desert Lions match?\" → show trace (Discover_Sporting_Events) → ask a venue question (smoking / NL1 seating) → untick the guardrail and ask the weather to force an out-of-scope answer → re-tick. \"That out-of-scope answer is now a test case.\" Memory: ask \"how much are tickets?\" and watch the event carry over. Recovery: if live is slow, use the recording.",
  "<b>Batch/bulk (Demo 2, ~2 min).</b> One suite, hundreds of utterances, scored, comparable across versions. Three ways to create cases; sandboxes only (credits + CRM writes). Tests as code: YAML → AiEvaluationDefinition, junit for CI. Demo: generate ~20 cases, edit two, add a negative, run, open a FAILING result + scorer, compare runs. \"AI cases are a starting point — review like code.\"",
- "<b>ACT (slide only).</b> Real chats have many messages — does it remember and recover? Distinguish Testing Center Conversation History vs ACT persona dialogue vs Agent API harness (External Client App, client-credentials). Design personas like real people; measure turns-to-resolution. Cue: \"remember my name\" memory on vs off.",
+ "<b>ACT — multi-turn evaluation.</b> Unsupported internal practice tool for multi-turn evaluation. Left — DEFINE & SIMULATE: personas (background/goal/style), scenarios with context + custom variables, Autopilot generates multi-turn user responses, playlists scale agent × persona × scenario. Right — EVALUATE & VERIFY: deterministic field checks + model-based criteria, Responsible AI / business rules / conversational goals, transcript + before/after state snapshots, captured SF record changes roll back after chat. Use for state, tone, correction, social engineering, routing, complex goals — verify credits and external side effects before playlists.",
  "<b>Playwright (Demo 3, ~90s).</b> Testing Center checks the brain; Playwright checks what the customer sees (iframe, rich content, handoff). Assert loosely on text, strictly on UI. Capture the iframe selector with codegen. Demo headed: pass → forced failure → trace viewer. Flakiest demo — drop first if behind (keep the slide).",
  "<b>Automated testing (Python &amp; YAML).</b> Same idea as the CSV suite, run by a robot. A YAML file lists utterances + expected topic/action/key-facts; a Python script (Agent API or CLI) runs them, prints PASS/FAIL and exits non-zero so CI can gate the merge. Key moves: assert on meaning not exact strings; run each case N times and pass at a threshold (e.g. 4/5) to tolerate non-determinism; tag smoke vs full; Keep credentials in env vars, never in the repo.",
  "<b>Subsection divider.</b> Pivot from 'which tool' to 'what to test'. Counter the trap: coverage = diversity of scenarios/personas/data/outcomes, not number of prompts.",
  "<b>Designing scenarios.</b> Systematic variation across Scenario, Persona, Data, Outcome. Walk each with WISMO. Leave them a number: 5 happy / 3 edge / 2 negative per subagent, vary tone/typos/language, run each suite more than once. Boundary trio: allowed, denied, manipulated.",
- "<b>Four-question knowledge check (MCQ).</b> Four multiple-choice questions on testing. For each: read it, let the room answer in chat/poll, THEN Reveal (or click an option to grade instantly), then give the one-line why. Use Prev/Next; keep it tight (~1 min each). Q1 exact-string → non-deterministic; Q2 runAs → agent user's real permissions; Q3 Testing Center → sandboxes only; Q4 new model, no commit → scheduled runs + monitoring; Q5 iframe/handoff/rich content → Playwright."
+ "<b>Four-question knowledge check (MCQ).</b> Four multiple-choice questions on testing. For each: read it, let the room answer in chat/poll, THEN Reveal (or click an option to grade instantly), then give the one-line why. Use Prev/Next; keep it tight (~1 min each). Q1 exact-string → non-deterministic; Q2 runAs → agent user's real permissions; Q3 Testing Center → sandboxes only; Q4 new model, no commit → scheduled runs + monitoring; Q5 iframe/handoff/rich content → Playwright.",
+ "<b>Section divider — Part 3: Agentic Deployment.</b> Pivot from testing to shipping. The frame: deployment starts with metadata, and an agent is metadata — a bundle of linked components (Bot/BotVersion, topics, actions, the Apex/Flow behind them, the agent user's permission set, and its tests) that must move together, or the agent lands broken.",
+ "<b>An agent is a bundle of metadata.</b> Walk the table top to bottom. AiAuthoringBundle = the DRAFT .agent file, reviewed in a PR. AiAgentDefinition = agent-level runtime (type, description, context variables, settings). AiAgentDefinitionVersion = version config — planner, subagents, actions — immutable once committed, one active. GenAiPromptTemplate = prompt templates actions call. AiEvaluationDefinition = Testing Center suites that ship WITH the agent. Dependencies = Apex, Flow, objects/fields, permission sets, Data Library / Data Cloud. Key message: these move TOGETHER — miss one and the deploy fails or, worse, deploys an agent that silently can't act. Draft lives in AiAuthoringBundle; runtime is created on commit and is immutable — which makes rollback reliable. Needs API v66.0+; verify type names against the Move-an-agent guide / Metadata Coverage Report.",
+ "<b>Where your metadata lives.</b> Walk the chain left to right — click each stop. Scratch org: disposable, built from the repo, starts empty so it proves your source is complete. Developer sandbox: prod metadata, little/no data, daily refresh — build & break-fix. Integration/QA: Developer Pro or Partial Copy where merged work meets other changes. UAT/staging: Full sandbox, complete copy, 29-day refresh — final validation. Production: live users, deploys need tests, agree a window + approver, never edit directly. Land the callout: version control is the source of truth — orgs are places to run it; never treat production as the master copy.",
+ "<b>package.xml.</b> The manifest is what says WHAT moves — types + members to retrieve or deploy. Walk the file: it carries the draft (AiAuthoringBundle), the runtime (AiAgentDefinition + AiAgentDefinitionVersion), and every dependency the actions need (ApexClass, Flow, GenAiPromptTemplate), plus the permission set and the eval suite — all at API v66.0. Habits: use EXACT member names as retrieved (don't guess suffixes); generate a starter with sf project generate manifest --from-org then trim it; the Agent pseudo-type pulls an agent and its parts in one go; keep ONE manifest per release and commit it with the change so the repo stays the source of truth.",
+ "<b>Salesforce CLI: retrieve, validate, deploy (interactive).</b> Step through the terminal live — click Run next command and read the 'why' under each step. Cycle: login (alias per org) → retrieve the agent via the Agent pseudo-type → commit in Git → VALIDATE against the target (full deploy + tests, saves nothing — fix failures here, days before the window) → QUICK-DEPLOY the already-validated job in the window (seconds) → publish the authoring bundle (draft → immutable version) → activate (flip the serving version; rollback = reactivate the previous one). The checklist on the right is the pre-deploy habit — don't press deploy until every box is true; write the rollback version number down first.",
+ "<b>Subsection divider — Deployment tooling (~15s).</b> Reset the frame: we rarely pick the tool, the customer usually has one — change sets, DevOps Center, a CI/CD platform, or an ISV tool. Our job is to be fluent enough to plug the agent into whatever exists. And whatever the tool, never skip the Data 360 path — knowledge and grounding are data, not metadata, and move as data kits on a separate deploy path.",
+ "<b>Deployment options (interactive tabs).</b> Click across the five tabs — same CLI underneath, the difference is who runs it and how it's governed. Change sets: no VC/rollback, weak on agent metadata — not for agent work. DevOps Center: free, Git-backed, work items + stages — the step off change sets. CLI scripts: the commands run by a person — first releases & rehearsals. CI/CD: GitHub Actions / Bitbucket / Azure / Jenkins / GitLab, headless with JWT — gated agent test suites, you own the pipeline. ISV tab shows the four vendors as cards — Copado (native, governed teams), Gearset (comparison-driven, documented Agentforce support), AutoRABIT (security/compliance for regulated industries), Flosum (100% native, data residency). Close on: verify current agent-metadata support with every vendor.",
+ "<b>The enterprise CI/CD pathway.</b> Read it left to right as a promotion flow and top-down as Git→orgs. Plan: work in a tracking tool. Code: developers work on Feature branches, push source, deploy to the Dev Org. Test (QA/Integration): a CI Org runs on a cron (★ automation); merges into Develop trigger a Validate-Only against SIT, then PR-approval deploy (★). UAT: cut a release branch (git checkout -b release.1.02), merge-request approval promotes to the UAT Full sandbox. Release: final merge-request approval promotes to Prod. Branch model: Master, Release, Develop, Feature. Sandboxes: Developer, Partial Copy (SIT), Full Copy (UAT). Roles: Dev Team, QA, Release Manager. The ★ marks are where humans stop clicking and the pipeline takes over — and for agents, the agent-test gate lives on those QA/Integration merges.",
+ "<b>Release run sheet — version the complete release.</b> The operating rule: package everything that CAN be deployed, and defer manual work unless it's a genuine prerequisite. Three columns. Pre-deployment: only the dependencies that must exist first — feature/licence/connection readiness, external or Data 360 prerequisites — captured as exact clicks, values, owner and evidence, automated where possible with a defined stop-check. Deployment package (the default): the agent + supporting metadata, Apex/Flows/prompts/tests, permissions/schema/config, environment-safe defaults, one reviewed source version. Post-deployment: the home for whatever truly can't be packaged — target config + auth, publish/activate/channel setup, validation + PVT + evidence capture, each as exact clicks or an automated command with recovery. Land the footer: make every manual step executable — full path, every click, each value, expected result and recovery — so anyone can run it at 2am.",
+ "<b>Data 360 — what Data Kits move.</b> The one-liner: Data Kits move DEFINITIONS, not operational readiness. Left (supported): data streams / DLOs / stream bundles, DMOs + mappings + relationships, transforms and calculated insights, and — where supported — identity rules / data graphs / segments and search-index / retriever definitions. Right (NOT transported or made ready): source records and uploaded file contents, passwords / tokens / connection secrets, connection / stream / ingestion activation STATE, and completed transforms / chunks / index contents. So after a Data Kit deploys you still have to reconnect, re-ingest, re-run transforms and re-index in the target. Land the footer: coverage varies by release, Data Kit type, connector and feature — activation targets and unsupported types need a separate path, so plan the data path early.",
+ "<b>Deployment knowledge check (MCQ).</b> Four questions on shipping. For each: read it, let the room answer, THEN Reveal (or click to grade), then the one-line why. Q1 a successful deploy ≠ serving — publish → activate → connect channels. Q2 the bundle carries the Apex/Flow behind the actions and the agent user's permission set, not just the agent. Q3 org auth URL / JWT lives in the platform's secret store, never the repo or build log. Q4 a failing agent-test gates the merge — red means stop, exactly like a failing Apex test. Q5 deploy is separate from activate for controlled rollout + instant rollback — deploy the new version while the old one still serves, flip, and flip back in seconds if needed.",
+ "<b>Thank you.</b> Close on the two take-home lines: test the decision, not the sentence — and treat the agent as metadata, ship it with its dependencies and let the pipeline say no. Thank the room, point them to the resources in chat and the first-week homework, and open the floor for any last questions."
 ];
 
 const gotoEl = document.getElementById('goto');
@@ -1266,7 +1763,38 @@ function toggleTheme(){
   try{ localStorage.setItem('deckTheme', next);}catch(e){}
 }
 function toggleNotes(){ notesOn=!notesOn; notesEl.classList.toggle('show', notesOn); }
+/* ===== session countdown timer ===== */
+const TIMER_TOTAL=60*60;          // 60:00
+let timerLeft=TIMER_TOTAL, timerId=null;
+const timerEl=document.getElementById('deckTimer'), timerT=document.getElementById('deckTimerT');
+function fmtTime(s){ s=Math.max(0,s); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function paintTimer(){
+  if(timerT) timerT.textContent=fmtTime(timerLeft);
+  if(!timerEl) return;
+  timerEl.classList.toggle('warn', timerLeft<=300 && timerLeft>60);
+  timerEl.classList.toggle('danger', timerLeft<=60);
+}
+function tickTimer(){
+  timerLeft--; paintTimer();
+  if(timerLeft<=0){ clearInterval(timerId); timerId=null; timerLeft=0; timerEl&&timerEl.classList.remove('running'); paintTimer(); }
+}
+function startTimer(){
+  if(timerId) return;                      // already running
+  if(timerLeft<=0) timerLeft=TIMER_TOTAL;  // restart if finished
+  timerId=setInterval(tickTimer,1000);
+  timerEl&&timerEl.classList.add('running'); timerEl&&timerEl.classList.remove('paused');
+  paintTimer();
+}
+function pauseTimer(){
+  if(!timerId) return;
+  clearInterval(timerId); timerId=null;
+  timerEl&&timerEl.classList.remove('running'); timerEl&&timerEl.classList.add('paused');
+}
+if(timerEl) timerEl.addEventListener('click',()=>{ timerId?pauseTimer():startTimer(); });
+paintTimer();
+
 function present(){
+  startTimer();                            // countdown begins on Present
   if(deck.requestFullscreen) deck.requestFullscreen();
   else if(deck.webkitRequestFullscreen) deck.webkitRequestFullscreen();
 }
@@ -1293,7 +1821,7 @@ document.addEventListener('keydown', e=>{
 
 /* click navigation (left third = prev, rest = next); ignore clicks on interactive cards */
 stage.addEventListener('click', e=>{
-  if(e.target.closest('.q, .s-chat, .s-trace, .layers, .apex-row, .apex-ctrl, .ex-demo, .pw-res, .scn-grid, .mcq, .mcq-ctrl')) return;   // interactive widgets handle their own clicks
+  if(e.target.closest('.q, .s-chat, .s-trace, .layers, .apex-row, .apex-ctrl, .ex-demo, .pw-res, .scn-grid, .mcq, .mcq-ctrl, .ml-chain, .pxb, .fd-grid, .dopt-tabs')) return;   // interactive widgets handle their own clicks
   const x = e.clientX / window.innerWidth;
   go(x < 0.28 ? -1 : 1);
 });
@@ -1628,6 +2156,147 @@ if(document.getElementById('layerPanel')) showLayer('unit');
   show('scenario');
 })();
 
+/* Slide 24: where your metadata lives — interactive environment chain (ported from fde-metadata-deployment) */
+(function(){
+  const info=document.getElementById('mlInfo'); if(!info) return;
+  const O=[
+    {n:'Scratch org', d:'Disposable, built from your repo with a definition file. Lives 7 days by default, up to 30. Starts empty — so it proves your source is complete.', who:'Developers'},
+    {n:'Developer sandbox', d:'Copy of production metadata with little or no data. Daily refresh. Where much of the build and break-fix work happens.', who:'Developers and admins'},
+    {n:'Integration / QA', d:'Usually a Developer Pro or Partial Copy sandbox where merged work meets other changes. Partial Copy refreshes every 5 days with a data sample.', who:'Dev team and QA'},
+    {n:'UAT / staging', d:'Often a Full sandbox — a complete copy of production data and metadata. Refresh interval is 29 days. Best for final validation and performance checks.', who:'Customer and QA'},
+    {n:'Production', d:'Live users. Deploys with Apex need tests. Agree a window and an approver — and never edit directly.', who:'Everyone, carefully'}
+  ];
+  const stops=[...document.querySelectorAll('.ml-chain .ml-stop')];
+  function show(k){
+    stops.forEach(s=>s.setAttribute('aria-selected', String(+s.dataset.ml===k)));
+    const c=getComputedStyle(stops[k]).getPropertyValue('--c'); info.style.setProperty('--c', c);
+    const x=O[k];
+    info.innerHTML='<h4>'+x.n+'</h4><p>'+x.d+'</p><p class="who"><b>Typical users:</b> '+x.who+'</p>';
+  }
+  stops.forEach(s=>s.addEventListener('click',e=>{e.stopPropagation(); show(+s.dataset.ml);}));
+  show(0);
+})();
+
+/* Slide 25: interactive package.xml builder (ported from fde-metadata-deployment) */
+(function(){
+  const rowsEl=document.getElementById('pxbRows'), out=document.getElementById('pxbOut'), api=document.getElementById('pxbApi');
+  if(!rowsEl||!out) return;
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // label, metadata type name(s) emitted, default member, default-checked
+  const T=[
+    ['NGA Agent', ['AiAuthoringBundle','AiAgentDefinition','AiAgentDefinitionVersion'], 'Sports_Booking_Concierge', true],
+    ['ApexClass', ['ApexClass'], 'Retrieve_Venue_Knowledge', true],
+    ['Flow', ['Flow'], 'Discover_Sporting_Events', true],
+    ['Prompt Template', ['GenAiPromptTemplate'], 'Event_Recommendation_Summary', true],
+    ['Permission set', ['PermissionSet'], 'Sports_Concierge_Access', true]
+  ];
+  rowsEl.innerHTML=T.map((t,i)=>
+    '<label class="pxb-row" data-i="'+i+'"><input type="checkbox" '+(t[3]?'checked':'')+' aria-label="Include '+t[0]+'">'+
+    '<span class="pxb-t">'+t[0]+'</span>'+
+    '<input type="text" class="pxb-m" value="'+esc(t[2])+'" spellcheck="false" aria-label="Members of '+t[0]+'"></label>').join('');
+  const rows=[...rowsEl.querySelectorAll('.pxb-row')];
+  function build(){
+    let x='<?xml version="1.0" encoding="UTF-8"?>\n<Package xmlns="http://soap.sforce.com/2006/04/metadata">\n';
+    rows.forEach((row,i)=>{
+      const on=row.querySelector('input[type=checkbox]').checked;
+      row.classList.toggle('off', !on);
+      if(!on) return;
+      const members=row.querySelector('.pxb-m').value.split(',').map(s=>s.trim()).filter(Boolean);
+      if(!members.length) return;
+      T[i][1].forEach(name=>{
+        x+='  <types>\n'+members.map(m=>'    <members>'+m+'</members>\n').join('')+'    <name>'+name+'</name>\n  </types>\n';
+      });
+    });
+    x+='  <version>'+(api.value.trim()||'68.0')+'</version>\n</Package>';
+    out.textContent=x;
+  }
+  rowsEl.addEventListener('input',e=>{e.stopPropagation(); build();});
+  rowsEl.addEventListener('click',e=>e.stopPropagation());
+  api.addEventListener('input',e=>{e.stopPropagation(); build();});
+  build();
+})();
+
+/* Slide 26: CLI first-deploy terminal walkthrough (ported from fde-metadata-deployment) */
+(function(){
+  const term=document.getElementById('fdTerm'), why=document.getElementById('fdWhy'),
+        runBtn=document.getElementById('fdRun'), resetBtn=document.getElementById('fdReset'), step=document.getElementById('fdStep');
+  if(!term) return;
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const S=[
+    ['sf org login web --alias client-dev',
+      ['Opening browser to authorize…','Successfully authorized fde@example.com (org 00DXX0000004XWARF)'],
+      'Sign in once per org. The alias is how every later command finds it.'],
+    ['sf project retrieve start --manifest manifest/package.xml --target-org client-dev',
+      ['Retrieving metadata from fde@example.com…','Status: Succeeded','Retrieved: Sports_Booking_Concierge.agent; Retrieve_Venue_Knowledge.cls; Discover_Sporting_Events.flow; Event_Recommendation_Summary.genAiPromptTemplate; Sports_Concierge_Access.permissionset;'],
+      'The Agent pseudo-type pulls the agent and its parts into your project in source format.'],
+    ['git add . && git commit -m "Add discovering sporting events"',
+      ['[feature/disover-sporting-events 4f2a9c1] Add discovering sporting events','5 files changed'],
+      'Edit in your IDE, then commit. Git is the record of what changed and why.'],
+    ['sf project deploy validate --manifest manifest/package.xml --target-org uat --test-level RunLocalTests',
+      ['Job ID: 0AfXX0000000AaBcD','Status: Succeeded (check only)','Tests: 18 passed, 0 failed · Coverage: 84%'],
+      'Validate runs the full deploy and tests but saves nothing. Fix any failure here — days before the window.'],
+    ['sf project deploy quick --job-id 0AfXX0000000AaBcD --target-org uat',
+      ['Status: Succeeded','Components deployed: 5'],
+      'In the change window, promote the already-validated job — seconds, not minutes.']
+  ];
+  let n=0;
+  function draw(){
+    if(n===0){ term.innerHTML='<span class="empty">$ _  &nbsp; press “Run next command” to begin the deploy cycle…</span>'; }
+    else{
+      term.innerHTML=S.slice(0,n).map(s=>'<div><span class="p">$ '+esc(s[0])+'</span></div>'+s[1].map(l=>'<div class="o">'+esc(l)+'</div>').join('')).join('<br>');
+    }
+    term.scrollTop=term.scrollHeight;
+    why.textContent = n ? S[n-1][2] : 'Press the button to run the first command.';
+    step.textContent = n ? ('step '+n+' / '+S.length) : '';
+    runBtn.disabled = n>=S.length;
+    runBtn.textContent = n>=S.length ? 'Cycle complete ✓' : 'Run next command ›';
+  }
+  runBtn.addEventListener('click',e=>{e.stopPropagation(); if(n<S.length){n++; draw();}});
+  resetBtn.addEventListener('click',e=>{e.stopPropagation(); n=0; draw();});
+  draw();
+})();
+
+/* Slide 28: deployment options tabs (ISV tab renders cards) */
+(function(){
+  const panel=document.getElementById('doptPanel'); if(!panel) return;
+  const tabs=[...document.querySelectorAll('.dopt-tabs button')];
+  const DATA={
+    cs:{h:'Change sets', lead:"Salesforce's original point-and-click option between connected orgs.",
+      good:'Tiny teams, one-off moves between sandbox and production.',
+      warn:'No version control; no rollback; manual component selection; weak support for newer agent metadata — not recommended for agent work.'},
+    doc:{h:'DevOps Center', lead:'Salesforce\'s Free, Git-backed release tool with work items and pipeline stages, aimed at admins and mixed teams.',
+      good:'Customers moving off change sets who want source control without building pipelines.',
+      warn:'Fewer customisation hooks than a full CI/CD platform; confirm its current agent-metadata support.'},
+    cli:{h:'Salesforce CLI scripts', lead:'The CLI commands wrapped in a shell or Node script and run by a person.',
+      good:'FDE handoffs, first releases, rehearsals.',
+      warn:'Depends on the person running it — graduate to CI/CD once the script is stable.'},
+    cicd:{h:'CI/CD platforms', lead:'GitHub Actions, Bitbucket, Azure DevOps, Jenkins and GitLab all run the same CLI headlessly with JWT auth.',
+      good:'Engineering-led customers, gated agent test suites, full control.',
+      warn:'You own the pipeline, secrets and maintenance.'}
+  };
+  const ISV=[
+    ['Copado','var(--purple)','Runs natively on Salesforce — user stories, pipelines, compliance tracking. Built for larger, governed teams.'],
+    ['Gearset','var(--bluemid)','Comparison-driven deploys, problem analysers, documented Agentforce support. Fast to adopt, popular with mixed teams.'],
+    ['AutoRABIT','var(--sky)','CI/CD with strong security &amp; compliance features for regulated industries.'],
+    ['Flosum','var(--navy)','100% native on-platform; popular where data residency matters.']
+  ];
+  function render(k){
+    tabs.forEach(t=>t.setAttribute('aria-selected', String(t.dataset.tab===k)));
+    if(k==='isv'){
+      panel.innerHTML='<h3>ISV DevOps tools</h3>'+
+        '<div class="dopt-cards">'+ISV.map(c=>'<div class="card" style="--c:'+c[1]+'"><div class="ct">'+c[0]+'</div><div class="cd">'+c[2]+'</div></div>').join('')+'</div>'+
+        '<div class="dopt-rows"><div class="dopt-row good"><span class="lbl">Good for</span><span>large programmes, audit needs, mixed admin &amp; developer teams.</span></div><div class="dopt-row warn"><span class="lbl">Watch out</span><span>licence cost and vendor-specific workflows — and verify current agent-metadata support with every vendor.</span></div></div>';
+    } else {
+      const d=DATA[k];
+      panel.innerHTML='<h3>'+d.h+'</h3><p class="dopt-lead">'+d.lead+'</p>'+
+        '<div class="dopt-rows"><div class="dopt-row good"><span class="lbl">Good for</span><span>'+d.good+'</span></div>'+
+        '<div class="dopt-row warn"><span class="lbl">Watch out</span><span>'+d.warn+'</span></div></div>';
+    }
+  }
+  tabs.forEach(t=>t.addEventListener('click',e=>{e.stopPropagation(); render(t.dataset.tab);}));
+  render('cs');
+})();
+
 /* Slide 22: four-question MCQ knowledge check (ported from executive deck) */
 (function(){
   const mount=document.getElementById('mcq1'); if(!mount) return;
@@ -1661,6 +2330,42 @@ if(document.getElementById('layerPanel')) showLayer('unit');
   document.getElementById('q1reveal').addEventListener('click',e=>{e.stopPropagation();if(graded[qi]==null)applyGrade(MCQ[qi].c);});
   document.getElementById('q1next').addEventListener('click',e=>{e.stopPropagation();qi=Math.min(MCQ.length-1,qi+1);render();});
   document.getElementById('q1prev').addEventListener('click',e=>{e.stopPropagation();qi=Math.max(0,qi-1);render();});
+  render();
+})();
+
+/* Slide 32: four-question deployment MCQ (ported from executive deck, Q&A #2) */
+(function(){
+  const mount=document.getElementById('mcq2'); if(!mount) return;
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const MCQ=[
+    {q:'A metadata deploy of the agent just succeeded. Is the agent serving customers?',o:['Yes — deploy makes it live immediately','Not yet — it must be published, activated, and connected to channels','Only if it’s a sandbox','Only after a scratch-org refresh'],c:1,w:'Deploy ships the definition; publish → activate → connect make a version serve traffic.'},
+    {q:'Which must travel in the deployment bundle with a NGA agent?',o:['The AiAuthoringBundle only; runtime dependencies are resolved automatically','The agent metadata, referenced Apex/Flow actions, required permissions and dependent resources','Nothing else — dependencies auto-resolve in prod','The agent definition and knowledge articles; permissions are inherited automatically'],c:1,w:'An agent is a bundle: the draft + runtime, the code behind its actions, access and its tests all need to move together.'}, 
+    {q:'The metadata deployment succeeds, but the Agentforce automated test stage reports a failure. What happens to promotion?',o:['Continue promotion because the metadata deployment completed successfully','Block promotion until the failing agent tests are investigated and pass','It retries forever','It rolls back the whole org'],c:1,w:'Deployment validates metadata delivery; agent tests validate behaviour. A failed quality gate must prevent promotion until the issue is resolved and the required tests pass. Red means stop.'},
+    {q:'Why separate “deploy” from “activate” for an agent version?',o:['It’s a licensing requirement','For controlled rollout and instant rollback — a new version can be deployed while the old one still serves','To save credits','Activation is automatic anyway'],c:1,w:'Deliberate activation is your blue/green: flip to the new version, flip back in seconds if sessions look wrong.'}
+  ];
+  const prog=document.getElementById('qp2'), count=document.getElementById('qc2');
+  let qi=0, graded=Array(MCQ.length).fill(null);
+  function applyGrade(picked){
+    const m=MCQ[qi];
+    mount.querySelectorAll('.opt').forEach(b=>{const i=+b.dataset.i;
+      if(i===m.c)b.classList.add('correct'); else if(i===picked)b.classList.add('wrong');
+      b.disabled=true;});
+    const why=mount.querySelector('.why-ans'); if(why)why.classList.add('show');
+    graded[qi]=picked;
+  }
+  function render(){
+    const m=MCQ[qi];
+    prog.innerHTML=MCQ.map((_,i)=>'<i class="'+(i===qi?'on':graded[i]!=null?'done':'')+'"></i>').join('');
+    count.textContent='Q'+(qi+1)+' / '+MCQ.length;
+    mount.innerHTML='<div class="q">'+(qi+1)+'. '+esc(m.q)+'</div><div class="opts">'+
+      m.o.map((o,i)=>'<button class="opt" type="button" data-i="'+i+'"><span class="key">'+'ABCD'[i]+'</span><span>'+esc(o)+'</span></button>').join('')+
+      '</div><div class="why-ans"><b>Why:</b> '+esc(m.w)+'</div>';
+    if(graded[qi]!=null)applyGrade(graded[qi]);
+  }
+  mount.addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('.opt');if(!b||graded[qi]!=null)return;applyGrade(+b.dataset.i);});
+  document.getElementById('q2reveal').addEventListener('click',e=>{e.stopPropagation();if(graded[qi]==null)applyGrade(MCQ[qi].c);});
+  document.getElementById('q2next').addEventListener('click',e=>{e.stopPropagation();qi=Math.min(MCQ.length-1,qi+1);render();});
+  document.getElementById('q2prev').addEventListener('click',e=>{e.stopPropagation();qi=Math.max(0,qi-1);render();});
   render();
 })();
 
