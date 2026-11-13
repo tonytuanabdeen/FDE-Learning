@@ -1067,11 +1067,11 @@ const stages={
 };
 const tasks={beginner:["a-req","b-node","b-java","b-git","b-gh","b-sf","i-install","i-ext","g-config","c-install","c-signin","s-add"],intermediate:["l-tree","d-gen","d-sdo","d-auth","d-baseline","d-scratch","d-validate","s-ignore","c-md","c-habits","c-cmds","c-launch","v-run"],advanced:["adv1","adv2","adv3","adv4","adv5","adv6","adv7","adv8","adv9","adv10","adv11","adv12","adv13"]};
 const required={beginner:["a-req","b-node","b-java","b-git","b-gh","b-sf","i-install","i-ext","g-config","c-install","c-signin","s-add"],intermediate:["l-tree","d-gen","d-auth","d-baseline","d-validate","s-ignore","c-md","c-launch","v-run"],advanced:["adv1","adv2","adv3","adv4","adv5","adv6","adv7","adv8","adv9","adv10","adv11","adv12","adv13"]};
-let completed=JSON.parse(localStorage.getItem("fde-field-guide-progress")||"{}");
-let celebrated=JSON.parse(localStorage.getItem("fde-field-guide-celebrated")||"{}");
-let feedback=JSON.parse(localStorage.getItem("fde-field-guide-feedback")||"{}");
+// Per-user state. These start empty and are loaded by loadState() once we know who is
+// signed in — each learner's data is stored under email-scoped keys (see uk()).
+let completed={},celebrated={},feedback={};
 function stamp(on){return on?new Date().toISOString():false}
-function save(reason){localStorage.setItem("fde-field-guide-progress",JSON.stringify(completed));localStorage.setItem("fde-field-guide-celebrated",JSON.stringify(celebrated));if(typeof queueSync==="function")queueSync(reason);}
+function save(reason){if(learnerEmail){localStorage.setItem(uk("progress"),JSON.stringify(completed));localStorage.setItem(uk("celebrated"),JSON.stringify(celebrated));}if(typeof queueSync==="function")queueSync(reason);}
 function isDone(id){return !!completed[id]}
 function stageDone(s){return required[s].every(isDone)}
 function renderProgress(){
@@ -1115,7 +1115,7 @@ function checkStage(s){if(stageDone(s)){maybeCelebrate(s);if(celebrated[s])showC
 function showCelebration(s){const data=stages[s];document.getElementById("celebrateTitle").innerHTML=data.title+"<br>UNLOCKED!";document.getElementById("celebrateSub").textContent=data.sub;const conf=document.getElementById("confetti");conf.innerHTML="";for(let i=0;i<70;i++){let p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"%");p.style.setProperty("--h",Math.floor(Math.random()*360));p.style.setProperty("--r",Math.random()*360+"deg");p.style.setProperty("--d",2+Math.random()*3+"s");p.style.setProperty("--delay",-Math.random()*4+"s");p.style.setProperty("--drift",(Math.random()*240-120)+"px");conf.appendChild(p)}document.getElementById("celebration").classList.add("show")}
 function closeCelebration(){document.getElementById("celebration").classList.remove("show")}
 document.getElementById("celebration").addEventListener("click",e=>{if(e.target.id==="celebration")closeCelebration()});
-document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("Reset all onboarding checklists and stage celebrations in this browser? This also resets the progress record your onboarding leads see.")){completed={};celebrated={};milestones={};localStorage.setItem("fde-field-guide-milestones","{}");save("reset");renderProgress()}});
+document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("Reset all onboarding checklists and stage celebrations in this browser? This also resets the progress record your onboarding leads see.")){completed={};celebrated={};milestones={};if(learnerEmail)localStorage.setItem(uk("milestones"),"{}");save("reset");renderProgress()}});
 document.getElementById("lightMode").onclick=()=>setTheme("light");document.getElementById("darkMode").onclick=()=>setTheme("dark");
 function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem("fde-field-guide-theme",t);document.getElementById("lightMode").classList.toggle("active",t==="light");document.getElementById("darkMode").classList.toggle("active",t==="dark")}
 setTheme(localStorage.getItem("fde-field-guide-theme")||"light");
@@ -1130,7 +1130,7 @@ document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",(
   let t;
   ta.addEventListener("input",()=>{
    feedback[id]=ta.value;growFb(ta);
-   localStorage.setItem("fde-field-guide-feedback",JSON.stringify(feedback));if(typeof queueSync==="function")queueSync("feedback");
+   if(learnerEmail)localStorage.setItem(uk("feedback"),JSON.stringify(feedback));if(typeof queueSync==="function")queueSync("feedback");
    if(note){note.textContent="Saved ✓";note.classList.add("saved");clearTimeout(t);t=setTimeout(()=>{note.textContent="Autosaves to this browser.";note.classList.remove("saved");},1200);}
   });
  });
@@ -1349,9 +1349,20 @@ const TRACKING={
  emailDomain:"salesforce.com",
  retryMs:30000
 };
-const LS={email:"fde-field-guide-email",milestones:"fde-field-guide-milestones",pending:"fde-field-guide-sync-pending",reason:"fde-field-guide-sync-reason"};
+// Per-user storage key, scoped to the signed-in email, e.g. "fde-field-guide-progress::tabdeen@salesforce.com".
+function uk(base){return "fde-field-guide-"+base+"::"+learnerEmail;}
+// Pre-namespace (global) keys, migrated to the current user once on first load.
+const LEGACY={progress:"fde-field-guide-progress",celebrated:"fde-field-guide-celebrated",feedback:"fde-field-guide-feedback",milestones:"fde-field-guide-milestones"};
+// email stays global (which user is signed in on this device); everything else is per-user
+// via getters, so existing LS.pending/LS.reason/LS.milestones references resolve per email.
+const LS={email:"fde-field-guide-email",get milestones(){return uk("milestones")},get pending(){return uk("sync-pending")},get reason(){return uk("sync-reason")}};
 let learnerEmail=localStorage.getItem(LS.email)||"";
-let milestones=JSON.parse(localStorage.getItem(LS.milestones)||"{}");
+let milestones={};
+function applyFeedback(){document.querySelectorAll("textarea[data-feedback]").forEach(ta=>{ta.value=feedback[ta.dataset.feedback]||"";ta.style.height="auto";ta.style.height=Math.max(72,ta.scrollHeight)+"px";});}
+function migrateLegacy(){let any=false;for(const base of Object.keys(LEGACY)){if(localStorage.getItem(uk(base))===null){const old=localStorage.getItem(LEGACY[base]);if(old!==null){localStorage.setItem(uk(base),old);any=true;}}}if(any)Object.values(LEGACY).forEach(k=>localStorage.removeItem(k));}
+// Load the signed-in user's own saved state. A brand-new email has no keys → everything is
+// empty (0%). Called at startup and right after sign-in.
+function loadState(){if(!learnerEmail)return;migrateLegacy();completed=JSON.parse(localStorage.getItem(uk("progress"))||"{}");celebrated=JSON.parse(localStorage.getItem(uk("celebrated"))||"{}");feedback=JSON.parse(localStorage.getItem(uk("feedback"))||"{}");milestones=JSON.parse(localStorage.getItem(uk("milestones"))||"{}");applyFeedback();}
 let syncTimer=null,retryTimer=null,syncing=false,pendingReason="change";
 function stageOfTask(id){return Object.keys(tasks).find(k=>tasks[k].includes(id))||"other"}
 function stageLabel(s){return s.charAt(0).toUpperCase()+s.slice(1)}
@@ -1456,8 +1467,8 @@ async function pullRemote(){
   Object.entries(d.milestones||{}).forEach(([s,at])=>{if(at&&(!milestones[s]||at<milestones[s])){milestones[s]=at;changed=true}});
   if(changed){
    Object.keys(stages).forEach(s=>{if(stageDone(s))celebrated[s]=true}); // don't replay old celebrations
-   localStorage.setItem("fde-field-guide-progress",JSON.stringify(completed));
-   localStorage.setItem("fde-field-guide-celebrated",JSON.stringify(celebrated));
+   localStorage.setItem(uk("progress"),JSON.stringify(completed));
+   localStorage.setItem(uk("celebrated"),JSON.stringify(celebrated));
    localStorage.setItem(LS.milestones,JSON.stringify(milestones));
   }
   return changed;
@@ -1468,9 +1479,44 @@ async function startSession(isNew){
  if(!TRACKING.endpoint){setSync("local","Saved on this device only");return}
  setSync("saving","Connecting…");
  const recoveringReset=localStorage.getItem(LS.pending)==="1"&&localStorage.getItem(LS.reason)==="reset";
- if(!recoveringReset&&await pullRemote())renderProgress();
- if(!localStorage.getItem(LS.pending)){pendingReason=isNew?"signin":"open";localStorage.setItem(LS.reason,pendingReason);localStorage.setItem(LS.pending,"1");}
- pushSync();
+ let pullOk=recoveringReset; // a deliberate reset is flushed regardless of the read
+ if(!recoveringReset){const pull=await pullRemote();pullOk=pull.ok;if(pull.changed)renderProgress();}
+ if(localStorage.getItem(LS.pending)){
+  // A genuine pending change (or a reset) is already queued — flush it.
+  pushSync();
+ }else if(pullOk){
+  // Remote read succeeded, so local now reflects (is a superset of) the sheet.
+  // Recording this sign-in/open can't lose synced progress.
+  pendingReason=isNew?"signin":"open";localStorage.setItem(LS.reason,pendingReason);localStorage.setItem(LS.pending,"1");
+  pushSync();
+ }else{
+  // Read FAILED (e.g. the Apps Script doGet isn't serving JSONP yet, or we're offline).
+  if(Object.keys(completed).some(id=>completed[id])){
+   // This browser already has this user's saved progress, and writes still work (form POST),
+   // so flush local — we are NOT overwriting the sheet with an empty payload.
+   pendingReason=isNew?"signin":"open";localStorage.setItem(LS.reason,pendingReason);localStorage.setItem(LS.pending,"1");
+   pushSync();
+  }else{
+   // Nothing stored locally for this user — don't push, or a populated-but-unreadable sheet
+   // could be overwritten. Let them work locally; the read retry below restores it if it recovers.
+   setSync("local","Saved on this device only");
+  }
+  scheduleReadRetry(isNew);
+ }
+}
+// Retries ONLY the remote read (no writes) until it succeeds; then reconciles and records the
+// session. Used when the initial read fails so we don't spam writes while the read is down.
+function scheduleReadRetry(isNew){
+ clearTimeout(retryTimer);
+ retryTimer=setTimeout(async()=>{
+  if(!learnerEmail||!TRACKING.endpoint)return;
+  const p=await pullRemote();
+  if(p.ok){
+   if(p.changed)renderProgress();
+   pendingReason=isNew?"signin":"open";localStorage.setItem(LS.reason,pendingReason);localStorage.setItem(LS.pending,"1");
+   pushSync();
+  }else scheduleReadRetry(isNew);
+ },TRACKING.retryMs);
 }
 /* The user types only the local part; the domain is fixed. We validate the local part,
    tolerate a pasted full address on the right domain, then store username@domain. */
@@ -1491,12 +1537,16 @@ document.getElementById("gateForm").addEventListener("submit",e=>{
  const local=normalizeLocal(document.getElementById("gateUser").value),err=validateLocal(local);
  document.getElementById("gateError").textContent=err;if(err)return;
  learnerEmail=local+"@"+TRACKING.emailDomain;localStorage.setItem(LS.email,learnerEmail);
+ loadState();renderProgress(); // show this user's own saved data (0% if brand new on this browser)
  document.getElementById("learnerGate").hidden=true;document.body.classList.remove("gated");
  startSession(true);
 });
 document.getElementById("switchUser").addEventListener("click",()=>{
- if(!confirm("Sign out? Progress saved on this browser will be cleared. Anything already synced stays with your email."))return;
- ["fde-field-guide-progress","fde-field-guide-celebrated","fde-field-guide-feedback",LS.milestones,LS.pending,LS.reason,LS.email].forEach(k=>localStorage.removeItem(k));
+ if(!confirm("Switch user? You'll be asked to sign in again. Your progress on this browser is kept and will sync when you sign back in."))return;
+ // Only forget who's signed in — keep local progress/feedback so nothing is lost and it
+ // re-syncs on the next sign-in. (Previously this wiped the cache, which also risked
+ // overwriting the synced sheet with an empty push on re-login.)
+ localStorage.removeItem(LS.email);
  location.reload();
 });
 window.addEventListener("online",()=>{if(localStorage.getItem(LS.pending))pushSync()});
@@ -1505,6 +1555,7 @@ window.addEventListener("pagehide",()=>{
  try{pushSync()}catch(e){}
 });
 function initIdentity(){if(learnerEmail)startSession(false);else showGate()}
+if(learnerEmail)loadState(); // restore the signed-in user's own data before first paint
 renderProgress();initIdentity();
 </script>
 </body>
