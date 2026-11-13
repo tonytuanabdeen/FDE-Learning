@@ -167,6 +167,11 @@ body.gated{overflow:hidden}
     <p class="gate-note">You'll stay signed in on this browser.</p>
   </form>
 </div>
+<!-- Hidden transport for progress sync: a form POST is a navigation, so it carries the
+     learner's signed-in Google session and works with a domain-restricted Apps Script
+     web app (where a cross-origin fetch would be redirected to login). -->
+<iframe name="fdeSyncFrame" id="fdeSyncFrame" title="Progress sync" aria-hidden="true" tabindex="-1" style="position:absolute;width:0;height:0;border:0;left:-9999px"></iframe>
+<form id="fdeSyncForm" method="POST" target="fdeSyncFrame" action="" style="display:none"><input type="hidden" name="payload" id="fdeSyncPayload"></form>
 <div class="shell">
 <header class="topbar">
   <div class="brand"><div class="mark">FDE</div><div><strong>EMPLOYEE ONBOARDING GUIDE | FIELD GUIDE</strong><small>New joiner onboarding · A practical path to the field</small></div></div>
@@ -1361,23 +1366,25 @@ function queueSync(reason){
  setSync("saving","Saving…");
  clearTimeout(syncTimer);syncTimer=setTimeout(pushSync,1200);
 }
-async function pushSync(){
- clearTimeout(syncTimer);clearTimeout(retryTimer);
+function pushSync(){
+ clearTimeout(syncTimer);
  if(!learnerEmail||!TRACKING.endpoint)return;
- if(syncing){syncTimer=setTimeout(pushSync,800);return}
- syncing=true;const reason=pendingReason;pendingReason="change";
+ const form=document.getElementById("fdeSyncForm"),field=document.getElementById("fdeSyncPayload");
+ if(!form||!field){setSync("error","Sync form missing");return}
+ const reason=pendingReason;pendingReason="change";
  setSync("saving","Saving…");
  try{
-  // Plain-text body keeps this a "simple" request, so Apps Script needs no CORS preflight.
-  const r=await fetch(TRACKING.endpoint,{method:"POST",body:JSON.stringify(buildPayload(reason))});
-  const d=await r.json();
-  if(d.ok){localStorage.removeItem(LS.pending);setSync("synced","Synced "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}))}
-  else setSync("error","Not synced: "+(d.error||"rejected"));
+  // Form POST = a navigation into the hidden iframe, so it carries the learner's Google
+  // session and reaches a domain-restricted Apps Script. The response is cross-origin and
+  // not readable, so this is fire-and-forget: assume success once the submit dispatches.
+  field.value=JSON.stringify(buildPayload(reason));
+  form.action=TRACKING.endpoint;
+  form.submit();
+  localStorage.removeItem(LS.pending);
+  setSync("synced","Sent "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}));
  }catch(e){
-  if(reason==="reset")pendingReason="reset";
-  setSync("offline","Saved on this device · retrying");
-  retryTimer=setTimeout(pushSync,TRACKING.retryMs);
- }finally{syncing=false}
+  setSync("error","Could not send — check connection");
+ }
 }
 async function pullRemote(){
  if(!TRACKING.endpoint||!learnerEmail)return false;
@@ -1433,7 +1440,7 @@ document.getElementById("switchUser").addEventListener("click",()=>{
 window.addEventListener("online",()=>{if(localStorage.getItem(LS.pending))pushSync()});
 window.addEventListener("pagehide",()=>{
  if(!localStorage.getItem(LS.pending)||!learnerEmail||!TRACKING.endpoint)return;
- try{fetch(TRACKING.endpoint,{method:"POST",body:JSON.stringify(buildPayload(pendingReason)),keepalive:true})}catch(e){}
+ try{pushSync()}catch(e){}
 });
 function initIdentity(){if(learnerEmail)startSession(false);else showGate()}
 renderProgress();initIdentity();
