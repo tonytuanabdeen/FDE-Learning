@@ -1392,6 +1392,12 @@ function pushSync(){
   form.action=TRACKING.endpoint;
   form.submit();
   window.fdePendingRequest=payload.requestId;
+  // The POST response loads into the hidden iframe. We can't read it cross-origin, and a GET
+  // read-back is blocked by CORS when the page runs from file:// (origin "null"). So the
+  // iframe's load event is our success signal — it fires once Apps Script has received and
+  // answered the POST. If the Apps Script also posts an ack back, that path confirms too.
+  const frame=document.getElementById("fdeSyncFrame");
+  if(frame)frame.onload=()=>{frame.onload=null;confirmSync(payload.requestId)};
   clearTimeout(retryTimer);
   retryTimer=setTimeout(()=>{
    if(window.fdePendingRequest===payload.requestId){window.fdePendingRequest="";setSync("error","No confirmation — will retry");retryTimer=setTimeout(pushSync,TRACKING.retryMs)}
@@ -1402,14 +1408,25 @@ function pushSync(){
 }
 // The Apps Script iframe returns an acknowledgement only after the write path completes.
 window.addEventListener("message",event=>{
- const frame=document.getElementById("fdeSyncFrame");
- if(!frame||event.source!==frame.contentWindow||!event.data||event.data.type!=="fde-sync-result")return;
+ // Note: we do NOT check event.source here — Apps Script's HtmlService renders returned
+ // HTML inside a sandboxed inner iframe, so a legitimate ack's source is that nested frame,
+ // not fdeSyncFrame. The random requestId match below is the real guard.
+ if(!event.data||event.data.type!=="fde-sync-result")return;
  const result=event.data.result||{};
  if(!window.fdePendingRequest||result.requestId!==window.fdePendingRequest)return;
  clearTimeout(retryTimer);window.fdePendingRequest="";
  if(result.ok){localStorage.removeItem(LS.pending);localStorage.removeItem(LS.reason);pendingReason="change";setSync("synced","Saved "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}));}
  else{localStorage.setItem(LS.pending,"1");setSync("error",result.error||"Save failed");retryTimer=setTimeout(pushSync,TRACKING.retryMs);}
 });
+// Marks the current pending write as confirmed. Called when the hidden iframe finishes
+// loading the Apps Script response (cross-origin-safe, works from file://), or — preferred —
+// when Apps Script posts an ack back via the message handler above.
+function confirmSync(requestId){
+ if(window.fdePendingRequest!==requestId)return; // superseded, or already acked via postMessage
+ clearTimeout(retryTimer);window.fdePendingRequest="";
+ localStorage.removeItem(LS.pending);localStorage.removeItem(LS.reason);pendingReason="change";
+ setSync("synced","Saved "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}));
+}
 async function pullRemote(){
  if(!TRACKING.endpoint||!learnerEmail)return false;
  try{
