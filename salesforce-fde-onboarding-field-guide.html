@@ -119,19 +119,65 @@ a.linkcard strong{color:var(--accent)}
 .termdemo .td-replay:hover{background:rgba(255,255,255,.12)}
 .termdemo .td-hint{font-size:11.5px;color:#7f90b8}
 @media(prefers-reduced-motion:reduce){.termdemo .td-caret{animation:none}}
+/* ===== Learner sign-in + sync status ===== */
+.gate{position:fixed;inset:0;z-index:60;display:flex;overflow-y:auto;padding:20px;background:color-mix(in srgb,var(--bg) 55%,rgba(5,8,20,.72));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.gate[hidden]{display:none}
+body.gated{overflow:hidden}
+.gate-card{margin:auto;width:min(440px,100%);background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:var(--shadow)}
+.gate-card .mark{margin-bottom:18px}
+.gate-card h2{margin:0 0 8px;font-size:22px;line-height:1.25}
+.gate-card p{margin:0 0 18px;color:var(--muted);font-size:14px}
+.gate-card label{display:block;font-weight:700;font-size:13px;margin-bottom:6px}
+.gate-card input{width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--text)}
+.gate-card input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.gate-error{min-height:20px;margin:6px 0 10px;color:var(--warn);font-size:13px;font-weight:600}
+.gate-card .btn{width:100%;padding:11px}
+.gate-card .gate-note{margin:12px 0 0;font-size:12px}
+.learner{display:flex;align-items:center;gap:8px;font-size:12px;padding:7px 11px;border:1px solid var(--line);border-radius:99px;background:var(--surface);min-width:0}
+.learner[hidden]{display:none}
+.learner-email{font-weight:700;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.sync-dot[data-state=synced]{background:var(--good)}
+.sync-dot[data-state=saving],.sync-dot[data-state=offline]{background:var(--warn)}
+.sync-dot[data-state=error]{background:#d92d20}
+#syncText,.linkbtn{white-space:nowrap}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-size:12px;font-weight:650;text-decoration:underline;text-underline-offset:2px}
+.email-field{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:12px;background:var(--surface2);overflow:hidden}
+.email-field:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+.gate-card .email-field input{border:0;border-radius:0;background:transparent;flex:1;min-width:0}
+.gate-card .email-field input:focus-visible{outline:none}
+.email-field .suffix{display:flex;align-items:center;padding:0 13px;color:var(--muted);font-weight:700;font-size:14px;white-space:nowrap;border-left:1px solid var(--line);background:color-mix(in srgb,var(--surface2) 55%,var(--line))}
+@media(max-width:560px){.toolbar>.learner{flex:1 1 100%;order:-1}.learner-email{max-width:none;flex:1}}
+@media print{.gate{display:none!important}}
 </style>
 </head>
 <body>
+<div class="gate" id="learnerGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle" hidden>
+  <form class="gate-card" id="gateForm" novalidate>
+    <div class="mark">FDE</div>
+    <h2 id="gateTitle">Sign in to track your progress</h2>
+    <p>Enter the first part of your work email once.</p>
+    <label for="gateUser">Work email</label>
+    <div class="email-field">
+      <input id="gateUser" type="text" autocomplete="username" inputmode="text" spellcheck="false" placeholder="name" aria-describedby="gateDomain" required>
+      <span class="suffix" id="gateDomain">@salesforce.com</span>
+    </div>
+    <div class="gate-error" id="gateError" role="alert"></div>
+    <button class="btn primary" type="submit">Start onboarding</button>
+    <p class="gate-note">You'll stay signed in on this browser.</p>
+  </form>
+</div>
 <div class="shell">
 <header class="topbar">
   <div class="brand"><div class="mark">FDE</div><div><strong>EMPLOYEE ONBOARDING GUIDE | FIELD GUIDE</strong><small>New joiner onboarding · A practical path to the field</small></div></div>
   <div class="toolbar">
-    <div class="seg" aria-label="Display theme"><button id="lightMode" class="active">☀ Light</button><button id="darkMode">☾ Dark</button></div>
+    <div class="learner" id="learnerChip" hidden><span class="sync-dot" id="syncDot" aria-hidden="true"></span><span class="learner-email" id="learnerEmailText"></span><span class="muted" id="syncText" aria-live="polite"></span><button type="button" class="linkbtn" id="switchUser">Not you?</button></div>
+    <div class="seg" aria-label="Display theme"><button id="lightMode" class="active">☀ Light</button><button id="darkMode">☾ Dark</button></div>    
     <button class="btn" id="resetBtn" title="Clear saved progress">Reset progress</button>
   </div>
 </header>
 <section class="hero">
-  <div class="eyebrow">Welcome to the team!</div>
+  <div class="eyebrow">Welcome to the EMEA South team!</div>
   <h1>Your One-Stop<br>FDE Onboarding Field Guide</h1>
   <p>As you begin your journey with us, we've created a comprehensive FDE Onboarding Field Guide to support you through your first 30, 60 and 90 days. It's designed to accelerate your ramp-up, connect you with the right Slack channels and team meetings, and provide the essential resources, tools and guidance to become field-ready and successful.</p>
   <div class="hero-meta"><span class="pill">01 · 🐢 Beginner — Get field-ready</span><span class="pill">02 ·🚶 Intermediate — Build with confidence</span><span class="pill">03 · 🚀 Advanced — Own the agent harness, end to end.</span></div>
@@ -157,6 +203,7 @@ a.linkcard strong{color:var(--accent)}
     <button class="navitem" data-target="advanced" data-requires="intermediate"><span class="dot"></span>03 · 🚀 Advanced<span class="lock" aria-hidden="true">🔒</span></button>
     <button class="navitem" data-target="graduation" data-requires="advanced"><span class="dot"></span>🎓 Graduation<span class="lock" aria-hidden="true">🔒</span></button>
     <button class="navitem" data-target="learning"><span class="dot"></span>📚 Structured AI Learning</button>
+    <button class="navitem" data-target="improve"><span class="dot"></span>💡 Help Us Improve</button>
   </aside>
   <main class="content">
     <section class="section" id="start">
@@ -981,6 +1028,12 @@ sf project deploy start --source-dir force-app --target-org client-uat --test-le
         <a class="mini linkcard" href="https://trailhead.salesforce.com/credentials/datacloudconsultant" target="_blank" rel="noopener"><strong>Data 360 Consultant Certification ↗</strong><p>Prove your skills in data modelling, ingestion, harmonisation and activation with Salesforce Data 360 (Data Cloud).</p></a>
       </div>
     </section>
+
+    <section class="section" id="improve">
+      <div class="kicker">Feedback</div>
+      <h2>💡 Help Us Improve</h2>
+      <div class="outcome"><strong>Your input is always welcome</strong> Have feedback, suggestions or spotted something that needs updating? Please reach out to <a href="https://salesforce.enterprise.slack.com/team/U01GF16DT2Q" target="_blank" style="color: var(--accent);">@Tuan Abdeen</a>.</div>
+    </section>
   </main>
 </div>
 
@@ -1002,7 +1055,8 @@ const required={beginner:["a-req","b-node","b-java","b-git","b-gh","b-sf","i-ins
 let completed=JSON.parse(localStorage.getItem("fde-field-guide-progress")||"{}");
 let celebrated=JSON.parse(localStorage.getItem("fde-field-guide-celebrated")||"{}");
 let feedback=JSON.parse(localStorage.getItem("fde-field-guide-feedback")||"{}");
-function save(){localStorage.setItem("fde-field-guide-progress",JSON.stringify(completed));localStorage.setItem("fde-field-guide-celebrated",JSON.stringify(celebrated));}
+function stamp(on){return on?new Date().toISOString():false}
+function save(reason){localStorage.setItem("fde-field-guide-progress",JSON.stringify(completed));localStorage.setItem("fde-field-guide-celebrated",JSON.stringify(celebrated));if(typeof queueSync==="function")queueSync(reason);}
 function isDone(id){return !!completed[id]}
 function stageDone(s){return required[s].every(isDone)}
 function renderProgress(){
@@ -1040,13 +1094,13 @@ document.querySelectorAll(".section details").forEach(d=>d.addEventListener("tog
 function maybeCelebrate(s){
  if(stageDone(s)&&!celebrated[s]){celebrated[s]=true;save();showCelebration(s)}
 }
-document.querySelectorAll("[data-task]").forEach(el=>el.addEventListener("change",()=>{completed[el.dataset.task]=el.checked;save();renderProgress();const s=Object.keys(tasks).find(k=>tasks[k].includes(el.dataset.task));maybeCelebrate(s)}));
-document.querySelectorAll("[data-done]").forEach(el=>el.addEventListener("change",()=>{completed[el.dataset.done]=el.checked;save();renderProgress();const s=Object.keys(tasks).find(k=>tasks[k].includes(el.dataset.done));maybeCelebrate(s)}));
+document.querySelectorAll("[data-task]").forEach(el=>el.addEventListener("change",()=>{completed[el.dataset.task]=stamp(el.checked);save();renderProgress();const s=Object.keys(tasks).find(k=>tasks[k].includes(el.dataset.task));maybeCelebrate(s)}));
+document.querySelectorAll("[data-done]").forEach(el=>el.addEventListener("change",()=>{completed[el.dataset.done]=stamp(el.checked);save();renderProgress();const s=Object.keys(tasks).find(k=>tasks[k].includes(el.dataset.done));maybeCelebrate(s)}));
 function checkStage(s){if(stageDone(s)){maybeCelebrate(s);if(celebrated[s])showCelebration(s)}else{const left=required[s].filter(id=>!isDone(id)).length;alert(`Almost there! ${left} required task(s) remain in this stage. Complete the required checklist items to unlock the celebration.`)}}
 function showCelebration(s){const data=stages[s];document.getElementById("celebrateTitle").innerHTML=data.title+"<br>UNLOCKED!";document.getElementById("celebrateSub").textContent=data.sub;const conf=document.getElementById("confetti");conf.innerHTML="";for(let i=0;i<70;i++){let p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"%");p.style.setProperty("--h",Math.floor(Math.random()*360));p.style.setProperty("--r",Math.random()*360+"deg");p.style.setProperty("--d",2+Math.random()*3+"s");p.style.setProperty("--delay",-Math.random()*4+"s");p.style.setProperty("--drift",(Math.random()*240-120)+"px");conf.appendChild(p)}document.getElementById("celebration").classList.add("show")}
 function closeCelebration(){document.getElementById("celebration").classList.remove("show")}
 document.getElementById("celebration").addEventListener("click",e=>{if(e.target.id==="celebration")closeCelebration()});
-document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("Reset all onboarding checklists and stage celebrations in this browser?")){completed={};celebrated={};save();renderProgress()}});
+document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("Reset all onboarding checklists and stage celebrations in this browser? This also resets the progress record your onboarding leads see.")){completed={};celebrated={};milestones={};localStorage.setItem("fde-field-guide-milestones","{}");save("reset");renderProgress()}});
 document.getElementById("lightMode").onclick=()=>setTheme("light");document.getElementById("darkMode").onclick=()=>setTheme("dark");
 function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem("fde-field-guide-theme",t);document.getElementById("lightMode").classList.toggle("active",t==="light");document.getElementById("darkMode").classList.toggle("active",t==="dark")}
 setTheme(localStorage.getItem("fde-field-guide-theme")||"light");
@@ -1061,7 +1115,7 @@ document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",(
   let t;
   ta.addEventListener("input",()=>{
    feedback[id]=ta.value;growFb(ta);
-   localStorage.setItem("fde-field-guide-feedback",JSON.stringify(feedback));
+   localStorage.setItem("fde-field-guide-feedback",JSON.stringify(feedback));if(typeof queueSync==="function")queueSync("feedback");
    if(note){note.textContent="Saved ✓";note.classList.add("saved");clearTimeout(t);t=setTimeout(()=>{note.textContent="Autosaves to this browser.";note.classList.remove("saved");},1200);}
   });
  });
@@ -1270,7 +1324,119 @@ initTermDemo("vscTermScreen","vscTermReplay",[
     "🍺  visual-studio-code was successfully installed!"
   ]}
 ]);
-renderProgress();
+/* ===== Learner identity + one-time sign-in (optional central progress tracking) =====
+   This gates the guide behind a one-time work-email sign-in, stored on this browser.
+   To also sync progress to a central Google Sheet, publish a Google Apps Script web app
+   (deployment URL ends in /exec) and paste it into TRACKING.endpoint below. Leave it
+   blank and the guide still works, saving progress on this device only. */
+const TRACKING={
+ endpoint:"https://script.google.com/a/macros/salesforce.com/s/AKfycbwEbOe8l1YUCgSeoa5wcucSUNmNHzcwWR8BqZ-DwXSn2FYS4YVsslI7PLGnu7x6AH6J/exec",
+ emailDomain:"salesforce.com",
+ retryMs:30000
+};
+const LS={email:"fde-field-guide-email",milestones:"fde-field-guide-milestones",pending:"fde-field-guide-sync-pending"};
+let learnerEmail=localStorage.getItem(LS.email)||"";
+let milestones=JSON.parse(localStorage.getItem(LS.milestones)||"{}");
+let syncTimer=null,retryTimer=null,syncing=false,pendingReason="change";
+function stageOfTask(id){return Object.keys(tasks).find(k=>tasks[k].includes(id))||"other"}
+function stageLabel(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function currentStage(){const s=Object.keys(stages).find(k=>!stageDone(k));return s?stageLabel(s):"Graduated"}
+function updateMilestones(){const now=new Date().toISOString();for(const s of Object.keys(stages)){if(stageDone(s)&&!milestones[s])milestones[s]=now}localStorage.setItem(LS.milestones,JSON.stringify(milestones))}
+function buildPayload(reason){
+ updateMilestones();
+ const all=Object.values(tasks).flat(),doneCount=all.filter(isDone).length,st={};
+ for(const s of Object.keys(stages)){const req=required[s],d=req.filter(isDone).length;st[s]={pct:req.length?d/req.length:0,done:stageDone(s),completedAt:milestones[s]||""}}
+ const progress=Object.keys(completed).filter(id=>completed[id]).map(id=>({id,stage:stageOfTask(id),at:typeof completed[id]==="string"?completed[id]:""}));
+ return{action:"sync",reason,email:learnerEmail,sentAt:new Date().toISOString(),progress,
+  stats:{done:doneCount,total:all.length,overallPct:all.length?doneCount/all.length:0,currentStage:currentStage(),stages:st},
+  feedback:{beginner:feedback.beginner||"",intermediate:feedback.intermediate||"",advanced:feedback.advanced||""}};
+}
+function setSync(state,msg){const dot=document.getElementById("syncDot");if(!dot)return;dot.dataset.state=state;document.getElementById("syncText").textContent=msg}
+function renderLearner(){const chip=document.getElementById("learnerChip");chip.hidden=!learnerEmail;document.getElementById("learnerEmailText").textContent=learnerEmail;document.getElementById("learnerEmailText").title=learnerEmail}
+function queueSync(reason){
+ if(!learnerEmail)return;
+ if(reason==="reset"||pendingReason!=="reset")pendingReason=reason||"change";
+ localStorage.setItem(LS.pending,"1");
+ if(!TRACKING.endpoint){setSync("local","Saved on this device only");return}
+ setSync("saving","Saving…");
+ clearTimeout(syncTimer);syncTimer=setTimeout(pushSync,1200);
+}
+async function pushSync(){
+ clearTimeout(syncTimer);clearTimeout(retryTimer);
+ if(!learnerEmail||!TRACKING.endpoint)return;
+ if(syncing){syncTimer=setTimeout(pushSync,800);return}
+ syncing=true;const reason=pendingReason;pendingReason="change";
+ setSync("saving","Saving…");
+ try{
+  // Plain-text body keeps this a "simple" request, so Apps Script needs no CORS preflight.
+  const r=await fetch(TRACKING.endpoint,{method:"POST",body:JSON.stringify(buildPayload(reason))});
+  const d=await r.json();
+  if(d.ok){localStorage.removeItem(LS.pending);setSync("synced","Synced "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}))}
+  else setSync("error","Not synced: "+(d.error||"rejected"));
+ }catch(e){
+  if(reason==="reset")pendingReason="reset";
+  setSync("offline","Saved on this device · retrying");
+  retryTimer=setTimeout(pushSync,TRACKING.retryMs);
+ }finally{syncing=false}
+}
+async function pullRemote(){
+ if(!TRACKING.endpoint||!learnerEmail)return false;
+ try{
+  const r=await fetch(TRACKING.endpoint+"?action=get&email="+encodeURIComponent(learnerEmail));
+  const d=await r.json();if(!d.ok||!d.found)return false;
+  let changed=false;
+  (d.progress||[]).forEach(p=>{if(p&&p.id&&!completed[p.id]){completed[p.id]=p.at||new Date().toISOString();changed=true}});
+  Object.entries(d.milestones||{}).forEach(([s,at])=>{if(at&&(!milestones[s]||at<milestones[s])){milestones[s]=at;changed=true}});
+  if(changed){
+   Object.keys(stages).forEach(s=>{if(stageDone(s))celebrated[s]=true}); // don't replay old celebrations
+   localStorage.setItem("fde-field-guide-progress",JSON.stringify(completed));
+   localStorage.setItem("fde-field-guide-celebrated",JSON.stringify(celebrated));
+   localStorage.setItem(LS.milestones,JSON.stringify(milestones));
+  }
+  return changed;
+ }catch(e){return false}
+}
+async function startSession(isNew){
+ renderLearner();
+ if(!TRACKING.endpoint){setSync("local","Saved on this device only");return}
+ setSync("saving","Connecting…");
+ if(await pullRemote())renderProgress();
+ pendingReason=isNew?"signin":"open";pushSync();
+}
+/* The user types only the local part; the domain is fixed. We validate the local part,
+   tolerate a pasted full address on the right domain, then store username@domain. */
+function normalizeLocal(v){
+ v=v.trim().toLowerCase();
+ if(v.endsWith("@"+TRACKING.emailDomain))v=v.slice(0,-("@"+TRACKING.emailDomain).length);
+ return v;
+}
+function validateLocal(local){
+ if(!local)return"Enter the part of your email before @"+TRACKING.emailDomain+".";
+ if(local.includes("@"))return"Enter only the part before @"+TRACKING.emailDomain+" (for example name).";
+ if(!/^[a-z0-9._%+-]+$/.test(local))return"Use letters, numbers, dots, hyphens or underscores only.";
+ return"";
+}
+function showGate(){const d=document.getElementById("gateDomain");if(d)d.textContent="@"+TRACKING.emailDomain;document.getElementById("learnerGate").hidden=false;document.body.classList.add("gated");setTimeout(()=>document.getElementById("gateUser").focus(),60)}
+document.getElementById("gateForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const local=normalizeLocal(document.getElementById("gateUser").value),err=validateLocal(local);
+ document.getElementById("gateError").textContent=err;if(err)return;
+ learnerEmail=local+"@"+TRACKING.emailDomain;localStorage.setItem(LS.email,learnerEmail);
+ document.getElementById("learnerGate").hidden=true;document.body.classList.remove("gated");
+ startSession(true);
+});
+document.getElementById("switchUser").addEventListener("click",()=>{
+ if(!confirm("Sign out? Progress saved on this browser will be cleared. Anything already synced stays with your email."))return;
+ ["fde-field-guide-progress","fde-field-guide-celebrated","fde-field-guide-feedback",LS.milestones,LS.pending,LS.email].forEach(k=>localStorage.removeItem(k));
+ location.reload();
+});
+window.addEventListener("online",()=>{if(localStorage.getItem(LS.pending))pushSync()});
+window.addEventListener("pagehide",()=>{
+ if(!localStorage.getItem(LS.pending)||!learnerEmail||!TRACKING.endpoint)return;
+ try{fetch(TRACKING.endpoint,{method:"POST",body:JSON.stringify(buildPayload(pendingReason)),keepalive:true})}catch(e){}
+});
+function initIdentity(){if(learnerEmail)startSession(false);else showGate()}
+renderProgress();initIdentity();
 </script>
 </body>
 </html>
