@@ -1210,7 +1210,7 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <span class="tgt-chip credits">Credits: yes</span>
         <span class="tgt-chip data">SF rollback</span>
       </div>
-      <p class="sub">Use ACT for multi-turn evaluation as an unsupported internal practice tool.</p>
+      <p class="sub">Use ACT for multi-turn evaluation as an internal practice tool.</p>
       <div class="body" style="display:flex; flex-direction:column">
         <div class="act-grid">
           <div class="card act-card" style="border-top: 5px solid var(--test);">
@@ -1236,7 +1236,8 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
           <h3>When to use ACT vs. alternatives</h3>          
           <div class="note" style="margin-top:10px"><span class="k">Testing Center</span> takes a Conversation History column — earlier turns go in, the next reply is checked (last turn must be the agent).</div>
           <div class="note" style="margin-top:10px"><span class="k">ACT</span> simulates the whole multi-turn dialogue with a persona — frustrated customer, non-native speaker, distracted user.</div>          
-        </div>        
+        </div>      
+        <div class="note" style="margin-top:25px; border-left:4px solid var(--deploy); padding-left:12px"><span class="k">ℹ️ FDE only</span> Built by our FDE colleague <strong>Giuseppe Cardace</strong> — an intended for FDE use only. Not an official Salesforce product.</div>
     </div>
     <div class="pagenum">16</div>
   </section>
@@ -1720,7 +1721,7 @@ const NOTES = [
  "<b>Subsection divider.</b> Shift from strategy to tooling. Frame tools as an end-to-end workflow; deep-dive the ones with demos.",
  "<b>Manual exploration (Demo 1, ~90s).</b> Fastest loop, weakest memory. Simulation isolates from org data; live runs real actions on sandbox data. Read the trace every time. Demo: ask \"When is the Desert Lions match?\" → show trace (Discover_Sporting_Events) → ask a venue question (smoking / NL1 seating) → untick the guardrail and ask the weather to force an out-of-scope answer → re-tick. \"That out-of-scope answer is now a test case.\" Memory: ask \"how much are tickets?\" and watch the event carry over. Recovery: if live is slow, use the recording.",
  "<b>Batch/bulk (Demo 2, ~2 min).</b> One suite, hundreds of utterances, scored, comparable across versions. Three ways to create cases; sandboxes only (credits + CRM writes). Tests as code: YAML → AiEvaluationDefinition, junit for CI. Demo: generate ~20 cases, edit two, add a negative, run, open a FAILING result + scorer, compare runs. \"AI cases are a starting point — review like code.\"",
- "<b>ACT — multi-turn evaluation.</b> Unsupported internal practice tool for multi-turn evaluation. Left — DEFINE & SIMULATE: personas (background/goal/style), scenarios with context + custom variables, Autopilot generates multi-turn user responses, playlists scale agent × persona × scenario. Right — EVALUATE & VERIFY: deterministic field checks + model-based criteria, Responsible AI / business rules / conversational goals, transcript + before/after state snapshots, captured SF record changes roll back after chat. Use for state, tone, correction, social engineering, routing, complex goals — verify credits and external side effects before playlists.",
+ "<b>ACT — multi-turn evaluation.</b> internal practice tool for multi-turn evaluation. Left — DEFINE & SIMULATE: personas (background/goal/style), scenarios with context + custom variables, Autopilot generates multi-turn user responses, playlists scale agent × persona × scenario. Right — EVALUATE & VERIFY: deterministic field checks + model-based criteria, Responsible AI / business rules / conversational goals, transcript + before/after state snapshots, captured SF record changes roll back after chat. Use for state, tone, correction, social engineering, routing, complex goals — verify credits and external side effects before playlists.",
  "<b>Playwright (Demo 3, ~90s).</b> Testing Center checks the brain; Playwright checks what the customer sees (iframe, rich content, handoff). Assert loosely on text, strictly on UI. Capture the iframe selector with codegen. Demo headed: pass → forced failure → trace viewer. Flakiest demo — drop first if behind (keep the slide).",
  "<b>Automated testing (Python &amp; YAML).</b> Same idea as the CSV suite, run by a robot. A YAML file lists utterances + expected topic/action/key-facts; a Python script (Agent API or CLI) runs them, prints PASS/FAIL and exits non-zero so CI can gate the merge. Key moves: assert on meaning not exact strings; run each case N times and pass at a threshold (e.g. 4/5) to tolerate non-determinism; tag smoke vs full; Keep credentials in env vars, never in the repo.",
  "<b>Subsection divider.</b> Pivot from 'which tool' to 'what to test'. Counter the trap: coverage = diversity of scenarios/personas/data/outcomes, not number of prompts.",

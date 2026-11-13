@@ -1335,11 +1335,11 @@ initTermDemo("vscTermScreen","vscTermReplay",[
    (deployment URL ends in /exec) and paste it into TRACKING.endpoint below. Leave it
    blank and the guide still works, saving progress on this device only. */
 const TRACKING={
- endpoint:"https://script.google.com/a/macros/salesforce.com/s/AKfycbwEbOe8l1YUCgSeoa5wcucSUNmNHzcwWR8BqZ-DwXSn2FYS4YVsslI7PLGnu7x6AH6J/exec",
+ endpoint:"https://script.google.com/a/macros/salesforce.com/s/AKfycbzFtQQEaNPH_j4A1WXI_ndKdPwAjTGOJ9QuwMqFGrIKdTn6VfsWnJSODZjRcH6IQQvX/exec",
  emailDomain:"salesforce.com",
  retryMs:30000
 };
-const LS={email:"fde-field-guide-email",milestones:"fde-field-guide-milestones",pending:"fde-field-guide-sync-pending"};
+const LS={email:"fde-field-guide-email",milestones:"fde-field-guide-milestones",pending:"fde-field-guide-sync-pending",reason:"fde-field-guide-sync-reason"};
 let learnerEmail=localStorage.getItem(LS.email)||"";
 let milestones=JSON.parse(localStorage.getItem(LS.milestones)||"{}");
 let syncTimer=null,retryTimer=null,syncing=false,pendingReason="change";
@@ -1352,7 +1352,8 @@ function buildPayload(reason){
  const all=Object.values(tasks).flat(),doneCount=all.filter(isDone).length,st={};
  for(const s of Object.keys(stages)){const req=required[s],d=req.filter(isDone).length;st[s]={pct:req.length?d/req.length:0,done:stageDone(s),completedAt:milestones[s]||""}}
  const progress=Object.keys(completed).filter(id=>completed[id]).map(id=>({id,stage:stageOfTask(id),at:typeof completed[id]==="string"?completed[id]:""}));
- return{action:"sync",reason,email:learnerEmail,sentAt:new Date().toISOString(),progress,
+ const requestId=(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+"_"+Math.random().toString(36).slice(2));
+ return{action:"sync",requestId,reason,email:learnerEmail,sentAt:new Date().toISOString(),progress,
   stats:{done:doneCount,total:all.length,overallPct:all.length?doneCount/all.length:0,currentStage:currentStage(),stages:st},
   feedback:{beginner:feedback.beginner||"",intermediate:feedback.intermediate||"",advanced:feedback.advanced||""}};
 }
@@ -1362,6 +1363,7 @@ function queueSync(reason){
  if(!learnerEmail)return;
  if(reason==="reset"||pendingReason!=="reset")pendingReason=reason||"change";
  localStorage.setItem(LS.pending,"1");
+ localStorage.setItem(LS.reason,pendingReason);
  if(!TRACKING.endpoint){setSync("local","Saved on this device only");return}
  setSync("saving","Saving…");
  clearTimeout(syncTimer);syncTimer=setTimeout(pushSync,1200);
@@ -1371,21 +1373,34 @@ function pushSync(){
  if(!learnerEmail||!TRACKING.endpoint)return;
  const form=document.getElementById("fdeSyncForm"),field=document.getElementById("fdeSyncPayload");
  if(!form||!field){setSync("error","Sync form missing");return}
- const reason=pendingReason;pendingReason="change";
+ const reason=localStorage.getItem(LS.reason)||pendingReason;
  setSync("saving","Saving…");
  try{
   // Form POST = a navigation into the hidden iframe, so it carries the learner's Google
   // session and reaches a domain-restricted Apps Script. The response is cross-origin and
   // not readable, so this is fire-and-forget: assume success once the submit dispatches.
-  field.value=JSON.stringify(buildPayload(reason));
+  const payload=buildPayload(reason);field.value=JSON.stringify(payload);
   form.action=TRACKING.endpoint;
   form.submit();
-  localStorage.removeItem(LS.pending);
-  setSync("synced","Sent "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}));
+  window.fdePendingRequest=payload.requestId;
+  clearTimeout(retryTimer);
+  retryTimer=setTimeout(()=>{
+   if(window.fdePendingRequest===payload.requestId){window.fdePendingRequest="";setSync("error","No confirmation — will retry");retryTimer=setTimeout(pushSync,TRACKING.retryMs)}
+  },10000);
  }catch(e){
-  setSync("error","Could not send — check connection");
+  window.fdePendingRequest="";setSync("error","Could not send — will retry");retryTimer=setTimeout(pushSync,TRACKING.retryMs);
  }
 }
+// The Apps Script iframe returns an acknowledgement only after the write path completes.
+window.addEventListener("message",event=>{
+ const frame=document.getElementById("fdeSyncFrame");
+ if(!frame||event.source!==frame.contentWindow||!event.data||event.data.type!=="fde-sync-result")return;
+ const result=event.data.result||{};
+ if(!window.fdePendingRequest||result.requestId!==window.fdePendingRequest)return;
+ clearTimeout(retryTimer);window.fdePendingRequest="";
+ if(result.ok){localStorage.removeItem(LS.pending);localStorage.removeItem(LS.reason);pendingReason="change";setSync("synced","Saved "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}));}
+ else{localStorage.setItem(LS.pending,"1");setSync("error",result.error||"Save failed");retryTimer=setTimeout(pushSync,TRACKING.retryMs);}
+});
 async function pullRemote(){
  if(!TRACKING.endpoint||!learnerEmail)return false;
  try{
@@ -1407,8 +1422,10 @@ async function startSession(isNew){
  renderLearner();
  if(!TRACKING.endpoint){setSync("local","Saved on this device only");return}
  setSync("saving","Connecting…");
- if(await pullRemote())renderProgress();
- pendingReason=isNew?"signin":"open";pushSync();
+ const recoveringReset=localStorage.getItem(LS.pending)==="1"&&localStorage.getItem(LS.reason)==="reset";
+ if(!recoveringReset&&await pullRemote())renderProgress();
+ if(!localStorage.getItem(LS.pending)){pendingReason=isNew?"signin":"open";localStorage.setItem(LS.reason,pendingReason);localStorage.setItem(LS.pending,"1");}
+ pushSync();
 }
 /* The user types only the local part; the domain is fixed. We validate the local part,
    tolerate a pasted full address on the right domain, then store username@domain. */
@@ -1434,7 +1451,7 @@ document.getElementById("gateForm").addEventListener("submit",e=>{
 });
 document.getElementById("switchUser").addEventListener("click",()=>{
  if(!confirm("Sign out? Progress saved on this browser will be cleared. Anything already synced stays with your email."))return;
- ["fde-field-guide-progress","fde-field-guide-celebrated","fde-field-guide-feedback",LS.milestones,LS.pending,LS.email].forEach(k=>localStorage.removeItem(k));
+ ["fde-field-guide-progress","fde-field-guide-celebrated","fde-field-guide-feedback",LS.milestones,LS.pending,LS.reason,LS.email].forEach(k=>localStorage.removeItem(k));
  location.reload();
 });
 window.addEventListener("online",()=>{if(localStorage.getItem(LS.pending))pushSync()});
