@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Agentic Customer Assistant — Architecture Journey</title>
+<style>
+  :root{
+    --bg:#070a12;
+    --bg2:#0b1020;
+    --panel:#0e1526;
+    --panel2:#121b31;
+    --line:#1d2a44;
+    --ink:#eaf1ff;
+    --ink2:#9fb0d0;
+    --ink3:#6c7ea3;
+    --teal:#2ee6c9;
+    --teal2:#17b7a3;
+    --violet:#8b7bff;
+    --violet2:#6b5cff;
+    --amber:#ffc55c;
+    --red:#ff6b8b;
+    --glass:rgba(16,24,44,.72);
+    --shadow:0 20px 60px rgba(0,0,0,.55);
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow-x:clip}
+  body{
+    background:
+      radial-gradient(1200px 700px at 78% -10%, rgba(139,123,255,.16), transparent 60%),
+      radial-gradient(1100px 650px at 8% 110%, rgba(46,230,201,.12), transparent 55%),
+      linear-gradient(180deg,var(--bg),var(--bg2));
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{color:var(--teal)}
+  .wrap{position:relative;z-index:2}
+
+  /* ---------- starfield canvas ---------- */
+  #stars{position:fixed;inset:0;z-index:0;opacity:.6}
+
+  /* ---------- header ---------- */
+  header.top{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;align-items:center;gap:14px;
+    padding:14px 22px;
+    background:linear-gradient(180deg,rgba(7,10,18,.9),rgba(7,10,18,.35) 70%,transparent);
+    backdrop-filter:blur(8px);
+  }
+  .logo{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:.2px}
+  .logo .glyph{
+    width:34px;height:34px;border-radius:9px;position:relative;
+    background:linear-gradient(135deg,var(--teal),var(--violet));
+    box-shadow:0 0 22px rgba(46,230,201,.45);
+    display:grid;place-items:center;
+  }
+  .logo .glyph:before{content:"";width:13px;height:13px;border-radius:50%;background:#070a12;box-shadow:0 0 0 3px rgba(255,255,255,.1) inset}
+  .logo small{display:block;font-weight:500;color:var(--ink3);font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
+  .logo b{font-size:15px}
+  .top .spacer{flex:1}
+  .toolbtn{
+    display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+    border:1px solid var(--line);background:var(--glass);color:var(--ink);
+    padding:9px 13px;border-radius:10px;font-size:13px;font-weight:600;
+    transition:.18s;
+  }
+  .toolbtn:hover{border-color:var(--teal);box-shadow:0 0 0 1px rgba(46,230,201,.35),0 8px 24px rgba(0,0,0,.4);transform:translateY(-1px)}
+  .toolbtn .ic{width:16px;height:16px;display:inline-block}
+  .toolbtn.rocket:hover{border-color:var(--violet);box-shadow:0 0 0 1px rgba(139,123,255,.4),0 8px 24px rgba(0,0,0,.4)}
+
+  /* ---------- progress rail ---------- */
+  .rail{position:fixed;left:26px;top:0;bottom:0;width:2px;z-index:40;display:flex;align-items:center;pointer-events:none}
+  .rail .track{position:relative;width:2px;height:62vh;background:var(--line);border-radius:2px}
+  .rail .fill{position:absolute;top:0;left:0;width:2px;background:linear-gradient(180deg,var(--teal),var(--violet));border-radius:2px;height:0}
+  @media(max-width:900px){.rail{display:none}}
+
+  /* ---------- sections ---------- */
+  section.scene{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:120px 26px 90px;position:relative;
+  }
+  .scene-inner{width:min(1120px,100%);margin:0 auto}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;color:var(--teal);font-size:12.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 12px var(--teal)}
+  h1{font-size:clamp(34px,6vw,66px);line-height:1.02;margin:0 0 18px;font-weight:800;letter-spacing:-1.2px}
+  h1 .grad{background:linear-gradient(120deg,var(--teal),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-size:clamp(26px,4vw,42px);margin:0 0 12px;font-weight:800;letter-spacing:-.6px}
+  .lede{font-size:clamp(16px,2.1vw,20px);color:var(--ink2);max-width:680px;line-height:1.55}
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- hero ---------- */
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+  @media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:26px}}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+  .chip{font-size:12.5px;color:var(--ink2);border:1px solid var(--line);background:var(--panel);padding:7px 12px;border-radius:999px}
+  .chip b{color:var(--ink)}
+  .cta{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap}
+  .btn{
+    cursor:pointer;border:none;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:700;
+    background:linear-gradient(120deg,var(--teal),var(--teal2));color:#042019;transition:.18s;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(46,230,201,.3)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .btn.ghost:hover{border-color:var(--violet);box-shadow:0 12px 30px rgba(139,123,255,.25)}
+
+  /* hero diagram (the "3D" stack) */
+  .stackviz{position:relative;height:420px;perspective:1300px}
+  .stack3d{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(52deg) rotateZ(-38deg);display:grid;place-items:center}
+  .slab{
+    position:absolute;width:260px;height:150px;border-radius:16px;
+    border:1px solid var(--line);
+    background:linear-gradient(145deg,var(--panel2),var(--panel));
+    box-shadow:0 26px 40px rgba(0,0,0,.5);
+    display:flex;flex-direction:column;justify-content:flex-end;padding:14px 16px;
+    transition:transform .4s;
+  }
+  .slab .tag{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3);font-weight:700}
+  .slab .nm{font-size:16px;font-weight:800;margin-top:2px}
+  .slab .ac{position:absolute;top:12px;left:16px;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:15px}
+  .slab:before{content:"";position:absolute;inset:0;border-radius:16px;border-top:2px solid rgba(255,255,255,.07)}
+  @keyframes floaty{0%,100%{transform:translateZ(var(--z)) translateY(0)}50%{transform:translateZ(var(--z)) translateY(-8px)}}
+  .flow-dot{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--teal);box-shadow:0 0 16px var(--teal);z-index:5}
+
+  /* ---------- journey (horizontal stages) ---------- */
+  .stages{position:relative;margin-top:36px}
+  .stageline{position:absolute;left:0;right:0;top:40px;height:2px;background:var(--line)}
+  .stagerow{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;position:relative}
+  @media(max-width:900px){.stagerow{grid-template-columns:1fr 1fr;gap:16px}.stageline{display:none}}
+  .node{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 16px;cursor:pointer;
+    position:relative;transition:.22s;min-height:170px;display:flex;flex-direction:column;
+  }
+  .node:hover{transform:translateY(-6px);border-color:var(--teal);box-shadow:0 16px 40px rgba(0,0,0,.5)}
+  .node .num{
+    width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:15px;
+    background:linear-gradient(135deg,var(--teal),var(--violet));color:#05140f;margin-bottom:12px;
+  }
+  .node h3{margin:0 0 6px;font-size:16px;font-weight:800}
+  .node p{margin:0;color:var(--ink2);font-size:13px;line-height:1.5}
+  .node .plus{
+    position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;
+    border:1px solid var(--line);display:grid;place-items:center;color:var(--teal);font-size:18px;font-weight:700;
+    transition:.2s;
+  }
+  .node:hover .plus{background:var(--teal);color:#05140f;border-color:var(--teal);transform:rotate(90deg)}
+  .node .stk{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px;padding-top:12px}
+  .node .stk span{font-size:10.5px;color:var(--ink3);border:1px solid var(--line);border-radius:6px;padding:3px 7px}
+
+  /* ---------- feature grids ---------- */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+  @media(max-width:820px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;transition:.2s}
+  .card:hover{border-color:var(--violet);transform:translateY(-4px)}
+  .card .ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:20px;margin-bottom:14px;background:rgba(139,123,255,.14);border:1px solid rgba(139,123,255,.3)}
+  .card h3{margin:0 0 7px;font-size:17px}
+  .card p{margin:0;color:var(--ink2);font-size:13.5px;line-height:1.55}
+
+  /* stack layers */
+  .layers{display:grid;gap:12px;margin-top:28px}
+  .layer{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;transition:.2s}
+  .layer:hover{border-color:var(--teal)}
+  .layer .lh{font-weight:800;font-size:14px;color:var(--teal);letter-spacing:.3px}
+  .layer .lt{display:flex;flex-wrap:wrap;gap:8px}
+  .layer .lt span{font-size:12.5px;color:var(--ink);background:var(--panel2);border:1px solid var(--line);padding:6px 11px;border-radius:8px}
+  @media(max-width:640px){.layer{grid-template-columns:1fr;gap:10px}}
+
+  /* ---------- file structure ---------- */
+  .structure{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;margin-top:30px;align-items:start}
+  @media(max-width:860px){.structure{grid-template-columns:1fr}}
+  .tree{
+    background:#05070e;border:1px solid var(--line);border-radius:16px;padding:14px 8px 16px;
+    font-family:var(--mono);font-size:13px;line-height:1.9;max-height:520px;overflow:auto;box-shadow:var(--shadow);
+  }
+  .trow{
+    display:flex;align-items:center;gap:7px;padding:2px 12px;border-radius:7px;cursor:pointer;color:var(--ink2);
+    white-space:nowrap;transition:background .14s,color .14s;position:relative;
+  }
+  .trow:hover{background:var(--panel2);color:var(--ink)}
+  .trow.sel{background:linear-gradient(90deg,rgba(46,230,201,.16),rgba(139,123,255,.12));color:var(--ink)}
+  .trow.sel:before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:3px;border-radius:3px;background:linear-gradient(180deg,var(--teal),var(--violet))}
+  .trow .car{width:12px;display:inline-block;color:var(--ink3);transition:transform .18s;font-size:11px}
+  .trow.open .car{transform:rotate(90deg)}
+  .trow .ti{width:17px;display:inline-block;text-align:center}
+  .trow .tn{font-weight:500}
+  .trow .tn.dir{color:var(--teal)}
+  .trow .badge{margin-left:8px;font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink3);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+  .tchildren.collapsed{display:none}
+  .treehint{color:var(--ink3);font-size:11.5px;padding:4px 14px 0;font-family:var(--sans)}
+  .tdetail{
+    background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;
+    padding:22px;min-height:220px;position:sticky;top:96px;box-shadow:var(--shadow);
+  }
+  .tdetail .dh{display:flex;align-items:center;gap:12px}
+  .tdetail .dh .dic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:rgba(46,230,201,.12);border:1px solid rgba(46,230,201,.28);flex:none}
+  .tdetail .dh h3{margin:0;font-size:18px;font-family:var(--mono)}
+  .tdetail .dh .dt{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-top:2px;font-family:var(--sans)}
+  .tdetail .dp{color:var(--ink2);font-size:14px;line-height:1.6;margin:14px 0 0}
+  .tdetail .dmeta{margin-top:16px;display:flex;flex-wrap:wrap;gap:7px}
+  .tdetail .dmeta span{font-size:11px;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:5px 10px}
+  .tdetail .empty{color:var(--ink3);font-size:13.5px;line-height:1.6}
+
+  /* ---------- simulator ---------- */
+  .simwrap{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:30px;box-shadow:var(--shadow)}
+  .simq{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .simq button{cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;transition:.18s}
+  .simq button:hover{border-color:var(--teal)}
+  .simq button.active{background:linear-gradient(120deg,var(--teal),var(--violet));color:#05140f;border-color:transparent}
+  .pipeline{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:stretch}
+  @media(max-width:820px){.pipeline{grid-template-columns:1fr 1fr 1fr}}
+  @media(max-width:520px){.pipeline{grid-template-columns:1fr 1fr}}
+  .pstep{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 10px;text-align:center;position:relative;transition:.25s}
+  .pstep .pi{font-size:20px}
+  .pstep .pn{font-size:11.5px;font-weight:700;margin-top:6px}
+  .pstep .pd{font-size:10px;color:var(--ink3);margin-top:3px}
+  .pstep.lit{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal),0 10px 26px rgba(46,230,201,.22);background:linear-gradient(180deg,rgba(46,230,201,.12),var(--panel2))}
+  .pstep.done{border-color:var(--teal2)}
+  .console{margin-top:18px;background:#05070e;border:1px solid var(--line);border-radius:12px;padding:16px;font-family:var(--mono);font-size:12.5px;line-height:1.7;min-height:120px;color:var(--ink2);overflow:auto;max-height:230px}
+  .console .ln{opacity:0;transform:translateY(4px);transition:.3s}
+  .console .ln.show{opacity:1;transform:none}
+  .console .u{color:var(--teal)}
+  .console .k{color:var(--violet)}
+  .console .m{color:var(--amber)}
+  .console .ok{color:var(--teal)}
+  .simrun{display:flex;gap:10px;margin-top:16px;align-items:center}
+
+  /* ---------- modal ---------- */
+  .modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(3,5,10,.68);backdrop-filter:blur(6px)}
+  .modal.open{display:flex}
+  .sheet{width:min(760px,100%);max-height:86vh;overflow:auto;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+  .sheet .shead{position:sticky;top:0;background:linear-gradient(180deg,var(--panel2),rgba(18,27,49,.9));padding:22px 24px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:14px;z-index:2}
+  .sheet .shead .num{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--teal),var(--violet));color:#05140f;flex:none}
+  .sheet .shead h3{margin:0;font-size:22px}
+  .sheet .shead p{margin:3px 0 0;color:var(--ink2);font-size:13.5px}
+  .sheet .x{margin-left:auto;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink2);width:34px;height:34px;border-radius:10px;font-size:18px;flex:none}
+  .sheet .x:hover{border-color:var(--red);color:var(--red)}
+  .tabs{display:flex;gap:8px;padding:16px 24px 0}
+  .tabs button{cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink2);padding:9px 14px;border-radius:10px 10px 0 0;font-size:13px;font-weight:700;transition:.18s}
+  .tabs button.active{background:var(--panel);color:var(--teal);border-color:var(--line);border-bottom-color:var(--panel)}
+  .tabbody{padding:18px 24px 26px}
+  .tabpane{display:none}
+  .tabpane.active{display:block}
+  .tabpane h4{margin:18px 0 8px;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--teal)}
+  .tabpane h4:first-child{margin-top:0}
+  .tabpane p{color:var(--ink2);line-height:1.6;font-size:14px;margin:0 0 10px}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+  @media(max-width:560px){.kpis{grid-template-columns:1fr}}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .kpi b{font-size:22px;display:block;color:var(--ink);background:linear-gradient(120deg,var(--teal),var(--violet));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .kpi span{font-size:11.5px;color:var(--ink3)}
+  pre.code{background:#05070e;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#bcd;overflow:auto;margin:6px 0}
+  pre.code .c{color:var(--ink3)}
+  pre.code .g{color:var(--teal)}
+  .archlayers{display:grid;gap:10px}
+  .archlayers .al{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .archlayers .al .b{width:10px;height:38px;border-radius:4px;background:linear-gradient(180deg,var(--teal),var(--violet));flex:none}
+  .archlayers .al .t{font-size:13.5px}
+  .archlayers .al .t b{display:block;color:var(--ink)}
+  .archlayers .al .t span{color:var(--ink3);font-size:12px}
+  .reslist{list-style:none;padding:0;margin:0;display:grid;gap:9px}
+  .reslist li{display:flex;gap:11px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:13.5px}
+  .reslist li .ri{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:rgba(46,230,201,.12);flex:none}
+  .reslist li .meta{color:var(--ink3);font-size:11.5px}
+
+  /* ---------- roadmap ---------- */
+  .phases{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+  @media(max-width:820px){.phases{grid-template-columns:1fr}}
+  .phase{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;position:relative;overflow:hidden}
+  .phase:before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--violet))}
+  .phase .pt{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);font-weight:700}
+  .phase h3{margin:6px 0 10px;font-size:19px}
+  .phase ul{margin:0;padding-left:18px;color:var(--ink2);font-size:13.5px;line-height:1.7}
+
+  /* ---------- contact card ---------- */
+  .contact{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;background:linear-gradient(135deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;padding:26px;margin-top:34px;box-shadow:var(--shadow)}
+  @media(max-width:560px){.contact{grid-template-columns:1fr;text-align:center}}
+  .contact .avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--violet));display:grid;place-items:center;font-size:28px;font-weight:800;color:#05140f;margin:0 auto}
+  .contact h3{margin:0 0 4px;font-size:20px}
+  .contact p{margin:0;color:var(--ink2);font-size:14px}
+  .contact .links{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap}
+  @media(max-width:560px){.contact .links{justify-content:center}}
+
+  /* ---------- target architecture summary ---------- */
+  .tas{margin-top:40px}
+  .tas-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .tas-head h3{margin:0;font-size:24px;letter-spacing:-.2px}
+  .tas-head .tas-eyebrow{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);font-weight:700}
+  .tas-sub{color:var(--ink2);font-size:14px;margin:0 0 20px;max-width:70ch;line-height:1.6}
+  .tas-tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:0;margin-bottom:22px}
+  .tas-tabs button{cursor:pointer;border:1px solid transparent;background:transparent;color:var(--ink2);
+    padding:10px 15px;border-radius:11px 11px 0 0;font-size:13px;font-weight:700;transition:.18s;position:relative;white-space:nowrap}
+  .tas-tabs button:hover{color:var(--ink)}
+  .tas-tabs button.active{color:var(--teal);background:var(--panel);border-color:var(--line);border-bottom-color:var(--panel);margin-bottom:-1px}
+  .tas-tabs button .n{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-right:7px}
+  .tas-tabs button.active .n{color:var(--violet)}
+  .tas-pane{display:none;animation:tasFade .28s ease}
+  .tas-pane.active{display:block}
+  @keyframes tasFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .tas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+  .tas-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px;
+    position:relative;transition:.2s;overflow:hidden;display:flex;flex-direction:column;cursor:default}
+  .tas-card:hover{border-color:var(--violet);transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.4)}
+  .tas-card.rec{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal),0 16px 40px rgba(46,230,201,.14)}
+  .tas-card.rec:before{content:"★ Recommended";position:absolute;top:0;right:0;font-size:10.5px;font-weight:800;
+    letter-spacing:.6px;color:#05140f;background:linear-gradient(135deg,var(--teal),var(--violet));
+    padding:5px 12px;border-radius:0 16px 0 12px}
+  .tas-card h4{margin:0 0 3px;font-size:16.5px;display:flex;align-items:center;gap:8px}
+  .tas-card .tas-ic{font-size:17px}
+  .tas-card .tas-tag{font-family:var(--mono);font-size:10.5px;color:var(--ink3);letter-spacing:.3px;margin-bottom:12px;display:block}
+  .tas-pc{display:grid;gap:9px;margin-bottom:12px}
+  .tas-pc .row{font-size:12.6px;line-height:1.5;color:var(--ink2)}
+  .tas-pc .row .lab{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:10.5px;
+    letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+  .tas-pc .row.pro .lab{color:var(--teal)}
+  .tas-pc .row.con .lab{color:var(--red)}
+  .tas-pc .row.use .lab{color:var(--amber)}
+  .tas-pc .row ul{margin:2px 0 0;padding-left:16px}
+  .tas-pc .row li{margin:1px 0}
+  .tas-pc .row.use p{margin:1px 0 0;color:var(--ink2)}
+
+  .tas-rec{margin-top:18px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:flex-start;
+    background:linear-gradient(135deg,rgba(46,230,201,.10),rgba(139,123,255,.08));
+    border:1px solid var(--teal);border-radius:16px;padding:18px 20px}
+  @media(max-width:560px){.tas-rec{grid-template-columns:1fr}}
+  .tas-rec .badge{display:grid;place-items:center;min-width:46px;height:46px;border-radius:13px;
+    background:linear-gradient(135deg,var(--teal),var(--violet));color:#05140f;font-size:22px;flex:none}
+  .tas-rec .rtxt b{display:block;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
+  .tas-rec .rtxt .pick{font-size:17px;font-weight:800;color:var(--ink);margin-bottom:6px}
+  .tas-rec .rtxt .pick span{color:var(--teal)}
+  .tas-rec .rtxt p{margin:0;color:var(--ink2);font-size:13.6px;line-height:1.62}
+
+  /* ---------- dock ---------- */
+  .dock{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:60;
+    display:flex;gap:6px;background:var(--glass);border:1px solid var(--line);
+    backdrop-filter:blur(12px);border-radius:16px;padding:8px;box-shadow:var(--shadow);
+    max-width:calc(100% - 24px);overflow:auto;
+  }
+  .dock button{
+    cursor:pointer;border:none;background:transparent;color:var(--ink2);
+    font-size:12px;font-weight:700;padding:9px 13px;border-radius:10px;white-space:nowrap;transition:.16s;
+  }
+  .dock button:hover{color:var(--ink);background:var(--panel2)}
+  .dock button.active{color:#05140f;background:linear-gradient(120deg,var(--teal),var(--violet))}
+
+  .foot{color:var(--ink3);font-size:11.5px;text-align:center;padding:30px 20px 100px;line-height:1.7}
+  .srcbadge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink3);border:1px solid var(--line);border-radius:999px;padding:4px 9px}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<header class="top">
+  <div class="logo">
+    <span class="glyph"></span>
+    <span><small>AI Project</small><b>Agentic Customer Assistant</b></span>
+  </div>
+  <span class="spacer"></span>
+  <button class="toolbtn" id="btnHQ" title="Dive into governance &amp; guardrails">
+    <span class="ic">🛡️</span> Guardrails
+  </button>
+  <button class="toolbtn" id="btnTAS" title="Jump to the Target Architecture Summary">
+    <span class="ic">🧭</span> Architecture
+  </button>
+  <button class="toolbtn rocket" id="btnRoad" title="Open the roadmap">
+    <span class="ic">🚀</span> Roadmap
+  </button>
+</header>
+
+<div class="rail"><div class="track"><div class="fill" id="railfill"></div></div></div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="scene" id="s-hero" data-dock="Overview">
+    <div class="scene-inner">
+      <div class="hero-grid">
+        <div class="reveal">
+          <span class="eyebrow"><span class="dot"></span> Agentic AI · E-commerce support</span>
+          <h1>An AI agent that<br><span class="grad">resolves customer<br>questions end-to-end.</span></h1>
+          <p class="lede">A production-shaped customer-service agent: it reads intent, calls the right tools, queries live order data, retrieves policy from a RAG knowledge base, and answers — all behind enterprise guardrails.</p>
+          <div class="chips">
+            <span class="chip"><b>LangGraph</b> orchestration</span>
+            <span class="chip"><b>Gemini 2.5</b> Flash Lite</span>
+            <span class="chip"><b>FastAPI</b> + React</span>
+            <span class="chip"><b>PostgreSQL</b> + <b>Qdrant</b></span>
+          </div>
+          <div class="cta">
+            <button class="btn" id="ctaJourney">Walk the architecture ↓</button>
+            <button class="btn ghost" id="ctaSim">Run a live request</button>
+          </div>
+        </div>
+        <div class="reveal stackviz" aria-hidden="true">
+          <div class="stack3d" id="stack3d">
+            <div class="slab" style="--z:120px;animation:floaty 5s ease-in-out infinite" >
+              <span class="ac" style="background:rgba(46,230,201,.16)">💬</span>
+              <span class="tag">Presentation</span><span class="nm">React Client UI</span>
+            </div>
+            <div class="slab" style="--z:60px;animation:floaty 5s ease-in-out .4s infinite">
+              <span class="ac" style="background:rgba(139,123,255,.16)">🔌</span>
+              <span class="tag">API Gateway</span><span class="nm">FastAPI</span>
+            </div>
+            <div class="slab" style="--z:0px;animation:floaty 5s ease-in-out .8s infinite">
+              <span class="ac" style="background:rgba(255,197,92,.16)">🧠</span>
+              <span class="tag">Orchestrator</span><span class="nm">LangGraph Agent</span>
+            </div>
+            <div class="slab" style="--z:-60px;animation:floaty 5s ease-in-out 1.2s infinite">
+              <span class="ac" style="background:rgba(46,230,201,.16)">🛠️</span>
+              <span class="tag">Tools</span><span class="nm">Order · Policy</span>
+            </div>
+            <div class="slab" style="--z:-120px;animation:floaty 5s ease-in-out 1.6s infinite">
+              <span class="ac" style="background:rgba(139,123,255,.16)">🗄️</span>
+              <span class="tag">Data</span><span class="nm">PostgreSQL · Qdrant</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOURNEY -->
+  <section class="scene" id="s-journey" data-dock="Journey">
+    <div class="scene-inner reveal">
+      <span class="eyebrow"><span class="dot"></span> The build journey</span>
+      <h2>From infrastructure startup to agentic conversations</h2>
+      <p class="lede">Five stages take the project from empty repo to a working conversational agent. Click any stage to open its playbook — how it works, the stack layer, and the resources behind it.</p>
+      <div class="stages">
+        <div class="stageline"></div>
+        <div class="stagerow" id="stagerow"><!-- injected --></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STRUCTURE -->
+  <section class="scene" id="s-struct" data-dock="Structure">
+    <div class="scene-inner reveal">
+      <span class="eyebrow"><span class="dot"></span> AI Project structure</span>
+      <h2>How the repository is laid out</h2>
+      <p class="lede">The whole agent lives in one well-organised repo. Expand a folder to explore it, or click any file to see what it does — straight from the project structure.</p>
+      <div class="structure">
+        <div>
+          <div class="tree" id="tree"><!-- injected --></div>
+          <div class="treehint">▸ Click a folder to expand · click any item to see its role</div>
+        </div>
+        <div class="tdetail" id="tdetail">
+          <div class="empty">Select a file or folder from the tree to see what it holds. This mirrors <b style="color:var(--ink)">agentic-customer-assistant/</b> exactly as defined in the project.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAPABILITIES -->
+  <section class="scene" id="s-caps" data-dock="Capabilities">
+    <div class="scene-inner reveal">
+      <span class="eyebrow"><span class="dot"></span> What the agent can do</span>
+      <h2>Two reasoning paths, one assistant</h2>
+      <p class="lede">The agent interprets each message, decides whether it needs structured data or unstructured knowledge, and routes itself to the right tool.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="ic">🔎</div>
+          <h3>Structured lookups</h3>
+          <p>“Where is my order ORD-1001?” → the agent calls the Order tool, which runs a validated SQL query against PostgreSQL and returns live status.</p>
+        </div>
+        <div class="card">
+          <div class="ic">📚</div>
+          <h3>Policy retrieval (RAG)</h3>
+          <p>“What is the cancellation policy?” → hybrid search over Qdrant retrieves the right policy chunk and the agent answers, grounded in source documents.</p>
+        </div>
+        <div class="card">
+          <div class="ic">⚙️</div>
+          <h3>Action with approval</h3>
+          <p>“Can I cancel order ORD-1001?” → the agent combines order state and policy, then routes sensitive actions through human-in-the-loop review.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STACK -->
+  <section class="scene" id="s-stack" data-dock="Stack">
+    <div class="scene-inner reveal">
+      <span class="eyebrow"><span class="dot"></span> Tech stack overview</span>
+      <h2>A comprehensive, production-shaped stack</h2>
+      <p class="lede">Every layer maps to a well-understood, deployable technology — no bespoke magic.</p>
+      <div class="layers" id="layers"><!-- injected --></div>
+
+      <div class="tas reveal" id="tas">
+        <div class="tas-head">
+          <span class="tas-eyebrow">Target Architecture Summary</span>
+        </div>
+        <h3 style="margin:0 0 4px;font-size:24px;letter-spacing:-.2px">Choosing each layer, with trade-offs</h3>
+        <p class="tas-sub">For every decision point we compared the leading options on pros, cons and ideal use — then committed to a recommendation. Switch tabs to explore each layer; the recommended choice is starred and justified below each set.</p>
+        <div class="tas-tabs" id="tasTabs"><!-- injected --></div>
+        <div id="tasPanes"><!-- injected --></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULATOR -->
+  <section class="scene" id="s-sim" data-dock="Live demo">
+    <div class="scene-inner reveal">
+      <span class="eyebrow"><span class="dot"></span> Live request simulator</span>
+      <h2>Watch a message move through the stack</h2>
+      <p class="lede">Pick an utterance and run it. The request animates through each layer — UI → API → orchestrator → tool → data — with the trace in the console.</p>
+      <div class="simwrap">
+        <div class="simq" id="simq"></div>
+        <div class="pipeline" id="pipeline"></div>
+        <div class="simrun">
+          <button class="btn" id="runBtn">▶ Run request</button>
+          <span style="color:var(--ink3);font-size:12.5px" id="simhint">Choose a scenario above, then run.</span>
+        </div>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section class="scene" id="s-road" data-dock="Roadmap">
+    <div class="scene-inner reveal">
+      <span class="eyebrow"><span class="dot"></span> Where it goes next</span>
+      <h2>Roadmap</h2>
+      <p class="lede">A phased path from the working prototype to a governed, multi-domain assistant.</p>
+      <div class="phases">
+        <div class="phase">
+          <span class="pt">Phase 1 · Now</span>
+          <h3>Working prototype</h3>
+          <ul>
+            <li>Order status + policy RAG live</li>
+            <li>LangGraph orchestration, 3 scenarios</li>
+            <li>React UI, end-to-end locally</li>
+            <li>Core guardrails wired in</li>
+          </ul>
+        </div>
+        <div class="phase">
+          <span class="pt">Phase 2 · Next</span>
+          <h3>Harden &amp; expand</h3>
+          <ul>
+            <li>Cancellations &amp; returns as real actions</li>
+            <li>Eval suite + regression tests</li>
+            <li>Observability: traces &amp; audit logs</li>
+            <li>Auth, rate limits, PII masking at scale</li>
+          </ul>
+        </div>
+        <div class="phase">
+          <span class="pt">Phase 3 · Scale</span>
+          <h3>Multi-domain assistant</h3>
+          <ul>
+            <li>New tool domains (billing, logistics)</li>
+            <li>Multi-channel: web, email, chat</li>
+            <li>Cloud deploy, CI/CD, autoscaling</li>
+            <li>Continuous eval &amp; model routing</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="contact">
+        <div class="avatar" id="avatar">AI</div>
+        <div>
+          <h3>Agentic Customer Assistant</h3>
+          <p>Technical architecture pitch · built from the project structure deck.</p>
+          <div class="links">
+            <button class="toolbtn" id="ctaSim2">▶ Replay the demo</button>
+            <button class="toolbtn" onclick="document.getElementById('s-journey').scrollIntoView({behavior:'smooth'})">↺ Back to the journey</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        Figures and capabilities reflect the architecture described in the source deck. Model capabilities and availability may change — treat forward-looking items as roadmap, not commitments.
+        <br><br>
+        <span class="srcbadge">● Source: AI Project Structure deck — Agentic Customer Assistant</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- STAGE / GUARDRAILS MODAL -->
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="shead">
+      <div class="num" id="mNum">1</div>
+      <div><h3 id="mTitle">Title</h3><p id="mSub">Subtitle</p></div>
+      <button class="x" id="mClose">×</button>
+    </div>
+    <div class="tabs" id="mTabs">
+      <button data-t="adapt" class="active">Adaptation</button>
+      <button data-t="arch">Architecture</button>
+      <button data-t="res">Resources</button>
+    </div>
+    <div class="tabbody">
+      <div class="tabpane active" id="pane-adapt"></div>
+      <div class="tabpane" id="pane-arch"></div>
+      <div class="tabpane" id="pane-res"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DOCK -->
+<div class="dock" id="dock"></div>
+
+<script>
+/* ============================ DATA ============================ */
+const STAGES = [
+  {
+    n:1, key:"infra", icon:"🐳", title:"Start Infrastructure Services",
+    sub:"PostgreSQL + Qdrant via Docker Compose",
+    blurb:"Launch the relational and vector stores the agent depends on.",
+    stack:["Docker","PostgreSQL","Qdrant"],
+    adapt:{
+      challenge:"Before any reasoning happens, the agent needs somewhere to read structured order data and somewhere to search policy knowledge.",
+      how:"Docker Compose brings up PostgreSQL (relational storage) and Qdrant (vector storage for RAG) from the project root containing docker-compose.yml. One command, reproducible everywhere.",
+      who:"Platform / backend engineers setting up the environment.",
+      kpis:[["2","services up"],["1","command"],["0","manual DB setup"]]
+    },
+    arch:[
+      ["Infrastructure","Docker Compose orchestrates local services"],
+      ["Relational store","PostgreSQL holds orders & customer data"],
+      ["Vector store","Qdrant holds policy embeddings for RAG"]
+    ],
+    code:"<span class='c'># from the project root</span>\n$ docker compose up -d",
+    res:[["📦","docker-compose.yml","Services definition in repo root"],["🗄️","PostgreSQL","Relational storage"],["🔷","Qdrant","Vector DB for retrieval"]]
+  },
+  {
+    n:2, key:"data", icon:"🔗", title:"Test the Order Data Service",
+    sub:"Deterministic order-service validation",
+    blurb:"Confirm the service layer retrieves real order data before the agent touches it.",
+    stack:["Python","SQLAlchemy","Services"],
+    adapt:{
+      challenge:"Agents are only as trustworthy as the data beneath them. The deterministic service layer must be correct on its own.",
+      how:"A first application-level check calls OrderService().get_order_status('ORD-1001') directly — no LLM in the loop — to prove the data path works before wiring the agent on top.",
+      who:"Backend engineers; QA.",
+      kpis:[["100%","deterministic"],["0","LLM calls"],["1","source of truth"]]
+    },
+    arch:[
+      ["Services","order_service.py — deterministic business logic"],
+      ["Repositories","Typed data access over SQLAlchemy models"],
+      ["Database","PostgreSQL connection & seed data"]
+    ],
+    code:"$ uv run python -c \"from app.services.order_service \\\n  import OrderService; \\\n  print(OrderService().get_order_status('ORD-1001')\\\n  .model_dump())\"",
+    res:[["🧩","order_service.py","Deterministic business logic"],["🗃️","repositories.py","Typed data access"],["🌱","seed.py","Sample order data"]]
+  },
+  {
+    n:3, key:"agent", icon:"🧠", title:"Test the Order Agent",
+    sub:"Answer + tool-calling behaviour",
+    blurb:"Validate the agent reasons and calls the Order tool for an order-status question.",
+    stack:["LangGraph","Gemini","Tool calling"],
+    adapt:{
+      challenge:"The agent must decide — on its own — that an order-status question needs the Order tool, call it with the right arguments, and phrase a grounded answer.",
+      how:"OrderAgent().answer('Where is my order ORD-1001?') returns both a natural-language answer and the list of tool_invocations, so you can inspect exactly what the model decided to call.",
+      who:"AI engineers validating agent behaviour.",
+      kpis:[["1","tool selected"],["✓","grounded answer"],["100%","traceable"]]
+    },
+    arch:[
+      ["Reasoning model","Gemini 2.5 Flash Lite analyses input & decides tool calls"],
+      ["Agent logic","order_agent.py — execution loop & state"],
+      ["Tools","order_tool.py exposed to the model"]
+    ],
+    code:"$ uv run python -c \"from app.agent.order_agent \\\n  import OrderAgent; \\\n  r=OrderAgent().answer('Where is my order ORD-1001?');\\\n  print(r.answer); print(r.tool_invocations)\"",
+    res:[["🧠","order_agent.py","Core agent logic"],["🛠️","tools_registry.py","Tools the agent can call"],["📝","Prompts","Reasoning & instructions"]]
+  },
+  {
+    n:4, key:"orch", icon:"🕸️", title:"Test Agent Orchestration",
+    sub:"ConversationAgent · 3 scenarios",
+    blurb:"The full graph interprets intent, picks tools, mixes order actions + policy RAG.",
+    stack:["LangGraph","RAG","Planning"],
+    adapt:{
+      challenge:"Real conversations mix intents — a status check, a policy question, a cancellation. The orchestrator must interpret intent and compose the right tools per turn.",
+      how:"ConversationAgent().answer(...) is tested across three scenarios: order cancellation, cancellation-policy retrieval, and delivery-timeline retrieval — each returning the answer plus the tools it invoked.",
+      who:"AI engineers; product.",
+      kpis:[["3","scenarios"],["2","tool types"],["1","graph"]]
+    },
+    arch:[
+      ["Orchestrator","graph.py — LangGraph ConversationAgent"],
+      ["Order path","Order tool → PostgreSQL (SQL tool-calling)"],
+      ["Policy path","Policy tool → Qdrant hybrid RAG search"]
+    ],
+    code:"$ uv run python -c \"\n from app.agent.graph import ConversationAgent\n r = ConversationAgent().answer('Can I cancel order ORD-1001?')\n print(r.answer)\n for t in r.tool_invocations: print(t['name'], t['arguments'])\"",
+    res:[["🕸️","graph.py","Conversation orchestration"],["🔎","retriever.py","RAG retrieval"],["📄","policies/*.md","Cancellation · returns · shipping"]]
+  },
+  {
+    n:5, key:"ui", icon:"💬", title:"Run Through the React UI",
+    sub:"Backend + frontend, E2E",
+    blurb:"Validate the full conversational experience: UI → API → agent → tools → data.",
+    stack:["React","FastAPI","Vite"],
+    adapt:{
+      challenge:"Everything must come together as one experience a customer would actually use.",
+      how:"Start the backend (uvicorn on :8000) and the frontend (Vite on :5173), then test real utterances in the UI end-to-end — the request travels the whole stack and comes back as a grounded answer.",
+      who:"Full-stack engineers; demo & review.",
+      kpis:[[":8000","API"],[":5173","UI"],["E2E","validated"]]
+    },
+    arch:[
+      ["Frontend","React client UI (Vite dev server)"],
+      ["API","FastAPI exposes the agent (chat.py)"],
+      ["Full path","UI → API → agent → tools → data → answer"]
+    ],
+    code:"<span class='c'># Terminal 1 — Backend</span>\n$ cd backend\n$ uv run uvicorn app.main:app --reload   <span class='g'># :8000</span>\n\n<span class='c'># Terminal 2 — Frontend</span>\n$ cd frontend\n$ npm run dev                            <span class='g'># :5173</span>",
+    res:[["💬","React Client UI","Conversational front end"],["🔌","chat.py","FastAPI chat endpoint"],["🧪","Test utterances","“Where is my order ORD-1001?”"]]
+  }
+];
+
+const LAYERS = [
+  ["Foundations",["Python","JavaScript","Git"]],
+  ["LLM",["Gemini 2.5 Flash Lite"]],
+  ["AI Framework",["LangGraph"]],
+  ["Agent skills",["Prompt Engineering","Tool Calling","Planning","RAG","Reasoning"]],
+  ["Databases",["PostgreSQL","Qdrant Vector DB"]],
+  ["API",["FastAPI"]],
+  ["Deployment",["Docker"]]
+];
+
+const GUARDRAILS = {
+  n:"🛡️", title:"Guardrails & Governance", sub:"Enterprise controls wrapped around every agent action",
+  adapt:{
+    challenge:"An agent that can query data and take actions needs hard boundaries — on what it can access, what it can do, and what gets reviewed.",
+    how:"Five controls wrap the pipeline end to end: injection defence, least-privilege tool access, PII masking, human-in-the-loop for sensitive actions, and full audit/trace logging.",
+    who:"Security, platform, and compliance stakeholders.",
+    kpis:[["5","controls"],["HITL","on sensitive actions"],["100%","traced"]]
+  },
+  arch:[
+    ["Injection defence","Guards against prompt injection & malicious instructions"],
+    ["Least-privilege controls","Minimal permissions for the agent and its tools"],
+    ["PII masking","Protects personal data across processing & logging"],
+    ["Human-in-the-loop","Review / approval for sensitive actions"],
+    ["Audit & trace logs","Execution traces & audit records for accountability"]
+  ],
+  res:[["🛡️","Injection defence","Prompt-injection guardrails"],["🔐","Least privilege","Scoped tool permissions"],["🕵️","PII masking","Data protection in logs"],["🙋","Human-in-the-loop","Approval gates"],["🧾","Audit & trace","Accountability records"]]
+};
+
+/* ============================ RENDER ============================ */
+const el = s => document.querySelector(s);
+const ce = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+
+// Stage nodes
+const row = el('#stagerow');
+STAGES.forEach(st=>{
+  const n = ce('div','node');
+  n.innerHTML = `<span class="plus">+</span>
+    <span class="num">${st.n}</span>
+    <h3>${st.title}</h3>
+    <p>${st.blurb}</p>
+    <div class="stk">${st.stack.map(s=>`<span>${s}</span>`).join('')}</div>`;
+  n.onclick = ()=>openStage(st);
+  row.appendChild(n);
+});
+
+// Stack layers
+const lw = el('#layers');
+LAYERS.forEach(([h,items])=>{
+  const l = ce('div','layer');
+  l.innerHTML = `<div class="lh">${h}</div><div class="lt">${items.map(i=>`<span>${i}</span>`).join('')}</div>`;
+  lw.appendChild(l);
+});
+
+/* ============================ TARGET ARCHITECTURE SUMMARY ============================ */
+/* Each tab: {name, icon, options:[{name,icon,rec?,pros[],cons[],use}], rec:{pick, why}} */
+const TAS = [
+  {name:"Programming Languages", icon:"💻", options:[
+    {name:"Python", icon:"🐍", rec:true,
+      pros:["Richest AI/ML ecosystem — LangGraph, LlamaIndex, Hugging Face are Python-first","Fast to prototype; readable; vast talent pool","First-class SDKs from every model vendor"],
+      cons:["Slower raw runtime than compiled languages","Concurrency needs care (GIL) for CPU-bound work"],
+      use:"Agent backends, RAG pipelines, data/ML work, anything touching model SDKs."},
+    {name:"TypeScript", icon:"🟦",
+      pros:["One language across frontend + backend","Strong typing catches errors at compile time","Great for streaming UIs and edge/serverless"],
+      cons:["Thinner AI/agent library coverage than Python","Some frameworks lag their Python equivalents"],
+      use:"Full-stack apps, real-time chat UIs, edge functions, Node-based tool servers."},
+  ], rec:{pick:"Python 3.11+", why:"The agent core lives where the ecosystem is. LangGraph, the vendor SDKs, RAG tooling and the eval stack are all Python-first, and 3.11+ brings meaningful speedups plus better async and error messages. TypeScript stays the right call for the React UI — but the orchestration layer is Python."}},
+
+  {name:"Model Gateway", icon:"🧠", options:[
+    {name:"Anthropic", icon:"🟧", rec:true,
+      pros:["Strong reasoning + tool-use; long context","Leading safety posture and steerability","Excellent at structured / agentic workflows"],
+      cons:["No first-party open-weights to self-host","Fewer modalities than some rivals"],
+      use:"Agentic reasoning, tool orchestration, long-document and policy work."},
+    {name:"OpenAI", icon:"⚪",
+      pros:["Broad model range, mature tooling & function calling","Strong multimodal and realtime options","Huge community and integrations"],
+      cons:["Cost at scale; rate-limit management","Rapid deprecations require upkeep"],
+      use:"General-purpose assistants, multimodal, fast feature iteration."},
+    {name:"Google (Gemini)", icon:"🔵",
+      pros:["Very large context windows; competitive pricing","Flash tiers are fast and cheap for high volume","Tight GCP + Vertex integration"],
+      cons:["Agent/tool ecosystem less mature than rivals","Behaviour shifts across model revisions"],
+      use:"High-volume, cost-sensitive calls; long-context retrieval; GCP shops."},
+    {name:"Microsoft Azure AI Foundry", icon:"☁️",
+      pros:["Enterprise governance, SLAs, data residency","Access to OpenAI + open models in one plane","Fits existing Azure/AD estates"],
+      cons:["More setup and platform overhead","Abstractions can lag upstream model releases"],
+      use:"Regulated enterprises standardised on Azure needing compliance + choice."},
+    {name:"Hugging Face", icon:"🤗",
+      pros:["Open-weights catalogue; full self-host control","No per-token lock-in; fine-tune freely","Great for private / on-prem data"],
+      cons:["You own the MLOps, scaling and evals","Top open models still trail frontier closed models"],
+      use:"Self-hosted/on-prem, data-sovereignty needs, custom fine-tunes."},
+    {name:"Mistral AI", icon:"🟥",
+      pros:["Strong open + commercial models; EU-based","Efficient, low-latency smaller models","Flexible licensing, good price/performance"],
+      cons:["Smaller ecosystem; fewer turnkey tools","Frontier-task gap vs largest closed models"],
+      use:"EU data residency, cost-efficient inference, open-model deployments."},
+  ], rec:{pick:"Claude 3.5 Sonnet — or gemini-3.8-flash / GPT 5.6 Luna behind a router", why:"Route by job rather than marrying one vendor. Claude 3.5 Sonnet leads on the agentic reasoning and tool-use this assistant depends on; gemini-3.8-flash handles cheap high-volume and long-context calls; GPT 5.6 Luna is the versatile fallback. A thin gateway in front keeps the choice swappable and guards against any single provider's limits."}},
+
+  {name:"Agent Orchestration", icon:"🔗", options:[
+    {name:"LangChain", icon:"⛓️",
+      pros:["Huge library of integrations & loaders","Fast to assemble common chains","Big community, lots of examples"],
+      cons:["Abstractions can obscure control flow","Harder to reason about complex, stateful agents"],
+      use:"Quick prototypes, standard RAG chains, broad connector needs."},
+    {name:"LangGraph", icon:"🕸️", rec:true,
+      pros:["Explicit graph of state, nodes & edges — debuggable","First-class control: loops, branches, human-in-the-loop","Durable state & checkpointing for long runs"],
+      cons:["Steeper learning curve than simple chains","More upfront design for the graph"],
+      use:"Production multi-step agents, tool-calling with clear control flow, HITL."},
+    {name:"CrewAI", icon:"👥",
+      pros:["Clean multi-agent 'crew' abstraction","Fast to stand up role-based collaboration","Readable, high-level API"],
+      cons:["Less granular control than a state graph","Younger ecosystem; fewer prod patterns"],
+      use:"Multi-agent collaboration, role-playing task decomposition."},
+    {name:"LlamaIndex", icon:"🦙",
+      pros:["Best-in-class data ingestion & indexing","Rich retrievers, routers and query engines","Strong RAG-centric abstractions"],
+      cons:["Agent/control flow secondary to retrieval","Can overlap/compete with your orchestrator"],
+      use:"Retrieval-heavy pipelines, complex indexing, data-first RAG."},
+    {name:"AWS Bedrock", icon:"🟠",
+      pros:["Managed multi-model access + Agents/KB on AWS","Enterprise security, IAM, VPC integration","No infra to run"],
+      cons:["AWS lock-in; less portable","Managed agents less flexible than code-first graphs"],
+      use:"AWS-native enterprises wanting managed agents & guardrails."},
+  ], rec:{pick:"LangGraph", why:"An agent that calls tools, retrieves policy, and pauses for human approval needs control flow you can see and test. LangGraph models exactly that as an explicit state graph with checkpointing and native human-in-the-loop — so every branch is debuggable and every run is replayable. It already powers the working prototype; LlamaIndex can still sit underneath purely for retrieval."}},
+
+  {name:"RAG Engines", icon:"🔎", options:[
+    {name:"Qdrant", icon:"🟣", rec:true,
+      pros:["Open-source, self-host or managed cloud","Fast HNSW, rich payload filtering, hybrid search","Simple ops; strong Python client"],
+      cons:["Smaller managed footprint than Pinecone","You run infra if self-hosting"],
+      use:"Portable vector search with metadata filtering; hybrid retrieval."},
+    {name:"Pinecone", icon:"🌲",
+      pros:["Fully managed, serverless, scales effortlessly","Low-ops, reliable, good DX","Strong for very large indexes"],
+      cons:["Proprietary SaaS; per-usage cost & lock-in","No self-host option"],
+      use:"Teams wanting zero-ops managed vectors at large scale."},
+    {name:"Redis (Vector Search)", icon:"🔴",
+      pros:["Reuse existing Redis for vectors + cache","Very low latency; familiar operations","Combines KV, cache and vector in one store"],
+      cons:["Memory-bound cost at large scale","Fewer vector-specific features than dedicated DBs"],
+      use:"Low-latency retrieval where Redis is already in the stack."},
+  ], rec:{pick:"Qdrant", why:"It hits the sweet spot for this build: open-source so there's no lock-in, hybrid (semantic + keyword) search with rich payload filtering for policy metadata, and the choice of self-host now or managed cloud later. It's already wired into the prototype and scales without forcing a SaaS commitment."}},
+
+  {name:"Integration Protocols", icon:"🔌", options:[
+    {name:"FastAPI", icon:"⚡", rec:true,
+      pros:["Async, high-performance Python API framework","Pydantic validation + auto OpenAPI docs","Minimal boilerplate; great DX"],
+      cons:["Python-only","You design cross-service contracts yourself"],
+      use:"The HTTP surface exposing the agent to clients."},
+    {name:"MCP", icon:"🔗", rec:true,
+      pros:["Open standard for connecting agents to tools/data","Reusable, composable tool servers","Decouples tools from any one model/host"],
+      cons:["Young standard; evolving ecosystem","Extra server layer to run & secure"],
+      use:"Standardised, reusable tool & data connectors for the agent."},
+    {name:"GraphQL", icon:"◼️",
+      pros:["Client-specified queries; no over-fetching","Strong typed schema; great for rich frontends","Single endpoint for complex data graphs"],
+      cons:["Overhead for simple agent request/response","Caching & rate-limiting are harder"],
+      use:"Data-rich frontends needing flexible, typed queries."},
+  ], rec:{pick:"FastAPI + MCP", why:"Two protocols for two jobs. FastAPI exposes the agent over HTTP with async performance, Pydantic contracts and auto-generated docs; MCP standardises how the agent reaches its tools and data, so each connector is reusable and model-agnostic. Together they keep the external surface and the internal tool plane clean and independently evolvable. GraphQL isn't needed for this request/response shape."}},
+
+  {name:"Runtime Engines", icon:"⚙️", options:[
+    {name:"Docker", icon:"🐳",
+      pros:["Reproducible builds; parity dev→prod","Simple local compose for PostgreSQL + Qdrant","Universal, low-friction packaging"],
+      cons:["No native multi-node orchestration/scaling","Self-healing & rollout need extra tooling"],
+      use:"Local dev, CI, packaging services into images."},
+    {name:"Kubernetes", icon:"☸️", rec:true,
+      pros:["Autoscaling, self-healing, rolling deploys","Declarative infra; portable across clouds","Mature ecosystem for secrets, ingress, observability"],
+      cons:["Operational complexity & learning curve","Overkill for a single small service"],
+      use:"Production multi-service deployment, scale & resilience."},
+  ], rec:{pick:"Kubernetes", why:"Docker still packages every service — that doesn't change. But production needs autoscaling, self-healing and zero-downtime rollouts across the API, orchestrator and vector store, and Kubernetes gives that declaratively and portably across clouds. Build images with Docker; run and scale them on Kubernetes."}},
+
+  {name:"Observability & Evaluation", icon:"📈", options:[
+    {name:"LangSmith", icon:"🔬",
+      pros:["Deep tracing for LangChain/LangGraph","Datasets, evals and prompt playground","Polished managed UX"],
+      cons:["Proprietary SaaS; cost at scale","Best inside the LangChain ecosystem"],
+      use:"Teams all-in on LangChain wanting turnkey tracing + evals."},
+    {name:"Langfuse", icon:"🟩", rec:true,
+      pros:["Open-source, self-hostable tracing & analytics","Framework-agnostic; cost/latency/quality metrics","Prompt mgmt + eval hooks"],
+      cons:["You run it if self-hosting","Fewer built-in evaluators than specialised tools"],
+      use:"Portable, vendor-neutral tracing & production analytics."},
+    {name:"TruLens", icon:"🧪", rec:true,
+      pros:["Rich RAG/agent eval feedback functions","Groundedness, relevance, toxicity scoring","Open-source; pairs with any tracer"],
+      cons:["Evaluation-focused, not a full tracer","Needs wiring to a dashboard for monitoring"],
+      use:"Systematic quality evaluation of RAG & agent outputs."},
+  ], rec:{pick:"Langfuse + TruLens", why:"Observability and evaluation are two needs, best met by two open tools. Langfuse gives vendor-neutral, self-hostable tracing with cost/latency/quality analytics across every request; TruLens supplies the RAG- and agent-specific feedback functions — groundedness, relevance, toxicity — to score answer quality. Both are open-source, so nothing is locked to one orchestrator."}},
+
+  {name:"Workflow Automation", icon:"🔄", options:[
+    {name:"n8n", icon:"🟧", rec:true,
+      pros:["Open-source, self-hostable; fair-code licence","400+ integrations with code escape hatches","Great for AI + API glue and human approvals"],
+      cons:["You host & maintain it","Very high-scale flows need tuning"],
+      use:"Self-hosted automation linking the agent to business systems."},
+    {name:"Zapier", icon:"🟠",
+      pros:["Largest app catalogue; fastest no-code setup","Fully managed, zero ops","Huge template library"],
+      cons:["Proprietary SaaS; cost grows with task volume","Limited custom logic / self-host"],
+      use:"Quick business automations across many SaaS apps."},
+    {name:"Make", icon:"🟪",
+      pros:["Visual scenario builder; powerful branching","Strong price/performance vs task volume","Good for complex multi-step flows"],
+      cons:["Proprietary SaaS; no self-host","Steeper learning curve than simple triggers"],
+      use:"Visually-designed, logic-heavy automations at moderate scale."},
+  ], rec:{pick:"n8n", why:"Automation here wires the agent into real business systems — tickets, CRMs, notifications, approvals — so self-hostability and custom logic matter more than catalogue size. n8n is open-source, runs on your own infra beside the agent, and its code nodes handle anything the pre-built integrations don't. Zapier and Make stay useful for quick SaaS-only glue."}},
+];
+
+const tabsEl = el('#tasTabs'), panesEl = el('#tasPanes');
+TAS.forEach((tab,i)=>{
+  const btn = ce('button', i===0?'active':'');
+  btn.innerHTML = `<span class="n">${String(i+1).padStart(2,'0')}</span>${tab.name}`;
+  btn.dataset.i = i;
+  tabsEl.appendChild(btn);
+
+  const pane = ce('div','tas-pane'+(i===0?' active':''));
+  pane.dataset.i = i;
+  const cards = tab.options.map(o=>{
+    const pros = `<div class="row pro"><span class="lab">✓ Pros</span><ul>${o.pros.map(p=>`<li>${p}</li>`).join('')}</ul></div>`;
+    const cons = `<div class="row con"><span class="lab">✕ Cons</span><ul>${o.cons.map(c=>`<li>${c}</li>`).join('')}</ul></div>`;
+    const use  = `<div class="row use"><span class="lab">◆ Ideal use</span><p>${o.use}</p></div>`;
+    return `<div class="tas-card${o.rec?' rec':''}">
+      <h4><span class="tas-ic">${o.icon}</span>${o.name}</h4>
+      <div class="tas-pc">${pros}${cons}${use}</div>
+    </div>`;
+  }).join('');
+  pane.innerHTML = `<div class="tas-grid">${cards}</div>
+    <div class="tas-rec">
+      <div class="badge">★</div>
+      <div class="rtxt">
+        <b>Recommendation</b>
+        <div class="pick"><span>${tab.rec.pick}</span></div>
+        <p>${tab.rec.why}</p>
+      </div>
+    </div>`;
+  panesEl.appendChild(pane);
+});
+tabsEl.addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  const i = b.dataset.i;
+  tabsEl.querySelectorAll('button').forEach(x=>x.classList.toggle('active', x.dataset.i===i));
+  panesEl.querySelectorAll('.tas-pane').forEach(p=>p.classList.toggle('active', p.dataset.i===i));
+});
+
+/* ============================ FILE TREE (slide 1) ============================ */
+// type: dir|file ; desc shown in detail panel ; meta = small tags
+const TREE = {
+  name:"agentic-customer-assistant/", type:"dir", icon:"📁", open:true,
+  desc:"The project root — one self-contained repository for the entire Agentic Customer Assistant.",
+  children:[
+    {name:"README.md", type:"file", icon:"📘", desc:"Project overview, setup, usage and examples.", meta:["docs"]},
+    {name:".env", type:"file", icon:"🔑", desc:"Environment variables and API keys. Never commit to GitHub.", meta:["secrets","git-ignored"]},
+    {name:".gitignore", type:"file", icon:"🚫", desc:"Tells Git which files / folders to ignore.", meta:["git"]},
+    {name:"docker-compose.yml", type:"file", icon:"🐳", desc:"Optional: run local services like PostgreSQL, Qdrant Vector DB, etc.", meta:["infra","docker"]},
+    {name:"backend/", type:"dir", icon:"📁", desc:"Source code for the AI Agent.", meta:["source"], children:[
+      {name:"app/", type:"dir", icon:"📁", desc:"Application package: entry point and configuration.", meta:["package"], children:[
+        {name:"agent/", type:"dir", icon:"🧠", desc:"Core agent logic, execution loop, state management and memory. LangGraph, Prompts, Registry.", meta:["LangGraph","core"], children:[
+          {name:"__init__.py", type:"file", icon:"🐍", desc:"Marks the agent package.", meta:["python"]},
+          {name:"graph.py", type:"file", icon:"🕸️", desc:"The LangGraph ConversationAgent — orchestrates intent, tools and responses.", meta:["orchestrator"]},
+          {name:"llm.py", type:"file", icon:"✨", desc:"Reasoning model wiring (Gemini 2.5 Flash Lite).", meta:["LLM"]},
+          {name:"order_agent.py", type:"file", icon:"🤖", desc:"Order-focused agent: answers + tool-calling for order questions.", meta:["agent"]},
+          {name:"tools_registry.py", type:"file", icon:"🗂️", desc:"Registry of the tools the agent is allowed to call.", meta:["tools"]}
+        ]},
+        {name:"api/", type:"dir", icon:"🔌", desc:"API layer to expose the agent (FastAPI).", meta:["FastAPI"], children:[
+          {name:"__init__.py", type:"file", icon:"🐍", desc:"Marks the api package.", meta:["python"]},
+          {name:"chat.py", type:"file", icon:"💬", desc:"The chat endpoint — receives messages, returns agent replies.", meta:["endpoint"]},
+          {name:"dependencies.py", type:"file", icon:"🔗", desc:"Shared FastAPI dependencies (injection, context).", meta:["di"]},
+          {name:"health.py", type:"file", icon:"❤️", desc:"Health-check endpoint for liveness / readiness.", meta:["ops"]},
+          {name:"schemas.py", type:"file", icon:"📐", desc:"Request / response Pydantic schemas.", meta:["contracts"]}
+        ]},
+        {name:"database/", type:"dir", icon:"🗄️", desc:"SQLAlchemy models, connection, repositories, seed.", meta:["PostgreSQL"], children:[
+          {name:"__init__.py", type:"file", icon:"🐍", desc:"Marks the database package.", meta:["python"]},
+          {name:"connection.py", type:"file", icon:"🔌", desc:"Database engine & session connection.", meta:["db"]},
+          {name:"models.py", type:"file", icon:"🧱", desc:"SQLAlchemy ORM models (orders, customers).", meta:["ORM"]},
+          {name:"repositories.py", type:"file", icon:"🗃️", desc:"Typed data-access layer over the models.", meta:["data access"]},
+          {name:"seed.py", type:"file", icon:"🌱", desc:"Seeds sample order data for local dev & demos.", meta:["seed"]}
+        ]},
+        {name:"rag/", type:"dir", icon:"🔎", desc:"Retrieval: embeddings, ingestion, retriever.", meta:["RAG","Qdrant"], children:[
+          {name:"__init__.py", type:"file", icon:"🐍", desc:"Marks the rag package.", meta:["python"]},
+          {name:"embeddings.py", type:"file", icon:"🔡", desc:"Turns text into vectors for semantic search.", meta:["embeddings"]},
+          {name:"ingest.py", type:"file", icon:"📥", desc:"Chunks & indexes policy documents into Qdrant.", meta:["ingestion"]},
+          {name:"retriever.py", type:"file", icon:"🎯", desc:"Hybrid (exact + semantic) retrieval over the vector store.", meta:["retrieval"]}
+        ]},
+        {name:"services/", type:"dir", icon:"⚙️", desc:"Deterministic business logic (order service).", meta:["logic"], children:[
+          {name:"__init__.py", type:"file", icon:"🐍", desc:"Marks the services package.", meta:["python"]},
+          {name:"order_service.py", type:"file", icon:"🧩", desc:"Deterministic order business logic — validated, no LLM in the loop.", meta:["deterministic"]}
+        ]},
+        {name:"tools/", type:"dir", icon:"🛠️", desc:"Tool definitions the agent can use (Order, Policy).", meta:["tools"], children:[
+          {name:"__init__.py", type:"file", icon:"🐍", desc:"Marks the tools package.", meta:["python"]},
+          {name:"order_tool.py", type:"file", icon:"📦", desc:"Order tool — queries order status / actions via the service layer.", meta:["Order tool"]},
+          {name:"policy_tool.py", type:"file", icon:"📜", desc:"Policy tool — RAG search over the policy knowledge base.", meta:["Policy tool"]}
+        ]}
+      ]}
+    ]},
+    {name:"tests/", type:"dir", icon:"🧪", desc:"Unit tests, integration tests, and evaluation tests.", meta:["quality"], children:[]},
+    {name:"data/", type:"dir", icon:"🗂️", desc:"Sample data, knowledge base and evaluation datasets.", meta:["data"], children:[
+      {name:"policies/", type:"dir", icon:"📚", desc:"Policy documents — the RAG knowledge base.", meta:["RAG source"], children:[
+        {name:"cancellation-policy.md", type:"file", icon:"📄", desc:"Cancellation rules — retrieved when customers ask about cancelling.", meta:["policy"]},
+        {name:"returns-policy.md", type:"file", icon:"📄", desc:"Returns rules — retrieved for return questions.", meta:["policy"]},
+        {name:"shipping-policy.md", type:"file", icon:"📄", desc:"Shipping & delivery rules — retrieved for timeline questions.", meta:["policy"]}
+      ]}
+    ]}
+  ]
+};
+
+const treeEl = el('#tree');
+let selectedRow = null;
+function showDetail(node){
+  const d = el('#tdetail');
+  d.innerHTML =
+    `<div class="dh">
+       <span class="dic">${node.icon||(node.type==='dir'?'📁':'📄')}</span>
+       <div><h3>${node.name}</h3><div class="dt">${node.type==='dir'?'Folder':'File'}</div></div>
+     </div>
+     <p class="dp">${node.desc||''}</p>
+     ${node.meta&&node.meta.length?`<div class="dmeta">${node.meta.map(m=>`<span>${m}</span>`).join('')}</div>`:''}`;
+}
+const COLLAPSED_ON_LOAD = ['agent/','api/','database/','rag/','services/','tools/','policies/'];
+function renderTree(node, depth){
+  const wrap = document.createElement('div');
+  const row = document.createElement('div');
+  const startOpen = !COLLAPSED_ON_LOAD.includes(node.name); /* expand all except listed folders */
+  row.className = 'trow'+(startOpen?' open':'');
+  const isDir = node.type==='dir' && node.children;
+  const pad = 6 + depth*16;
+  row.style.paddingLeft = pad+'px';
+  row.innerHTML =
+    `<span class="car">${isDir?'▸':''}</span>`+
+    `<span class="ti">${node.icon||(node.type==='dir'?'📁':'📄')}</span>`+
+    `<span class="tn ${node.type==='dir'?'dir':''}">${node.name}</span>`+
+    (node.meta&&node.meta[0]&&depth>0&&node.type==='file'?`<span class="badge">${node.meta[0]}</span>`:'');
+  wrap.appendChild(row);
+
+  let kids=null;
+  if(isDir && node.children.length){
+    kids = document.createElement('div');
+    kids.className = 'tchildren'+(startOpen?'':' collapsed');
+    node.children.forEach(c=>kids.appendChild(renderTree(c, depth+1)));
+    wrap.appendChild(kids);
+  }
+  row.onclick = (e)=>{
+    e.stopPropagation();
+    if(selectedRow) selectedRow.classList.remove('sel');
+    row.classList.add('sel'); selectedRow=row;
+    showDetail(node);
+    if(kids){
+      const collapsed = kids.classList.toggle('collapsed');
+      row.classList.toggle('open', !collapsed);
+    }
+  };
+  return wrap;
+}
+treeEl.appendChild(renderTree(TREE, 0));
+
+/* ============================ MODAL ============================ */
+const modal = el('#modal');
+function paneArch(arr){
+  return `<div class="archlayers">${arr.map(([a,b])=>`<div class="al"><span class="b"></span><span class="t"><b>${a}</b><span>${b}</span></span></div>`).join('')}</div>`;
+}
+function paneRes(arr){
+  return `<ul class="reslist">${arr.map(([i,t,m])=>`<li><span class="ri">${i}</span><span><b>${t}</b><div class="meta">${m}</div></span></li>`).join('')}</ul>`;
+}
+function openStage(st){
+  el('#mNum').textContent = st.n;
+  el('#mNum').style.visibility='visible';
+  el('#mTitle').textContent = st.title;
+  el('#mSub').textContent = st.sub;
+  const a = st.adapt;
+  el('#pane-adapt').innerHTML =
+    `<h4>The challenge</h4><p>${a.challenge}</p>
+     <h4>How it works</h4><p>${a.how}</p>
+     ${st.code?`<pre class="code">${st.code}</pre>`:''}
+     <h4>Who uses it</h4><p>${a.who}</p>
+     <div class="kpis">${a.kpis.map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join('')}</div>`;
+  el('#pane-arch').innerHTML = `<h4>Architecture by layer</h4>${paneArch(st.arch)}`;
+  el('#pane-res').innerHTML = `<h4>Resources</h4>${paneRes(st.res)}`;
+  switchTab('adapt');
+  modal.classList.add('open');
+}
+function openGuard(){
+  const g = GUARDRAILS;
+  el('#mNum').textContent = '🛡';
+  el('#mTitle').textContent = g.title;
+  el('#mSub').textContent = g.sub;
+  const a=g.adapt;
+  el('#pane-adapt').innerHTML =
+    `<h4>The challenge</h4><p>${a.challenge}</p>
+     <h4>How it works</h4><p>${a.how}</p>
+     <h4>Who cares</h4><p>${a.who}</p>
+     <div class="kpis">${a.kpis.map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join('')}</div>`;
+  el('#pane-arch').innerHTML = `<h4>The five controls</h4>${paneArch(g.arch)}`;
+  el('#pane-res').innerHTML = `<h4>Controls</h4>${paneRes(g.res)}`;
+  switchTab('adapt');
+  modal.classList.add('open');
+}
+function switchTab(t){
+  document.querySelectorAll('#mTabs button').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+  ['adapt','arch','res'].forEach(p=>el('#pane-'+p).classList.toggle('active',p===t));
+}
+document.querySelectorAll('#mTabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.t));
+el('#mClose').onclick = ()=>modal.classList.remove('open');
+modal.onclick = e=>{if(e.target===modal)modal.classList.remove('open')};
+el('#btnHQ').onclick = openGuard;
+
+/* ============================ SIMULATOR ============================ */
+const SCENARIOS = [
+  {
+    id:"status", label:"Where is my order ORD-1001?",
+    path:["Order tool","PostgreSQL (SQL)"],
+    steps:[
+      ["💬","React UI","user message"],
+      ["🔌","FastAPI","HTTP POST"],
+      ["🧠","LangGraph","analyse intent"],
+      ["🛠️","Order tool","tool-calling"],
+      ["🗄️","PostgreSQL","SQL query"],
+      ["✅","Answer","grounded reply"]
+    ],
+    log:[
+      ["u","user ▸ Where is my order ORD-1001?"],
+      ["k","POST /chat  →  FastAPI gateway"],
+      ["k","LangGraph ▸ reasoning model analyses intent"],
+      ["m","decide ▸ tool = get_order_status(order_id='ORD-1001')"],
+      ["k","Order tool ▸ SQL SELECT on orders"],
+      ["ok","<span style=\"color:#ffc55c\">PostgreSQL ▸ status=IN_TRANSIT · eta=2 days</span>"],
+      ["ok","agent ▸ “Your order ORD-1001 has been shipped via DHL with tracking number DHL123456789. It is currently estimated to be delivered by 2026-10-31.”"]
+    ]
+  },
+  {
+    id:"policy", label:"What is the cancellation policy?",
+    path:["Policy tool","Qdrant (RAG)"],
+    steps:[
+      ["💬","React UI","user message"],
+      ["🔌","FastAPI","HTTP POST"],
+      ["🧠","LangGraph","analyse intent"],
+      ["🛠️","Policy tool","RAG search"],
+      ["🔷","Qdrant","hybrid search"],
+      ["✅","Answer","grounded reply"]
+    ],
+    log:[
+      ["u","user ▸ What is the cancellation policy?"],
+      ["k","POST /chat  →  FastAPI gateway"],
+      ["k","LangGraph ▸ reasoning model analyses intent"],
+      ["m","decide ▸ tool = policy_search('cancellation')"],
+      ["k","Retriever ▸ embed query → hybrid search"],
+      ["ok","<span style=\"color:#ffc55c\">Qdrant ▸ match: cancellation-policy.md (score 0.91)</span>"],
+      ["ok","agent ▸ You can cancel an order free of charge at any time while its status is still PROCESSING, before it has shipped. Once an order has shipped, it can no longer be cancelled; however, you can wait for delivery and then request a return under our Returns Policy.<br><br>When an eligible order is cancelled before shipment, a full refund is issued to your original payment method within 5 to 7 business days, with no cancellation fee charged.<br><br>To cancel an eligible order, you can use the self-service option in your account under “My Orders” or contact customer support with your order ID."]
+    ]
+  },
+  {
+    id:"cancel", label:"Can I cancel order ORD-1001?",
+    path:["Order + Policy","Human-in-the-loop"],
+    steps:[
+      ["💬","React UI","user message"],
+      ["🔌","FastAPI","HTTP POST"],
+      ["🧠","LangGraph","plan: 2 tools"],
+      ["🛠️","Order+Policy","compose"],
+      ["🙋","HITL","approval gate"],
+      ["✅","Answer","safe reply"]
+    ],
+    log:[
+      ["u","user ▸ Can I cancel order ORD-1001?"],
+      ["k","POST /chat  →  FastAPI gateway"],
+      ["k","LangGraph ▸ plan ▸ needs order state + policy"],
+      ["m","tool ▸ get_order_status('ORD-1001') = IN_TRANSIT"],
+      ["m","tool ▸ policy_search('cancellation') = eligible < 24h"],
+      ["m","guardrail ▸ sensitive action → human-in-the-loop review"],
+      ["ok","agent ▸ Order ORD-1001 has already been shipped (via DHL, tracking number DHL123456789) and can no longer be cancelled.<br><br>According to our cancellation policy, once an order has shipped, it cannot be cancelled. You will need to wait for delivery and then you may request a return under our Returns Policy."]
+    ]
+  }
+];
+
+let activeScenario = SCENARIOS[0];
+const simq = el('#simq');
+SCENARIOS.forEach((sc,i)=>{
+  const b = ce('button',i===0?'active':'',sc.label);
+  b.onclick = ()=>{activeScenario=sc;document.querySelectorAll('#simq button').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderPipeline();el('#console').innerHTML='';el('#simhint').textContent='Ready — hit Run request.';};
+  simq.appendChild(b);
+});
+function renderPipeline(){
+  const p = el('#pipeline'); p.innerHTML='';
+  activeScenario.steps.forEach(([i,n,d])=>{
+    p.appendChild(ce('div','pstep',`<div class="pi">${i}</div><div class="pn">${n}</div><div class="pd">${d}</div>`));
+  });
+}
+renderPipeline();
+
+let running=false;
+function runSim(){
+  if(running) return; running=true;
+  const steps = [...document.querySelectorAll('#pipeline .pstep')];
+  const con = el('#console'); con.innerHTML='';
+  steps.forEach(s=>s.classList.remove('lit','done'));
+  el('#simhint').textContent='Running…';
+  const total = activeScenario.log.length;
+  let i=0;
+  const tick=()=>{
+    if(i>0 && i-1<steps.length) steps[i-1].classList.add('done');
+    if(i<total){
+      if(i<steps.length) steps[i].classList.add('lit');
+      const [cls,txt]=activeScenario.log[i];
+      const ln=ce('div','ln '+cls); ln.innerHTML=txt.replace(/▸/g,'<span style="color:var(--ink3)">▸</span>');
+      con.appendChild(ln); requestAnimationFrame(()=>ln.classList.add('show'));
+      con.scrollTop=con.scrollHeight;
+      i++; setTimeout(tick,620);
+    } else {
+      steps.forEach(s=>{s.classList.remove('lit');s.classList.add('done')});
+      el('#simhint').textContent='Done ✓ — pick another scenario or re-run.';
+      running=false;
+    }
+  };
+  tick();
+}
+el('#runBtn').onclick = runSim;
+el('#ctaSim').onclick = ()=>{el('#s-sim').scrollIntoView({behavior:'smooth'});setTimeout(runSim,700);};
+el('#ctaSim2').onclick = ()=>{el('#s-sim').scrollIntoView({behavior:'smooth'});setTimeout(runSim,700);};
+el('#ctaJourney').onclick = ()=>el('#s-journey').scrollIntoView({behavior:'smooth'});
+el('#btnRoad').onclick = ()=>el('#s-road').scrollIntoView({behavior:'smooth'});
+el('#btnTAS').onclick = ()=>{
+  const t = el('#tas');
+  const y = t.getBoundingClientRect().top + window.pageYOffset - 70; /* clear fixed header */
+  window.scrollTo({top:y, behavior:'smooth'});
+};
+
+/* ============================ DOCK + SCROLL ============================ */
+const scenes = [...document.querySelectorAll('section.scene')];
+const dock = el('#dock');
+scenes.forEach((s,i)=>{
+  const b = ce('button',i===0?'active':'',s.dataset.dock);
+  b.onclick = ()=>s.scrollIntoView({behavior:'smooth'});
+  dock.appendChild(b);
+});
+const dockBtns = [...dock.children];
+
+const io = new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.querySelectorAll('.reveal').forEach(r=>r.classList.add('in'));
+      const idx = scenes.indexOf(e.target);
+      dockBtns.forEach((b,i)=>b.classList.toggle('active',i===idx));
+    }
+  });
+},{threshold:.35});
+scenes.forEach(s=>io.observe(s));
+
+// progress rail
+const railfill = el('#railfill');
+addEventListener('scroll',()=>{
+  const h = document.documentElement.scrollHeight - innerHeight;
+  const p = Math.min(1, scrollY/Math.max(1,h));
+  railfill.style.height = (p*100)+'%';
+},{passive:true});
+
+// keyboard nav
+let cur=0;
+addEventListener('keydown',e=>{
+  if(modal.classList.contains('open')){ if(e.key==='Escape')modal.classList.remove('open'); return; }
+  if(e.key==='ArrowDown'||e.key==='PageDown'){e.preventDefault();cur=Math.min(scenes.length-1,cur+1);scenes[cur].scrollIntoView({behavior:'smooth'});}
+  if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();cur=Math.max(0,cur-1);scenes[cur].scrollIntoView({behavior:'smooth'});}
+});
+// keep cur in sync on scroll
+addEventListener('scroll',()=>{
+  const mid = scrollY + innerHeight/2;
+  scenes.forEach((s,i)=>{ if(s.offsetTop<=mid && s.offsetTop+s.offsetHeight>mid) cur=i; });
+},{passive:true});
+
+// deep-links: #road, #guard, #sim
+function handleHash(){
+  const h=location.hash.replace('#','');
+  if(h==='guard'){openGuard();}
+  else if(h==='road'){el('#s-road').scrollIntoView();}
+  else if(h==='sim'){el('#s-sim').scrollIntoView();setTimeout(runSim,600);}
+  else if(h==='struct'){el('#s-struct').scrollIntoView();}
+  else if(h.startsWith('stage=')){const k=h.split('=')[1];const st=STAGES.find(x=>x.key===k);if(st)openStage(st);}
+}
+addEventListener('hashchange',handleHash); handleHash();
+
+/* ============================ STARFIELD ============================ */
+(function(){
+  const c=el('#stars'), x=c.getContext('2d'); let w,hh,stars;
+  function size(){w=c.width=innerWidth;hh=c.height=innerHeight;stars=Array.from({length:Math.min(130,Math.floor(w/12))},()=>({x:Math.random()*w,y:Math.random()*hh,z:Math.random()*.8+.2,s:Math.random()*1.4+.3}));}
+  size(); addEventListener('resize',size);
+  function draw(){
+    x.clearRect(0,0,w,hh);
+    for(const p of stars){
+      p.y+=p.z*.12; if(p.y>hh)p.y=0;
+      x.beginPath(); x.arc(p.x,p.y,p.s,0,7);
+      x.fillStyle='rgba('+(160+p.z*60)+','+(200+p.z*30)+',255,'+(p.z*.6)+')';
+      x.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
+<!-- ============================ FLOATING CHAT WIDGET (additive) ============================ -->
+<style>
+  #cw-fab{
+    position:fixed;right:24px;bottom:24px;z-index:120;
+    width:62px;height:62px;border-radius:50% 50% 50% 14px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--teal),var(--violet));color:#05140f;
+    display:grid;place-items:center;font-size:26px;
+    box-shadow:0 14px 34px rgba(46,230,201,.35),0 6px 18px rgba(0,0,0,.45);
+    transition:transform .2s, box-shadow .2s;
+  }
+  #cw-fab:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 20px 44px rgba(139,123,255,.4),0 8px 22px rgba(0,0,0,.5)}
+  #cw-fab .cw-badge{
+    position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;
+    background:var(--red);border:2px solid var(--bg);font-size:0;
+  }
+  #cw-panel{
+    position:fixed;right:24px;bottom:98px;z-index:121;width:min(380px,calc(100vw - 32px));
+    height:min(560px,calc(100vh - 140px));
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);
+    display:none;flex-direction:column;overflow:hidden;
+  }
+  #cw-panel.open{display:flex;animation:cwPop .24s cubic-bezier(.2,.7,.2,1)}
+  @keyframes cwPop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+  .cw-head{
+    display:flex;align-items:center;gap:11px;padding:15px 16px;
+    background:linear-gradient(180deg,rgba(18,27,49,.95),rgba(14,21,38,.9));
+    border-bottom:1px solid var(--line);
+  }
+  .cw-head .cw-av{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;
+    font-size:19px;background:linear-gradient(135deg,var(--teal),var(--violet));color:#05140f}
+  .cw-head .cw-ti b{display:block;font-size:14.5px}
+  .cw-head .cw-ti span{font-size:11.5px;color:var(--teal);display:inline-flex;align-items:center;gap:6px}
+  .cw-head .cw-ti span:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal)}
+  .cw-head .cw-x{margin-left:auto;cursor:pointer;border:1px solid var(--line);background:var(--panel);
+    color:var(--ink2);width:30px;height:30px;border-radius:9px;font-size:16px;line-height:1}
+  .cw-head .cw-x:hover{border-color:var(--red);color:var(--red)}
+  .cw-body{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px}
+  .cw-msg{max-width:84%;font-size:13px;line-height:1.55;padding:10px 13px;border-radius:14px;word-wrap:break-word}
+  .cw-msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#042019;border-bottom-right-radius:5px}
+  .cw-msg.agent{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:5px}
+  .cw-msg.agent b{color:var(--teal)}
+  .cw-typing{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:14px;border-bottom-left-radius:5px;padding:12px 14px;display:inline-flex;gap:5px}
+  .cw-typing span{width:7px;height:7px;border-radius:50%;background:var(--ink3);animation:cwBlink 1.2s infinite}
+  .cw-typing span:nth-child(2){animation-delay:.2s}
+  .cw-typing span:nth-child(3){animation-delay:.4s}
+  @keyframes cwBlink{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+  .cw-foot{border-top:1px solid var(--line);padding:12px 12px 14px;background:rgba(14,21,38,.6)}
+  .cw-foot .cw-lbl{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--ink3);margin:0 2px 8px;font-weight:700}
+  .cw-chips{display:flex;flex-direction:column;gap:7px}
+  .cw-chip{cursor:pointer;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    border-radius:11px;padding:9px 12px;font-size:12.5px;font-weight:600;transition:.16s;font-family:var(--sans)}
+  .cw-chip:hover:not(:disabled){border-color:var(--teal);transform:translateX(2px);box-shadow:0 0 0 1px rgba(46,230,201,.3)}
+  .cw-chip:disabled{opacity:.4;cursor:default}
+  @media(max-width:520px){#cw-fab{right:16px;bottom:16px}#cw-panel{right:12px;left:12px;bottom:86px;width:auto}}
+</style>
+
+<button id="cw-fab" title="Chat with the assistant" aria-label="Open chat">💬<span class="cw-badge"></span></button>
+<div id="cw-panel" role="dialog" aria-label="Assistant chat">
+  <div class="cw-head">
+    <span class="cw-av">🤖</span>
+    <div class="cw-ti"><b>Customer Assistant</b><span>Online</span></div>
+    <button class="cw-x" id="cw-close" aria-label="Close chat">×</button>
+  </div>
+  <div class="cw-body" id="cw-body"></div>
+  <div class="cw-foot">
+    <p class="cw-lbl">Try a question</p>
+    <div class="cw-chips" id="cw-chips"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const CW = [
+    {q:"Where is my order ORD-1001?",
+     a:"Your order ORD-1001 has been shipped via DHL with tracking number DHL123456789. It is currently estimated to be delivered by 2026-10-31."},
+    {q:"What is the cancellation policy?",
+     a:"You can cancel an order free of charge at any time while its status is still PROCESSING, before it has shipped. Once an order has shipped, it can no longer be cancelled; however, you can wait for delivery and then request a return under our Returns Policy.<br><br>When an eligible order is cancelled before shipment, a full refund is issued to your original payment method within 5 to 7 business days, with no cancellation fee charged.<br><br>To cancel an eligible order, you can use the self-service option in your account under “My Orders” or contact customer support with your order ID."},
+    {q:"Can I cancel order ORD-1001?",
+     a:"Order ORD-1001 has already been shipped (via DHL, tracking number DHL123456789) and can no longer be cancelled.<br><br>According to our cancellation policy, once an order has shipped, it cannot be cancelled. You will need to wait for delivery and then you may request a return under our Returns Policy."}
+  ];
+  const fab=document.getElementById('cw-fab'),
+        panel=document.getElementById('cw-panel'),
+        body=document.getElementById('cw-body'),
+        chipsWrap=document.getElementById('cw-chips'),
+        closeBtn=document.getElementById('cw-close');
+  let busy=false, greeted=false;
+
+  function scrollDown(){ body.scrollTop = body.scrollHeight; }
+  function addMsg(cls, html){
+    const m=document.createElement('div'); m.className='cw-msg '+cls; m.innerHTML=html;
+    body.appendChild(m); scrollDown(); return m;
+  }
+  function typing(){
+    const t=document.createElement('div'); t.className='cw-typing';
+    t.innerHTML='<span></span><span></span><span></span>';
+    body.appendChild(t); scrollDown(); return t;
+  }
+  function ask(i){
+    if(busy) return; busy=true;
+    const item=CW[i];
+    [...chipsWrap.children].forEach(c=>c.disabled=true);
+    addMsg('user', item.q);
+    const t=typing();
+    setTimeout(()=>{
+      t.remove();
+      addMsg('agent', item.a);
+      busy=false;
+      [...chipsWrap.children].forEach(c=>c.disabled=false);
+    }, 1100);
+  }
+  CW.forEach((item,i)=>{
+    const b=document.createElement('button');
+    b.className='cw-chip'; b.textContent=item.q;
+    b.onclick=()=>ask(i);
+    chipsWrap.appendChild(b);
+  });
+  function openPanel(){
+    panel.classList.add('open');
+    fab.querySelector('.cw-badge').style.display='none';
+    if(!greeted){
+      greeted=true;
+      setTimeout(()=>addMsg('agent','Hi! I’m your customer assistant. Pick a question below and I’ll help. 👋'),250);
+    }
+  }
+  function closePanel(){ panel.classList.remove('open'); }
+  fab.onclick=()=>{ panel.classList.contains('open') ? closePanel() : openPanel(); };
+  closeBtn.onclick=closePanel;
+  addEventListener('keydown',e=>{ if(e.key==='Escape' && panel.classList.contains('open')) closePanel(); });
+})();
+</script>
+</body>
+</html>
