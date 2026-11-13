@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Salesforce FDE Field Guide | Beginner → Intermediate → Advanced (Tuan Abdeen)</title>
+<title>FDE Employee Onboarding Guide | FDE Field Guide | (© Tuan Abdeen)</title>
 <style>
 :root{--bg:#f4f6fb;--surface:#fff;--surface2:#eef1f8;--text:#172033;--muted:#65718a;--line:#dce2ee;--accent:#5b5ce2;--accent2:#00a6a6;--good:#16845b;--warn:#a96500;--shadow:0 14px 40px rgba(23,32,51,.09);--code:#111827;--codeText:#e5e7eb}
 [data-theme="dark"]{--bg:#0c1020;--surface:#151b2e;--surface2:#1d2540;--text:#eef2ff;--muted:#a4aec7;--line:#2b3553;--accent:#9b9cff;--accent2:#4dd6cf;--good:#57d6a1;--warn:#ffc36b;--shadow:0 16px 44px rgba(0,0,0,.28);--code:#080d18;--codeText:#e5e7eb}
@@ -14,7 +14,6 @@ button,input{font:inherit}button{cursor:pointer}.shell{max-width:1440px;margin:a
 .progress-wrap{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px;margin:18px 0;box-shadow:var(--shadow)}.progress-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.progress-head strong{font-size:14px}.muted{color:var(--muted)}.track{height:10px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:12px}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .35s}.journey{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.stage-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;position:relative;overflow:hidden}.stage-card.current{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent)}.stage-card.done{border-color:var(--good)}.stage-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.stage-number{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.12em}.stage-card h3{margin:7px 0 4px;font-size:18px}.stage-card p{font-size:13px;color:var(--muted);margin:0}.stage-status{font-size:11px;font-weight:800;padding:5px 8px;border-radius:99px;background:var(--surface2);color:var(--muted)}.stage-card.done .stage-status{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good)}
 .layout{display:grid;grid-template-columns:265px minmax(0,1fr);gap:18px;align-items:start}.sidebar{position:sticky;top:14px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;max-height:calc(100vh - 28px);overflow:auto}.side-title{font-size:11px;font-weight:850;letter-spacing:.13em;color:var(--muted);margin:4px 8px 10px}.navitem{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;color:var(--muted);text-align:left;padding:10px;border-radius:10px;font-weight:650}.navitem:hover,.navitem.active{background:var(--surface2);color:var(--text)}.navitem .dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}.navitem.active .dot{background:var(--accent)}.content{min-width:0}.section{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:clamp(18px,3vw,30px);margin-bottom:16px;box-shadow:var(--shadow);scroll-margin-top:18px}.section-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}.section h2{font-size:clamp(22px,3vw,30px);line-height:1.15;margin:5px 0 9px}.section h3{font-size:17px;margin:22px 0 8px}.section p{margin:8px 0}.kicker{color:var(--accent);font-weight:850;text-transform:uppercase;letter-spacing:.13em;font-size:11px}.tag{font-size:11px;padding:5px 9px;border:1px solid var(--line);border-radius:99px;color:var(--muted);font-weight:750}.outcome{background:var(--surface2);border-left:3px solid var(--accent);padding:13px 15px;border-radius:0 12px 12px 0;margin:16px 0}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.mini{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:14px}.mini strong{display:block;margin-bottom:4px}.mini p{font-size:13px;color:var(--muted);margin:0}.checklist{display:grid;gap:8px;margin:12px 0}.check{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--surface2);border-radius:11px}.check input{accent-color:var(--accent);width:17px;height:17px;margin-top:3px;flex:none}.check span{flex:1}.check.done span{text-decoration:line-through;color:var(--muted)}.required{font-size:10px;color:var(--good);font-weight:850;text-transform:uppercase;margin-left:5px}.recommended{font-size:10px;color:var(--warn);font-weight:850;text-transform:uppercase;margin-left:5px}.optional{font-size:10px;color:var(--muted);font-weight:850;text-transform:uppercase;margin-left:5px}
 pre{background:var(--code);color:var(--codeText);padding:15px;border-radius:13px;overflow:auto;position:relative;font-size:12px;line-height:1.55;margin:10px 0}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.copy{position:absolute;right:8px;top:8px;background:#30394c;color:#fff;border:0;border-radius:7px;padding:5px 8px;font-size:11px}.callout{border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin:12px 0}.callout.warn{border-left:4px solid #d99024}.callout.good{border-left:4px solid var(--good)}.callout strong{display:block;margin-bottom:3px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.lab{border:1px dashed var(--accent);border-radius:15px;padding:15px;margin:14px 0}.lab h3{margin:0 0 6px}.lab ol{padding-left:20px}.checkpoint{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}.checkpoint button{border:1px solid var(--line);background:var(--surface);color:var(--text);padding:8px 12px;border-radius:9px;font-weight:700}.footer{color:var(--muted);font-size:12px;text-align:center;padding:24px}
-.slide-view{display:none}.slide-view.active{display:block}.slide{min-height:430px;display:flex;flex-direction:column;justify-content:center;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:clamp(24px,5vw,60px);box-shadow:var(--shadow)}.slide .slide-index{color:var(--accent);font-size:12px;font-weight:900;letter-spacing:.15em;text-transform:uppercase}.slide h2{font-size:clamp(30px,5vw,54px);line-height:1.05;margin:16px 0}.slide p{font-size:18px;color:var(--muted);max-width:850px}.slide ul{font-size:17px;line-height:1.9}.slide-controls{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}.slide-controls .btn{min-width:100px}.slide-dots{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}.slide-dots button{width:8px;height:8px;padding:0;border:0;border-radius:50%;background:var(--line)}.slide-dots button.active{background:var(--accent);width:22px;border-radius:99px}
 .celebrate{position:fixed;inset:0;z-index:50;display:none;place-items:center;background:rgba(5,8,20,.86);overflow:hidden}.celebrate.show{display:grid;animation:fade .35s}.celebrate-inner{text-align:center;color:#fff;position:relative;z-index:2;padding:24px;animation:slam .65s cubic-bezier(.2,1.5,.4,1)}.celebrate .spray{font-size:clamp(42px,9vw,100px);font-weight:1000;line-height:.95;letter-spacing:-.07em;text-transform:uppercase;text-shadow:4px 4px 0 #ff3d8b,-4px -3px 0 #00e6d0,8px 8px 0 #6c63ff;transform:rotate(-4deg)}.celebrate .sub{font-size:clamp(15px,2vw,22px);font-weight:850;letter-spacing:.12em;margin-top:22px}.celebrate .confetti{position:absolute;inset:0;pointer-events:none}.confetti i{position:absolute;width:9px;height:18px;background:hsl(var(--h),90%,60%);left:var(--x);top:-30px;transform:rotate(var(--r));animation:fall var(--d) linear infinite;animation-delay:var(--delay)}.close-celebrate{margin-top:26px;background:#fff;color:#111;border:0;border-radius:99px;padding:12px 20px;font-weight:900}
 @keyframes fall{to{top:110vh;transform:translateX(var(--drift)) rotate(760deg)}}@keyframes fade{from{opacity:0}to{opacity:1}}@keyframes slam{from{opacity:0;transform:scale(.35) rotate(-18deg)}to{opacity:1;transform:scale(1) rotate(-4deg)}}
 .hidden{display:none!important}
@@ -91,23 +90,50 @@ a.linkcard strong{color:var(--accent)}
 #beginner[data-os="win"] .os-mac{display:none}
 @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;top:0;max-height:none;display:flex;gap:4px;overflow:auto}.side-title{display:none}.navitem{white-space:nowrap;width:auto}.journey{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
 @media(max-width:560px){.shell{padding:12px}.toolbar{width:100%}.toolbar>*{flex:1}.hero{border-radius:18px}.section{border-radius:16px}.progress-head{align-items:flex-start}.slide{min-height:500px}}
-@media print{.toolbar,.sidebar,.slide-controls,.copy,.checkpoint{display:none!important}.layout{display:block}.section{break-inside:avoid;box-shadow:none}.hero{print-color-adjust:exact}}
+@media print{.toolbar,.sidebar,.copy,.checkpoint{display:none!important}.layout{display:block}.section{break-inside:avoid;box-shadow:none}.hero{print-color-adjust:exact}}
+/* animated terminal demo (Install Node.js) — inspired by the deployment deck's slide 26 terminal */
+.termdemo{margin:14px 0;border-radius:13px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:#0c1430}
+.termdemo .td-bar{display:flex;align-items:center;gap:8px;padding:9px 13px;background:#1b2340;border-bottom:1px solid rgba(255,255,255,.08)}
+.termdemo .td-dot{width:12px;height:12px;border-radius:50%;flex:none}
+.termdemo .td-dot.r{background:#ff5f57}.termdemo .td-dot.y{background:#febc2e}.termdemo .td-dot.g{background:#28c840}
+.termdemo .td-title{flex:1;text-align:center;margin-right:46px;font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:#9fb4df;letter-spacing:.02em}
+.termdemo .td-screen{padding:15px 17px;min-height:176px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.7;color:#d7e0ff;white-space:pre-wrap;word-break:break-word}
+.termdemo .td-screen .login{color:#8ea3cf}
+.termdemo .td-screen .p{color:#6fe0b0}
+.termdemo .td-screen .o{color:#9fb4df}
+.termdemo .td-screen .g1{color:#e5a13a}
+.termdemo .td-screen .b{color:#e8eeff;font-weight:700}
+.termdemo .td-screen .dim{color:#6b7a9e}
+.termdemo .td-screen .hl{color:#9b9cff}
+.termdemo .td-screen .hint{color:#b7ad57}
+.termdemo .td-screen.td-scroll{max-height:320px;overflow:auto}
+.termdemo .td-screen .td-rule{height:0;border-top:1px solid #e5a13a;margin:9px 0;opacity:.75}
+.termdemo .td-screen .td-banner{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px}
+.termdemo .td-screen .td-mascot{margin:0;padding:0;background:none;border:0;border-radius:0;box-shadow:none;color:#d98a6a;font-family:inherit;font-size:12.5px;line-height:1.15;white-space:pre}
+.termdemo .td-screen .td-bannertext{padding-top:2px}
+.termdemo .td-screen .td-spacer{height:54px}
+.termdemo .td-caret{display:inline-block;width:8px;height:15px;background:#d7e0ff;vertical-align:-2px;margin-left:1px;animation:tdblink 1s step-end infinite}
+@keyframes tdblink{50%{opacity:0}}
+.termdemo .td-ctrl{display:flex;align-items:center;gap:11px;padding:10px 13px;background:#141b33;border-top:1px solid rgba(255,255,255,.07)}
+.termdemo .td-replay{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#d7e0ff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700}
+.termdemo .td-replay:hover{background:rgba(255,255,255,.12)}
+.termdemo .td-hint{font-size:11.5px;color:#7f90b8}
+@media(prefers-reduced-motion:reduce){.termdemo .td-caret{animation:none}}
 </style>
 </head>
 <body>
 <div class="shell">
 <header class="topbar">
-  <div class="brand"><div class="mark">FDE</div><div><strong>FIELD GUIDE / SALESFORCE ENGINEERING</strong><small>New joiner onboarding · A practical path to the field</small></div></div>
+  <div class="brand"><div class="mark">FDE</div><div><strong>EMPLOYEE ONBOARDING GUIDE | FIELD GUIDE</strong><small>New joiner onboarding · A practical path to the field</small></div></div>
   <div class="toolbar">
-    <div class="seg" aria-label="View mode"><button id="docMode" class="active">☷ Documentation</button><button id="slideMode">▣ Slides</button></div>
     <div class="seg" aria-label="Display theme"><button id="lightMode" class="active">☀ Light</button><button id="darkMode">☾ Dark</button></div>
     <button class="btn" id="resetBtn" title="Clear saved progress">Reset progress</button>
   </div>
 </header>
 <section class="hero">
-  <div class="eyebrow">Welcome to the team</div>
-  <h1>The FDE<br>Onboarding Field Guide</h1>
-  <p>A structured, hands-on journey that builds the habits, tools and engineering judgement needed to deliver outcomes with customers — not just configure a development environment.</p>
+  <div class="eyebrow">Welcome to the team!</div>
+  <h1>Your One-Stop<br>FDE Onboarding Field Guide</h1>
+  <p>As you begin your journey with us, we've created a comprehensive FDE Onboarding Field Guide to support you through your first 30, 60 and 90 days. It's designed to accelerate your ramp-up, connect you with the right Slack channels and team meetings, and provide the essential resources, tools and guidance to become field-ready and successful.</p>
   <div class="hero-meta"><span class="pill">01 · 🐢 Beginner — Get field-ready</span><span class="pill">02 ·🚶 Intermediate — Build with confidence</span><span class="pill">03 · 🚀 Advanced — Own the agent harness, end to end.</span></div>
 </section>
 <div class="progress-wrap">
@@ -160,13 +186,15 @@ a.linkcard strong{color:var(--accent)}
       <details class="item"><summary><input type="checkbox" class="chk-box" data-done="slack-skills" onclick="event.stopPropagation()" aria-label="Mark explored: Key Slackbot skills"><span class="t">Key Slackbot skills <b class="optional">Optional</b></span><span class="exp" aria-hidden="true"></span></summary>
         <div class="body">
           <p>Open each to see what it does and how to invoke it. Links resolve only when you are signed in to the Salesforce Slack workspace.</p>
-          <ol class="skill-list">
-            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0BKLCJ2F6E" target="_blank" rel="noopener">Agentforce Testing Tool Advisor</a> — recommends the right testing approach and tooling for your agent.</li>
-            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0BG6LF48H4" target="_blank" rel="noopener">AI Governance Readiness Guide</a> — checks readiness against AI governance and trust requirements.</li>
-            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0AT88KJ51V" target="_blank" rel="noopener">Agentforce Reference Architecture Generator</a> — drafts a reference architecture for an Agentforce solution.</li>
-            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0BB5JR7Q8N" target="_blank" rel="noopener">Agent Conversation Design Guide</a> — guides conversational design, flows and guardrails.</li>
-            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0B3Q10S7T9" target="_blank" rel="noopener">Agentforce Voice Implementation Kickstart</a> — jump-starts a voice channel implementation.</li>
-            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0B0WGLR58C" target="_blank" rel="noopener">STDM Skill — Agentforce Session Tracing for MEA</a> — extracts and analyses session-tracing (STDM) telemetry.</li>
+          <ol class="skill-list">            
+            <li><a href="https://salesforce.enterprise.slack.com/skills/F0B1BGE3PT3" target="_blank" rel="noopener">FDE Toolkit ✍️</a> — an all-in-one FDE toolkit for customer briefings, Agentforce deployment checklists, and weekly updates.</li>
+            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0BB5JR7Q8N" target="_blank" rel="noopener">Agent Conversation Design Guide ✍️</a> — guides conversational design, flows and guardrails.</li>
+            <li><a href="https://salesforce.enterprise.slack.com/skills/F0B3L56PGN5" target="_blank" rel="noopener">Agentforce Agent Script Advisor ✍️</a> — AgentScript Design, Syntax, Patterns, Debugging, Common Pitfalls, Customer Lessons, Tools &amp; Go-Live Checklist.</li>          
+            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0BKLCJ2F6E" target="_blank" rel="noopener">Agentforce Testing Tool Advisor ✍️</a> — recommends the right testing approach and tooling for your agent.</li>
+            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0BG6LF48H4" target="_blank" rel="noopener">AI Governance Readiness Guide ✍️</a> — checks readiness against AI governance and trust requirements.</li>
+            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0AT88KJ51V" target="_blank" rel="noopener">Agentforce Reference Architecture Generator ⚡</a> — drafts a reference architecture for an Agentforce solution.</li>            
+            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0B3Q10S7T9" target="_blank" rel="noopener">Agentforce Voice Implementation Kickstart 🔊</a> — jump-starts a voice channel implementation.</li>
+            <li><a href="https://salesforce.enterprise.slack.com/docs/T01G0063H29/F0B0WGLR58C" target="_blank" rel="noopener">STDM Skill — Agentforce Session Tracing for MEA 📈</a> — extracts and analyses session-tracing (STDM) telemetry.</li>
           </ol>
         </div>
       </details>
@@ -217,6 +245,12 @@ a.linkcard strong{color:var(--accent)}
               <p>The Salesforce CLI and Claude Code both run on Node.js.</p>
               <p class="clabel">Verify</p><pre><button class="copy">Copy</button><code>node -v    # should show v22.x
 npm -v     # confirms npm is installed</code></pre>
+              <p class="clabel">What a successful check looks like</p>
+              <div class="termdemo" id="nodeTermDemo">
+                <div class="td-bar"><span class="td-dot r"></span><span class="td-dot y"></span><span class="td-dot g"></span><span class="td-title">YOUR-NAME — -zsh — 121×33</span></div>
+                <div class="td-screen" id="nodeTermScreen" role="img" aria-label="Terminal session: running node -v prints v22.22.3, and npm -v prints 10.9.8."></div>
+                <div class="td-ctrl"><button type="button" class="td-replay" id="nodeTermReplay">▸ Replay</button><span class="td-hint">Both commands print a version — Node and npm are ready.</span></div>
+              </div>
               <div class="os os-mac"><p class="clabel">Install · macOS / Linux</p><pre><button class="copy">Copy</button><code>brew install node    # Mac, via Homebrew</code></pre></div>
               <div class="os os-win"><p class="clabel">Install · Windows</p><pre><button class="copy">Copy</button><code>winget install OpenJS.NodeJS.LTS</code></pre></div>
             </div>
@@ -225,6 +259,12 @@ npm -v     # confirms npm is installed</code></pre>
             <div class="body">
               <p>A JDK (21+) is required by the Apex language server and Code Analyzer.</p>
               <p class="clabel">Verify</p><pre><button class="copy">Copy</button><code>java -version</code></pre>
+              <p class="clabel">What a successful check looks like</p>
+              <div class="termdemo" id="javaTermDemo">
+                <div class="td-bar"><span class="td-dot r"></span><span class="td-dot y"></span><span class="td-dot g"></span><span class="td-title">YOUR-NAME — -zsh — 121×33</span></div>
+                <div class="td-screen" id="javaTermScreen" role="img" aria-label="Terminal session: running java -version prints openjdk version 22.0.2, the OpenJDK Runtime Environment, and the OpenJDK 64-Bit Server VM build lines."></div>
+                <div class="td-ctrl"><button type="button" class="td-replay" id="javaTermReplay">▸ Replay</button><span class="td-hint">A version at or above 21 means the JDK is ready.</span></div>
+              </div>
               <div class="os os-mac"><p class="clabel">Install · macOS / Linux</p><pre><button class="copy">Copy</button><code>brew install openjdk</code></pre></div>
               <div class="os os-win"><p class="clabel">Install · Windows</p><pre><button class="copy">Copy</button><code>winget install --id EclipseAdoptium.Temurin. LTS --exact</code></pre></div>
             </div>
@@ -233,6 +273,12 @@ npm -v     # confirms npm is installed</code></pre>
             <div class="body">
               <p>Git is a version control tool that tracks code changes, supports collaboration, and lets you restore earlier versions of a project.</p>
               <p class="clabel">Verify</p><pre><button class="copy">Copy</button><code>git --version</code></pre>
+              <p class="clabel">What a successful check looks like</p>
+              <div class="termdemo" id="gitTermDemo">
+                <div class="td-bar"><span class="td-dot r"></span><span class="td-dot y"></span><span class="td-dot g"></span><span class="td-title">YOUR-NAME — -zsh — 121×33</span></div>
+                <div class="td-screen" id="gitTermScreen" role="img" aria-label="Terminal session: running git --version prints git version 2.51.2."></div>
+                <div class="td-ctrl"><button type="button" class="td-replay" id="gitTermReplay">▸ Replay</button><span class="td-hint">A version string means Git is installed and on your PATH.</span></div>
+              </div>
               <div class="os os-mac"><p class="clabel">Install · macOS / Linux</p><pre><button class="copy">Copy</button><code>brew install git</code></pre></div>
               <div class="os os-win"><p class="clabel">Install · Windows</p><pre><button class="copy">Copy</button><code>winget install --id Git.Git --exact</code></pre></div>
             </div>
@@ -241,6 +287,12 @@ npm -v     # confirms npm is installed</code></pre>
             <div class="body">
               <p>GitHub CLI lets you manage repositories, issues, and pull requests from your terminal.</p>
               <p class="clabel">Verify</p><pre><button class="copy">Copy</button><code>gh --version</code></pre>
+              <p class="clabel">What a successful check looks like</p>
+              <div class="termdemo" id="ghTermDemo">
+                <div class="td-bar"><span class="td-dot r"></span><span class="td-dot y"></span><span class="td-dot g"></span><span class="td-title">YOUR-NAME — -zsh — 121×33</span></div>
+                <div class="td-screen" id="ghTermScreen" role="img" aria-label="Terminal session: running gh --version prints gh version 2.91.0 and its release URL."></div>
+                <div class="td-ctrl"><button type="button" class="td-replay" id="ghTermReplay">▸ Replay</button><span class="td-hint">A version and release link mean the GitHub CLI is ready.</span></div>
+              </div>
               <div class="os os-mac"><p class="clabel">Install · macOS / Linux</p><pre><button class="copy">Copy</button><code>brew install gh</code></pre></div>
               <div class="os os-win"><p class="clabel">Install · Windows</p><pre><button class="copy">Copy</button><code>winget install --id GitHub.cli --exact</code></pre></div>
             </div>
@@ -249,6 +301,12 @@ npm -v     # confirms npm is installed</code></pre>
             <div class="body">
               <p>The sf command manages Salesforce orgs and apps from your terminal — how you deploy, test and automate everything.</p>
               <p class="clabel">Verify</p><pre><button class="copy">Copy</button><code>sf --version</code></pre>
+              <p class="clabel">What a successful check looks like</p>
+              <div class="termdemo" id="sfTermDemo">
+                <div class="td-bar"><span class="td-dot r"></span><span class="td-dot y"></span><span class="td-dot g"></span><span class="td-title">YOUR-NAME — -zsh — 121×33</span></div>
+                <div class="td-screen" id="sfTermScreen" role="img" aria-label="Terminal session: running sf --version prints @salesforce/cli/2.158.7 darwin-arm64 node-v26.13.0."></div>
+                <div class="td-ctrl"><button type="button" class="td-replay" id="sfTermReplay">▸ Replay</button><span class="td-hint">A version with platform and Node build means the Salesforce CLI is ready.</span></div>
+              </div>
               <div class="os os-mac"><p class="clabel">Install · macOS / Linux</p><pre><button class="copy">Copy</button><code>npm install --global @salesforce/cli
 sf --version
 sf update</code></pre></div>
@@ -266,6 +324,14 @@ sf update</code></pre></div>
             <div class="body">
               <div class="os os-mac"><p class="clabel">Install · macOS / Linux</p><pre><button class="copy">Copy</button><code>brew install --cask visual-studio-code</code></pre></div>
               <div class="os os-win"><p class="clabel">Install · Windows</p><pre><button class="copy">Copy</button><code>winget install --id Microsoft.VisualStudioCode --exact</code></pre></div>
+              <div class="os os-mac">
+                <p class="clabel">What a successful install looks like</p>
+                <div class="termdemo" id="vscTermDemo">
+                  <div class="td-bar"><span class="td-dot r"></span><span class="td-dot y"></span><span class="td-dot g"></span><span class="td-title">YOUR-NAME — -zsh — 121×33</span></div>
+                  <div class="td-screen" id="vscTermScreen" role="img" aria-label="Terminal session: brew install --cask visual-studio-code downloads, installs, moves the app and links the code binary, ending with visual-studio-code was successfully installed."></div>
+                  <div class="td-ctrl"><button type="button" class="td-replay" id="vscTermReplay">▸ Replay</button><span class="td-hint">Homebrew downloads, installs and links VS Code — the “code” command now works in your terminal.</span></div>
+                </div>
+              </div>
             </div>
           </details>
           <details class="item"><summary><input type="checkbox" class="chk-box" data-done="i-ext" onclick="event.stopPropagation()" aria-label="Mark done: Install the extensions"><span class="t">Install the extensions <b class="recommended">Recommended</b></span><span class="exp" aria-hidden="true"></span></summary>
@@ -298,11 +364,11 @@ code --install-extension redhat.vscode-yaml</code></pre>
         <div class="items">
           <details class="item"><summary><input type="checkbox" class="chk-box" data-done="g-config" onclick="event.stopPropagation()" aria-label="Mark done: Configure Git and authenticate with GitHub"><span class="t">Configure Git and authenticate with GitHub <b class="required">Required</b></span><span class="exp" aria-hidden="true"></span></summary>
             <div class="body">
-              <p class="clabel">Configure</p><pre><button class="copy">Copy</button><code>git config --global user.name "Your Name"
-git config --global user.email "you@company.com"
+              <p class="clabel">Configure</p><pre><button class="copy">Copy</button><code>git config --global user.name <span style="color: yellow;">"Your Name"</span>
+git config --global user.email <span style="color: yellow;">"you@company.com"</span>
 git config --global init.defaultBranch main
 git config --global pull.rebase true
-ssh-keygen -t ed25519 -C "you@company.com"
+ssh-keygen -t ed25519 -C <span style="color: yellow;">"you@company.com"</span>
 gh auth login</code></pre>
             </div>
           </details>
@@ -347,6 +413,12 @@ claude plugin marketplace add SalesforceAIResearch/agentforce-adlc
 claude plugin install agentforce-adlc@agentforce-adlc
 claude plugin marketplace add forward-deployed-engineering-emu/fde-skills</code></pre>
               <p class="clabel">Launch Claude Code</p><pre><button class="copy">Copy</button><code>claude</code></pre>
+              <p class="clabel">What launching Claude Code looks like</p>
+              <div class="termdemo" id="claudeTermDemo">
+                <div class="td-bar"><span class="td-dot r"></span><span class="td-dot y"></span><span class="td-dot g"></span><span class="td-title" id="claudeTitle">YOUR-NAME — -zsh — 121×33</span></div>
+                <div class="td-screen" id="claudeTermScreen" role="img" aria-label="Terminal session in three stages: typing the claude command; then Claude Code's trust-this-folder safety prompt with Yes selected; then the Claude Code welcome banner showing version, model and auto mode on."></div>
+                <div class="td-ctrl"><button type="button" class="td-replay" id="claudeTermReplay">▸ Replay</button><span class="td-hint">Run “claude”, trust the folder, and Claude Code starts — all in one terminal.</span></div>
+              </div>
             </div>
           </details>
         </div>
@@ -428,6 +500,12 @@ cd customer-fde-project
 git init
 git branch -M main
 git status</code></pre>
+              <p class="clabel">What generating the project looks like</p>
+              <div class="termdemo" id="genTermDemo">
+                <div class="td-bar"><span class="td-dot r"></span><span class="td-dot y"></span><span class="td-dot g"></span><span class="td-title">customer-fde-project — -zsh — 121×39</span></div>
+                <div class="td-screen td-scroll" id="genTermScreen" role="img" aria-label="Terminal session: sf project generate scaffolds customer-fde-project and its files, then cd into it, git init (with Git's default-branch hints), git branch -M main, and git status showing On branch main."></div>
+                <div class="td-ctrl"><button type="button" class="td-replay" id="genTermReplay">▸ Replay</button><span class="td-hint">The template scaffolds the project files, then Git is initialised on a “main” branch.</span></div>
+              </div>
 
               <p>Use the generated Salesforce DX project as the starting point. Add the optional folders as your delivery needs emerge; avoid creating empty ceremony.</p>
 
@@ -906,12 +984,7 @@ sf project deploy start --source-dir force-app --target-org client-uat --test-le
   </main>
 </div>
 
-<div id="slides" class="slide-view">
-  <div class="slide" id="slideCard"><div class="slide-index" id="slideIndex">FIELD GUIDE · 01 / 12</div><h2 id="slideTitle">The FDE Onboarding Journey</h2><p id="slideBody">From first login to trusted technical leadership.</p><ul id="slideBullets"><li>Beginner — get field-ready</li><li>Intermediate — build with confidence</li><li>Advanced — lead delivery</li></ul></div>
-  <div class="slide-controls"><button class="btn" id="prevSlide">← Previous</button><div class="slide-dots" id="slideDots"></div><button class="btn primary" id="nextSlide">Next →</button></div>
-  <p class="muted" style="text-align:center;font-size:12px">Tip: use ← and → arrow keys to navigate slides. Switch back to Documentation for full instructions and checklists.</p>
-</div>
-<div class="footer">Salesforce FDE Field Guide · Learning path and examples are illustrative. Follow current internal policies and project standards. (Tuan Abdeen)</div>
+<div class="footer">Salesforce FDE Field Guide · Learning path and examples are illustrative. Follow current internal policies and project standards. (© Tuan Abdeen)</div>
 </div>
 
 <div class="celebrate" id="celebration" role="dialog" aria-modal="true" aria-label="Stage completed">
@@ -929,21 +1002,6 @@ const required={beginner:["a-req","b-node","b-java","b-git","b-gh","b-sf","i-ins
 let completed=JSON.parse(localStorage.getItem("fde-field-guide-progress")||"{}");
 let celebrated=JSON.parse(localStorage.getItem("fde-field-guide-celebrated")||"{}");
 let feedback=JSON.parse(localStorage.getItem("fde-field-guide-feedback")||"{}");
-let slide=0;
-const slideData=[
-["THE FDE ONBOARDING JOURNEY","From first login to trusted technical leadership.",["Beginner — get field-ready","Intermediate — build with confidence","Advanced — lead delivery"]],
-["THE OUTCOME","An FDE turns customer problems into working, supportable outcomes.",["Understand the business problem","Engineer the right Salesforce solution","Validate, release and operate responsibly"]],
-["STAGE 01 · BEGINNER","Build the foundation before entering the field.",["Secure access and approved tools","Learn Salesforce platform fundamentals","Connect safely to a training org","Explain the FDE delivery lifecycle"]],
-["BEGINNER · PROVE IT","Complete the foundation checklist and practical org-connection lab.",["Verify Git, Salesforce CLI and VS Code","Authenticate to a designated training org","Inspect an object, Flow and permission set","Discuss customer data and AI-tool policies"]],
-["STAGE 02 · INTERMEDIATE","Move from setup to repeatable engineering practice.",["Create a Salesforce DX project workspace","Understand org discovery and metadata lifecycle","Use Git branches, commits and pull requests","Use Claude Code with context, constraints and review"]],
-["PROJECT WORKSPACE","A clean project structure makes work easier to understand and maintain.",["Keep source, tests, scripts and docs discoverable","Never commit secrets or customer data","Record project conventions and architecture decisions","Use generated DX scaffolding as the starting point"]],
-["CLAUDE CODE PRACTICE","Treat AI as an engineering partner — not an authority.",["Context first; plan before editing","Use bounded tasks and explicit acceptance criteria","Inspect every diff and run tests independently","Follow approved account, data and connector policies"]],
-["INTERMEDIATE · PROVE IT","Ship one small, reviewed, validated change.",["Retrieve a narrow metadata scope","Make a focused improvement","Run tests and deployment validation","Open a PR with evidence and risks"]],
-["STAGE 03 · ADVANCED","Build the judgement to lead customer delivery.",["Discover and quantify the real problem","Design the right platform and agentic architecture","Engineer for security, scale and operability","Lead technical conversations and trade-offs"]],
-["AGENTFORCE ENGINEERING","Design agents with explicit boundaries and measurable behaviour.",["Clear scope, instructions, actions and hand-offs","Grounding, data access and permission enforcement","Multi-turn state, failure paths and human escalation","Evaluation datasets and regression suites"]],
-["PRODUCTION READINESS","Quality continues after deployment.",["Threat model and least-privilege review","Unit, integration, E2E and agent evaluation","Logs, traces, metrics, alerts and runbooks","Rollback, support ownership and success measures"]],
-["GRADUATION","Ready for the field means ready to take responsibility.",["A reviewed, tested and supportable solution","Clear explanation of assumptions and trade-offs","Evidence-backed go/no-go recommendation","Know when to ask for help"]]
-];
 function save(){localStorage.setItem("fde-field-guide-progress",JSON.stringify(completed));localStorage.setItem("fde-field-guide-celebrated",JSON.stringify(celebrated));}
 function isDone(id){return !!completed[id]}
 function stageDone(s){return required[s].every(isDone)}
@@ -1009,15 +1067,210 @@ document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",(
  });
 })();
 (function(){const sec=document.getElementById("beginner");if(!sec)return;function setOS(os){sec.dataset.os=os;document.querySelectorAll("#os-select button").forEach(b=>{const on=b.dataset.os===os;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on));});try{localStorage.setItem("fde-field-guide-os",os);}catch(e){}}document.querySelectorAll("#os-select button").forEach(b=>b.addEventListener("click",()=>setOS(b.dataset.os)));let saved="mac";try{saved=localStorage.getItem("fde-field-guide-os")||"mac";}catch(e){}setOS(saved);})();document.querySelectorAll(".navitem").forEach(b=>b.addEventListener("click",()=>{if(b.classList.contains("locked"))return;document.querySelectorAll(".navitem").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.target).scrollIntoView({behavior:"smooth"})}));
-const doc=document.getElementById("documentation"),slides=document.getElementById("slides");
-document.getElementById("docMode").onclick=()=>{doc.classList.remove("hidden");slides.classList.remove("active");document.getElementById("docMode").classList.add("active");document.getElementById("slideMode").classList.remove("active")};
-document.getElementById("slideMode").onclick=()=>{doc.classList.add("hidden");slides.classList.add("active");document.getElementById("slideMode").classList.add("active");document.getElementById("docMode").classList.remove("active");renderSlide()};
-function renderSlide(){const d=slideData[slide];document.getElementById("slideIndex").textContent=`FDE FIELD GUIDE · ${String(slide+1).padStart(2,"0")} / ${slideData.length}`;document.getElementById("slideTitle").textContent=d[0];document.getElementById("slideBody").textContent=d[1];document.getElementById("slideBullets").innerHTML=d[2].map(x=>`<li>${x}</li>`).join("");document.getElementById("prevSlide").disabled=slide===0;document.getElementById("nextSlide").disabled=slide===slideData.length-1;document.getElementById("slideDots").innerHTML=slideData.map((_,i)=>`<button aria-label="Go to slide ${i+1}" class="${i===slide?"active":""}" onclick="goSlide(${i})"></button>`).join("")}
-function goSlide(n){slide=Math.max(0,Math.min(slideData.length-1,n));renderSlide()}
-document.getElementById("prevSlide").onclick=()=>goSlide(slide-1);document.getElementById("nextSlide").onclick=()=>goSlide(slide+1);
-document.addEventListener("keydown",e=>{if(!slides.classList.contains("active"))return;if(e.key==="ArrowRight")goSlide(slide+1);if(e.key==="ArrowLeft")goSlide(slide-1);if(e.key==="Escape")document.getElementById("docMode").click()});
 function exportProgress(){const all=Object.values(tasks).flat(),done=all.filter(isDone);let out="Salesforce FDE Field Guide — Progress Summary\n";for(const s of Object.keys(stages)){out+=`\n${s.toUpperCase()}: ${stageDone(s)?"COMPLETE":"IN PROGRESS"}\n`;out+=required[s].map(id=>`${isDone(id)?"[x]":"[ ]"} ${id}`).join("\n")+"\n"}out+=`\nOverall: ${done.length}/${all.length} tasks checked\n`;out+=`\n---\n\nFeedback by stage\n`;for(const s of Object.keys(stages)){const note=(feedback[s]||"").trim();out+=`\n${s.toUpperCase()}:\n${note?note:"(no feedback)"}\n`}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out],{type:"text/plain"}));a.download="fde-onboarding-progress.txt";a.click();URL.revokeObjectURL(a.href)}
-renderProgress();renderSlide();
+/* Sequentially animated terminal demos (content sourced from references/terminal-screens/*.png) */
+function initTermDemo(screenId,replayId,steps,opts){
+  const screen=document.getElementById(screenId),replay=document.getElementById(replayId);
+  if(!screen)return;
+  opts=opts||{};
+  const USER="builder@YOUR-MACHINE",CARET='<span class="td-caret"></span>';
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const sleep=ms=>new Promise(r=>setTimeout(r,reduce?0:ms));
+  const lineDelay=reduce?0:(opts.lineDelay||0);
+  let runId=0,html="";
+  const prompt=cwd=>'<span class="p">'+USER+" "+(cwd||"~")+" % </span>";
+  const paint=live=>{screen.innerHTML=html+(live||"");screen.scrollTop=screen.scrollHeight;};
+  const lineHtml=(l,cls)=>typeof l==="string"?'<div class="'+cls+'">'+esc(l)+"</div>":'<div class="'+(l.cls||cls)+'">'+esc(l.t)+"</div>";
+  async function type(id,cmd,cwd){
+    for(let i=0;i<=cmd.length;i++){
+      if(id!==runId)return false;
+      paint("<div>"+prompt(cwd)+esc(cmd.slice(0,i))+CARET+"</div>");
+      if(i<cmd.length)await sleep(55);
+    }
+    html+="<div>"+prompt(cwd)+esc(cmd)+"</div>";
+    return true;
+  }
+  async function run(){
+    const id=++runId;html="";paint("");
+    html+='<div class="o login">Last login: Wed Nov 11 12:30:04 on console</div>';paint("");
+    await sleep(320);if(id!==runId)return;
+    let lastCwd="~";
+    for(const step of steps){
+      lastCwd=step.cwd||"~";
+      if(!await type(id,step.cmd,step.cwd))return;
+      const out=step.out||[],cls=step.cls||"o";
+      if(out.length){
+        await sleep(380);if(id!==runId)return;
+        if(lineDelay){
+          for(const l of out){if(id!==runId)return;html+=lineHtml(l,cls);paint("");await sleep(lineDelay);}
+        }else{html+=out.map(l=>lineHtml(l,cls)).join("");paint("");}
+      }
+      await sleep(out.length?480:220);if(id!==runId)return;
+    }
+    paint("<div>"+prompt(lastCwd)+CARET+"</div>");
+  }
+  replay.addEventListener("click",e=>{e.stopPropagation();run();});
+  let started=false;const kick=()=>{if(started)return;started=true;run();};
+  if("IntersectionObserver" in window){
+    const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){kick();io.disconnect();}});},{threshold:.4});
+    io.observe(screen);
+  } else kick();
+}
+/* Install Node.js — node-v.png */
+initTermDemo("nodeTermScreen","nodeTermReplay",[
+  {cmd:"node -v",out:["v22.22.3"]},
+  {cmd:"npm -v",out:["10.9.8"]}
+]);
+/* Install Java (JDK 21+) — java-v.png */
+initTermDemo("javaTermScreen","javaTermReplay",[
+  {cmd:"java -version",out:[
+    'openjdk version "22.0.2" 2024-07-16',
+    "OpenJDK Runtime Environment OpenLogic-OpenJDK (build 22.0.2+9-adhoc.admin.jdk22u)",
+    "OpenJDK 64-Bit Server VM OpenLogic-OpenJDK (build 22.0.2+9-adhoc.admin.jdk22u, mixed mode, sharing)"
+  ]}
+]);
+/* Install Git — git-v.png */
+initTermDemo("gitTermScreen","gitTermReplay",[
+  {cmd:"git --version",out:["git version 2.51.2"]}
+]);
+/* Install the GitHub CLI — gh-v.png */
+initTermDemo("ghTermScreen","ghTermReplay",[
+  {cmd:"gh --version",out:[
+    "gh version 2.91.0 (2026-04-22)",
+    "https://github.com/cli/cli/releases/tag/v2.91.0"
+  ]}
+]);
+/* Install the Salesforce CLI — sf-v.png */
+initTermDemo("sfTermScreen","sfTermReplay",[
+  {cmd:"sf --version",out:["@salesforce/cli/2.158.7 darwin-arm64 node-v26.13.0"]}
+]);
+/* Generate the project — project-gen.png */
+initTermDemo("genTermScreen","genTermReplay",[
+  {cmd:"sf project generate --name customer-fde-project --template standard --manifest",cwd:"demo",out:[
+    "target dir = /Users/YOUR-NAME/demo",
+    "  create customer-fde-project/config/project-scratch-def.json",
+    "  create customer-fde-project/README.md",
+    "  create customer-fde-project/sfdx-project.json",
+    "  create customer-fde-project/manifest/package.xml",
+    "  create customer-fde-project/.husky/pre-commit",
+    "  create customer-fde-project/.vscode/extensions.json",
+    "  create customer-fde-project/.vscode/launch.json",
+    "  create customer-fde-project/.vscode/settings.json",
+    "  create customer-fde-project/eslint.config.js",
+    "  create customer-fde-project/scripts/soql/account.soql",
+    "  create customer-fde-project/scripts/apex/hello.apex",
+    "  create customer-fde-project/.forceignore",
+    "  create customer-fde-project/.gitignore",
+    "  create customer-fde-project/.prettierignore",
+    "  create customer-fde-project/.prettierrc",
+    "  create customer-fde-project/jest.config.js",
+    "  create customer-fde-project/package.json"
+  ]},
+  {cmd:"cd customer-fde-project",cwd:"demo"},
+  {cmd:"git init",cwd:"customer-fde-project",cls:"hint",out:[
+    "hint: Using 'master' as the name for the initial branch. This default branch name",
+    "hint: is subject to change. To configure the initial branch name to use in all",
+    "hint: of your new repositories, which will suppress this warning, call:",
+    "hint:",
+    "hint:   git config --global init.defaultBranch <name>",
+    "hint:",
+    "hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and",
+    "hint: 'development'. The just-created branch can be renamed via this command:",
+    "hint:",
+    "hint:   git branch -m <name>",
+    "hint:",
+    'hint: Disable this message with "git config set advice.defaultBranchName false"',
+    {t:"Initialized empty Git repository in /Users/YOUR-NAME/demo/customer-fde-project/.git/",cls:"o"}
+  ]},
+  {cmd:"git branch -M main",cwd:"customer-fde-project"},
+  {cmd:"git status",cwd:"customer-fde-project",out:["On branch main","No commits yet"]}
+],{lineDelay:45});
+/* Launch Claude Code — three-stage walkthrough (claude-1/2/3.png) */
+function initClaudeDemo(screenId,replayId,titleId){
+  const screen=document.getElementById(screenId),replay=document.getElementById(replayId),title=document.getElementById(titleId);
+  if(!screen)return;
+  const PROMPT="builder@YOUR-MACHINE ~ % ",CARET='<span class="td-caret"></span>',HOME="/Users/YOUR-NAME";
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  let runId=0;
+  const set=h=>{screen.innerHTML=h;screen.scrollTop=screen.scrollHeight;};
+  const setTitle=t=>{if(title)title.textContent=t;};
+  async function run(){
+    const id=++runId;
+    /* Stage 1 — type `claude` at the zsh prompt */
+    setTitle("YOUR-NAME — -zsh — 121×33");
+    const cmd="claude";
+    for(let i=0;i<=cmd.length;i++){
+      if(id!==runId)return;
+      set('<div><span class="p">'+PROMPT+'</span>'+esc(cmd.slice(0,i))+CARET+'</div>');
+      if(i<cmd.length)await sleep(reduce?0:70);
+    }
+    await sleep(reduce?1200:900);if(id!==runId)return;
+    /* Stage 2 — trust-this-folder safety prompt */
+    setTitle("YOUR-NAME — claude — 121×33");
+    set(
+      '<div><span class="p">'+PROMPT+'</span>claude</div>'+
+      '<div class="td-rule"></div>'+
+      '<div class="g1 b">Accessing workspace:</div>'+
+      '<div>&nbsp;</div>'+
+      '<div class="b">'+HOME+'</div>'+
+      '<div>&nbsp;</div>'+
+      '<div class="o">Quick safety check: Is this a project you created or one you trust? (Like your own code, a well-known open source project, or work from your team). If not, take a moment to review what&#39;s in this folder first.</div>'+
+      '<div>&nbsp;</div>'+
+      '<div class="o">Claude Code&#39;ll be able to read, edit, and execute files here.</div>'+
+      '<div>&nbsp;</div>'+
+      '<div class="dim">Security guide</div>'+
+      '<div>&nbsp;</div>'+
+      '<div class="o">&nbsp;&nbsp;No, exit</div>'+
+      '<div class="hl">&#8250; Yes, I trust this folder</div>'+
+      '<div>&nbsp;</div>'+
+      '<div class="dim">Enter to confirm &middot; Esc to cancel</div>'
+    );
+    await sleep(reduce?1800:2900);if(id!==runId)return;
+    /* Stage 3 — Claude Code welcome banner */
+    setTitle("YOUR-NAME — ✳ Claude Code — uv ‹ claude — 121×33");
+    set(
+      '<div class="td-banner">'+
+        '<div class="td-mascot">┌────┐\n│o  o│\n└┬──┬┘</div>'+
+        '<div class="td-bannertext">'+
+          '<div><span class="b">Claude Code</span> <span class="dim">v2.1.323</span></div>'+
+          '<div class="dim">Opus 4.8 &middot; Amazon Bedrock</div>'+
+          '<div class="dim">@agents/adlc-orchestrator.md &middot; '+HOME+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="dim">&#9474; Using Opus 4.8 (from .claude/settings.json) &middot; /model</div>'+
+      '<div class="td-spacer"></div>'+
+      '<div class="dim" style="text-align:right">&#9679; high &middot; /effort</div>'+
+      '<div class="hl">&#8250; '+CARET+'</div>'+
+      '<div class="dim">Opus 4.8 | $0.00 | [&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;&#9617;] 0% (/ tokens)</div>'+
+      '<div><span class="g1 b">&#9654;&#9654; auto mode on</span> <span class="dim">(shift+tab to cycle) &middot; &#8592; for agents</span></div>'
+    );
+  }
+  replay.addEventListener("click",e=>{e.stopPropagation();run();});
+  let started=false;const kick=()=>{if(started)return;started=true;run();};
+  if("IntersectionObserver" in window){
+    const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){kick();io.disconnect();}});},{threshold:.4});
+    io.observe(screen);
+  } else kick();
+}
+initClaudeDemo("claudeTermScreen","claudeTermReplay","claudeTitle");
+/* Install VS Code (macOS / Homebrew) — vsc-v.png */
+initTermDemo("vscTermScreen","vscTermReplay",[
+  {cmd:"brew install --cask visual-studio-code",out:[
+    "==> Downloading https://formulae.brew.sh/api/cask.jws.json",
+    "",
+    "==> Downloading https://update.code.visualstudio.com/1.80.1/darwin-arm64/stable",
+    "==> Downloading from https://az764295.vo.msecnd.net/stable/74f6148eb9ea00507ec113ec51c489d6ffb4b771/VSCode-darwin-arm64.zip",
+    "######################################################################## 100.0%",
+    "==> Installing Cask visual-studio-code",
+    "==> Moving App 'Visual Studio Code.app' to '/Applications/Visual Studio Code.app'",
+    "==> Linking Binary 'code' to '/opt/homebrew/bin/code'",
+    "🍺  visual-studio-code was successfully installed!"
+  ]}
+]);
+renderProgress();
 </script>
 </body>
 </html>
