@@ -1427,11 +1427,29 @@ function confirmSync(requestId){
  localStorage.removeItem(LS.pending);localStorage.removeItem(LS.reason);pendingReason="change";
  setSync("synced","Saved "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}));
 }
+// Reads from Apps Script via JSONP (a <script> tag), not fetch. Apps Script /exec redirects
+// to googleusercontent.com and never sends Access-Control-Allow-Origin, so fetch is always
+// blocked by CORS cross-origin. A script tag isn't subject to CORS, so this works from any
+// origin. Requires doGet to wrap its JSON in the callback when a `callback` param is present.
+function jsonpGet(params,timeoutMs){
+ return new Promise((resolve,reject)=>{
+  const cb="fdeCb_"+Date.now().toString(36)+Math.random().toString(36).slice(2);
+  const s=document.createElement("script");
+  let settled=false;
+  const cleanup=()=>{try{delete window[cb]}catch(e){window[cb]=undefined}s.remove();clearTimeout(t)};
+  window[cb]=d=>{if(settled)return;settled=true;cleanup();resolve(d)};
+  const t=setTimeout(()=>{if(!settled){settled=true;cleanup();reject(new Error("jsonp timeout"))}},timeoutMs||10000);
+  s.onerror=()=>{if(!settled){settled=true;cleanup();reject(new Error("jsonp error"))}};
+  const q=Object.entries(params).map(([k,v])=>encodeURIComponent(k)+"="+encodeURIComponent(v)).join("&");
+  s.src=TRACKING.endpoint+"?"+q+"&callback="+cb+"&_="+Date.now();
+  document.head.appendChild(s);
+ });
+}
 async function pullRemote(){
  if(!TRACKING.endpoint||!learnerEmail)return false;
  try{
-  const r=await fetch(TRACKING.endpoint+"?action=get&email="+encodeURIComponent(learnerEmail));
-  const d=await r.json();if(!d.ok||!d.found)return false;
+  const d=await jsonpGet({action:"get",email:learnerEmail});
+  if(!d||!d.ok||!d.found)return false;
   let changed=false;
   (d.progress||[]).forEach(p=>{if(p&&p.id&&!completed[p.id]){completed[p.id]=p.at||new Date().toISOString();changed=true}});
   Object.entries(d.milestones||{}).forEach(([s,at])=>{if(at&&(!milestones[s]||at<milestones[s])){milestones[s]=at;changed=true}});
