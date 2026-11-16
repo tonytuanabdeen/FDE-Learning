@@ -128,7 +128,12 @@ function buildDashboard_(ss) {
 
 function doPost(e) {
   try {
-    const raw = (e && e.postData && e.postData.contents) || '';
+    // The guide submits a hidden form whose field is named "payload", so the JSON arrives as
+    // e.parameter.payload. Fall back to the raw body for clients that POST JSON directly.
+    var raw = (e && e.parameter && e.parameter.payload)
+      || (e && e.postData && e.postData.contents)
+      || '';
+    if (!raw) return json_({ ok: false, error: 'No payload' });
     if (raw.length > CONFIG.MAX_BODY_CHARS) return json_({ ok: false, error: 'Payload too large' });
     const body = JSON.parse(raw);
     if (body.action !== 'sync') return json_({ ok: false, error: 'Unknown action' });
@@ -144,24 +149,29 @@ function doPost(e) {
   }
 }
 
-// Returns a learner's ticked tasks so progress follows them to a new browser.
-// Free-text feedback is deliberately NOT returned: the endpoint is public.
+// Returns a learner's ticked tasks so progress follows them to a new browser / device.
+// The guide reads this over JSONP (a <script> tag): a cross-origin fetch to Apps Script is
+// blocked by CORS (no Access-Control-Allow-Origin on the /exec redirect), but a <script>
+// tag is CORS-exempt. So when a `callback` param is present we wrap the JSON as callback(...).
+// Free-text feedback is deliberately NOT returned: the endpoint is public (anyone could query
+// any email). If you want feedback to cross devices too, add `feedback: snap ... ` below and
+// accept that privacy trade-off (or lock the web app down to your domain first).
 function doGet(e) {
   const p = (e && e.parameter) || {};
-  if (p.action !== 'get') return json_({ ok: true, service: 'fde-field-guide-tracker' });
+  if (p.action !== 'get') return reply_({ ok: true, service: 'fde-field-guide-tracker' }, e);
   const email = cleanEmail_(p.email);
-  if (!email) return json_({ ok: false, error: 'Email domain not allowed' });
+  if (!email) return reply_({ ok: false, error: 'Email domain not allowed' }, e);
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.learners);
-  if (!sh) return json_({ ok: false, error: 'Run setup() first' });
+  if (!sh) return reply_({ ok: false, error: 'Run setup() first' }, e);
   const row = findRow_(sh, email);
-  if (!row) return json_({ ok: true, found: false });
+  if (!row) return reply_({ ok: true, found: false }, e);
   const snap = parse_(sh.getRange(row, L.snapshot).getValue()) || {};
   const prog = snap.progress || {};
-  return json_({
+  return reply_({
     ok: true, found: true,
     progress: Object.keys(prog).map(id => ({ id: id, at: prog[id].at || '' })),
     milestones: snap.milestones || {}
-  });
+  }, e);
 }
 
 /* ---------------- Core write ---------------- */
@@ -290,4 +300,16 @@ function parse_(v) {
 
 function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// JSONP-aware reply: if the request carries a valid `callback` param, return callback(json)
+// as JavaScript so a cross-origin <script> read works (CORS-exempt); otherwise plain JSON.
+function reply_(obj, e) {
+  const body = JSON.stringify(obj);
+  const cb = e && e.parameter && e.parameter.callback;
+  if (cb && /^[A-Za-z_$][\w$]*$/.test(cb)) { // validate to prevent response injection
+    return ContentService.createTextOutput(cb + '(' + body + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JSON);
 }

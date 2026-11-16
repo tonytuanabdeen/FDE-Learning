@@ -8,16 +8,12 @@
  *    This creates the Dashboard, Learners and Events tabs.
  * 4. Deploy > New deployment > type "Web app".
  *      Execute as: Me
- *      Who has access: see SECURITY NOTE below before deployment.
+ *      Who has access: Anyone
  *    Copy the Web app URL (ends in /exec).
  * 5. In the guide HTML, paste that URL into TRACKING.endpoint and push to GitHub.
  *
  * After any change to this script: Deploy > Manage deployments > Edit > Version: New version.
  * (Editing the code alone does not update the live /exec URL.)
- *
- * SECURITY: the browser email is an identifier, not proof of identity. This endpoint
- * still permits email spoofing unless deployment access and a server-verifiable
- * Salesforce identity check are added. Do not use it for sensitive data as-is.
  */
 
 const CONFIG = {
@@ -132,60 +128,50 @@ function buildDashboard_(ss) {
 
 function doPost(e) {
   try {
-    // The guide posts a hidden HTML form. Apps Script exposes its field as
-    // e.parameter.payload; also accept raw JSON for future non-browser clients.
-    const raw = (e && e.parameter && e.parameter.payload) ||
-      ((e && e.postData && e.postData.contents) || '');
-    if (raw.length > CONFIG.MAX_BODY_CHARS) return ack_({ ok: false, error: 'Payload too large' }, e);
-    let body;
-    try { body = JSON.parse(raw); } catch (parseErr) { return ack_({ ok: false, error: 'Invalid payload' }, e); }
-    if (!body || body.action !== 'sync') return ack_({ ok: false, error: 'Unknown action' }, e);
+    // The guide submits a hidden form whose field is named "payload", so the JSON arrives as
+    // e.parameter.payload. Fall back to the raw body for clients that POST JSON directly.
+    var raw = (e && e.parameter && e.parameter.payload)
+      || (e && e.postData && e.postData.contents)
+      || '';
+    if (!raw) return json_({ ok: false, error: 'No payload' });
+    if (raw.length > CONFIG.MAX_BODY_CHARS) return json_({ ok: false, error: 'Payload too large' });
+    const body = JSON.parse(raw);
+    if (body.action !== 'sync') return json_({ ok: false, error: 'Unknown action' });
     const email = cleanEmail_(body.email);
-    if (!email) return ack_({ ok: false, error: 'Email domain not allowed' }, e);
-    if (!body.requestId || !/^[A-Za-z0-9_-]{8,100}$/.test(String(body.requestId))) {
-      return ack_({ ok: false, error: 'Invalid request id' }, e);
-    }
+    if (!email) return json_({ ok: false, error: 'Email domain not allowed' });
 
     const lock = LockService.getScriptLock();
     lock.waitLock(15000);
-    try { return ack_(Object.assign(upsert_(email, body), { requestId: body.requestId }), e); }
+    try { return json_(upsert_(email, body)); }
     finally { lock.releaseLock(); }
   } catch (err) {
-    // Do not return internal exception details to an unauthenticated caller.
-    console.error(err);
-    return ack_({ ok: false, error: 'Unable to save progress' }, e);
+    return json_({ ok: false, error: String((err && err.message) || err) });
   }
 }
 
-// The hidden iframe cannot expose its response body to the public page. Return a
-// small HTML acknowledgement that the page correlates using requestId.
-function ack_(result, e) {
-  if (!result.requestId && e && e.parameter && e.parameter.payload) {
-    try { result.requestId = JSON.parse(e.parameter.payload).requestId || ''; } catch (ignored) {}
-  }
-  const safe = JSON.stringify(result).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
-  return HtmlService.createHtmlOutput('<!doctype html><meta charset="utf-8"><script>' +
-    'parent.postMessage({type:"fde-sync-result",result:' + safe + '},"*");</script>');
-}
-
-// Returns a learner's ticked tasks so progress follows them to a new browser.
-// Free-text feedback is deliberately NOT returned: the endpoint is public.
+// Returns a learner's ticked tasks so progress follows them to a new browser / device.
+// The guide reads this over JSONP (a <script> tag): a cross-origin fetch to Apps Script is
+// blocked by CORS (no Access-Control-Allow-Origin on the /exec redirect), but a <script>
+// tag is CORS-exempt. So when a `callback` param is present we wrap the JSON as callback(...).
+// Free-text feedback is deliberately NOT returned: the endpoint is public (anyone could query
+// any email). If you want feedback to cross devices too, add `feedback: snap ... ` below and
+// accept that privacy trade-off (or lock the web app down to your domain first).
 function doGet(e) {
   const p = (e && e.parameter) || {};
-  if (p.action !== 'get') return json_({ ok: true, service: 'fde-field-guide-tracker' });
+  if (p.action !== 'get') return reply_({ ok: true, service: 'fde-field-guide-tracker' }, e);
   const email = cleanEmail_(p.email);
-  if (!email) return json_({ ok: false, error: 'Email domain not allowed' });
+  if (!email) return reply_({ ok: false, error: 'Email domain not allowed' }, e);
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.learners);
-  if (!sh) return json_({ ok: false, error: 'Run setup() first' });
+  if (!sh) return reply_({ ok: false, error: 'Run setup() first' }, e);
   const row = findRow_(sh, email);
-  if (!row) return json_({ ok: true, found: false });
+  if (!row) return reply_({ ok: true, found: false }, e);
   const snap = parse_(sh.getRange(row, L.snapshot).getValue()) || {};
   const prog = snap.progress || {};
-  return json_({
+  return reply_({
     ok: true, found: true,
     progress: Object.keys(prog).map(id => ({ id: id, at: prog[id].at || '' })),
     milestones: snap.milestones || {}
-  });
+  }, e);
 }
 
 /* ---------------- Core write ---------------- */
@@ -278,21 +264,15 @@ function cleanEmail_(v) {
   return email;
 }
 
-// Id-agnostic: the script does NOT keep a list of known task ids, so adding new
-// checkboxes/sections to the HTML needs no change here. Each id is accepted on FORMAT
-// alone (a cheap guard against junk), and the stage is taken from what the guide sends
-// (the HTML's stageOfTask()), falling back to 'other'. The only hard limits are a max
-// count and a max id length.
 function cleanProgress_(list) {
   const out = {};
-  const allowedStages = STAGES.concat(['other']); // beginner | intermediate | advanced | other
-  if (!Array.isArray(list) || list.length > 500) throw new Error('Invalid progress list');
-  list.forEach(p => {
-    if (!p) return;
-    const id = String(p.id || '');
-    if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,60}$/.test(id)) return; // skip malformed ids only
-    const stage = allowedStages.indexOf(String(p.stage)) >= 0 ? String(p.stage) : 'other';
-    out[id] = { stage: stage, at: toDate_(p.at) ? String(p.at) : '' };
+  const stages = STAGES.concat(['other']);
+  (Array.isArray(list) ? list : []).slice(0, 200).forEach(p => {
+    if (!p || !/^[A-Za-z0-9_-]{1,60}$/.test(String(p.id))) return;
+    out[p.id] = {
+      stage: stages.indexOf(p.stage) >= 0 ? p.stage : 'other',
+      at: toDate_(p.at) ? String(p.at) : ''
+    };
   });
   return out;
 }
@@ -320,4 +300,16 @@ function parse_(v) {
 
 function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// JSONP-aware reply: if the request carries a valid `callback` param, return callback(json)
+// as JavaScript so a cross-origin <script> read works (CORS-exempt); otherwise plain JSON.
+function reply_(obj, e) {
+  const body = JSON.stringify(obj);
+  const cb = e && e.parameter && e.parameter.callback;
+  if (cb && /^[A-Za-z_$][\w$]*$/.test(cb)) { // validate to prevent response injection
+    return ContentService.createTextOutput(cb + '(' + body + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JSON);
 }
