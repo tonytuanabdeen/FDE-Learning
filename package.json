@@ -1,0 +1,14 @@
+{
+  "name": "fde-onboarding-field-guide",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static hosting for the Salesforce FDE onboarding field guide, images, and assets.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "license": "UNLICENSED"
+}

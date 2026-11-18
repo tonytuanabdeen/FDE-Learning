@@ -867,7 +867,7 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
           <g class="node" data-k="build" tabindex="0" role="button"><circle cx="352.7" cy="163.6" r="50"/><text x="352.7" y="160">Build</text><text x="352.7" y="177">inner loop</text></g>
           <g class="node focus" data-k="test" tabindex="0" role="button"><circle cx="298.2" cy="331.4" r="50"/><text x="298.2" y="327">Test &amp;</text><text x="298.2" y="344">validate</text></g>
           <g class="node focus" data-k="deploy" tabindex="0" role="button"><circle cx="121.8" cy="331.4" r="50"/><text x="121.8" y="327">Deploy &amp;</text><text x="121.8" y="344">release</text></g>
-          <g class="node" data-k="monitor" tabindex="0" role="button"><circle cx="67.3" cy="163.6" r="50"/><text x="67.3" y="160">Monitor</text><text x="67.3" y="177">&amp; tune</text></g>
+          <g class="node" data-k="monitor" tabindex="0" role="button"><circle cx="67.3" cy="163.6" r="50"/><text x="67.3" y="160">Operate</text><text x="67.3" y="177">&amp; Monitor</text></g>
         </svg>
         <div class="adlc-right">
           <div class="adlc-panel" id="adlcPanel" aria-live="polite"></div>
@@ -887,7 +887,40 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
     <div class="pagenum">4</div>
   </section>
 
-  <!-- =================== SLIDE 5 — USE CASE =================== -->
+  <!-- =================== SLIDE 5 — WHY TESTING & DEPLOYMENT MATTER =================== -->  
+  <section class="slide ref-adlc trust-slide">  
+    <div class="refcard">
+      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
+      <h1 class="title">Testing &amp; deployment are where trust is won or lost</h1>
+      <p class="sub">Why these two phases carry the most risk — and the most value</p>
+      <div class="body">
+        <div class="cards" style="grid-template-columns:1fr 1fr; margin-bottom:18px">
+          <div class="card" style="border-top: 5px solid var(--test);">
+            <div class="ct" style="margin-bottom:10px">Testing is how we earn the right to ship</div>
+            <ul class="bul">
+              <li>An agent reasons its own path through subagents and actions — so "it worked when I tried it" proves very little.</li>
+              <li>Actions write real CRM data. A wrong tool call is a data incident, not a UI bug.</li>
+              <li>Customers see the output directly. One hallucinated policy can end up on social media.</li>
+            </ul>
+          </div>
+          <div class="card" style="border-top: 5px solid var(--deploy);">
+            <div class="ct" style="margin-bottom:10px">Deployment is how we stay repeatable</div>
+            <ul class="bul">
+              <li>An agent is a bundle of linked metadata plus Apex, flows, prompt templates, permissions and data.</li>
+              <li>Missing one dependency fails the deploy — or worse, deploys an agent that silently can't act.</li>
+              <li>Versions, activation and rollback must be scripted so any FDE can repeat them at 2am.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout-ref">
+          <p><b>Our team rule:</b> No agent reaches a customer-facing channel without a passing test suite and a deployment that was rehearsed in a full sandbox.</p>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">5</div>
+  </section>
+
+  <!-- =================== SLIDE 6 — USE CASE =================== -->
   <section class="slide ref-adlc wismo-slide">
     <div class="refcard">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -918,39 +951,6 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">5</div>
-  </section>
-
-  <!-- =================== SLIDE 6 — WHY TESTING & DEPLOYMENT MATTER =================== -->  
-  <section class="slide ref-adlc trust-slide">  
-    <div class="refcard">
-      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
-      <h1 class="title">Testing &amp; deployment are where trust is won or lost</h1>
-      <p class="sub">Why these two phases carry the most risk — and the most value</p>
-      <div class="body">
-        <div class="cards" style="grid-template-columns:1fr 1fr; margin-bottom:18px">
-          <div class="card" style="border-top: 5px solid var(--test);">
-            <div class="ct" style="margin-bottom:10px">Testing is how we earn the right to ship</div>
-            <ul class="bul">
-              <li>An agent reasons its own path through subagents and actions — so "it worked when I tried it" proves very little.</li>
-              <li>Actions write real CRM data. A wrong tool call is a data incident, not a UI bug.</li>
-              <li>Customers see the output directly. One hallucinated policy can end up on social media.</li>
-            </ul>
-          </div>
-          <div class="card" style="border-top: 5px solid var(--deploy);">
-            <div class="ct" style="margin-bottom:10px">Deployment is how we stay repeatable</div>
-            <ul class="bul">
-              <li>An agent is a bundle of linked metadata plus Apex, flows, prompt templates, permissions and data.</li>
-              <li>Missing one dependency fails the deploy — or worse, deploys an agent that silently can't act.</li>
-              <li>Versions, activation and rollback must be scripted so any FDE can repeat them at 2am.</li>
-            </ul>
-          </div>
-        </div>
-        <div class="callout-ref">
-          <p><b>Our team rule:</b> No agent reaches a customer-facing channel without a passing test suite and a deployment that was rehearsed in a full sandbox.</p>
-        </div>
-      </div>
-    </div>
     <div class="pagenum">6</div>
   </section>
 
@@ -965,24 +965,7 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
     <div class="pagenum">7</div>
   </section>
 
-  <!-- =================== SLIDE 8 — TESTING GOALS & EXPECTATIONS =================== -->
-  <section class="slide ref-adlc goals-slide">
-    <div class="refcard2">
-      <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
-      <h1 class="title">Testing goals and expectations</h1>
-      <p class="sub">Test observable behaviour and outcomes, not identical generated sentences.</p>
-      <div class="goal-list">
-        <div class="goal-card"><div class="g-t">Prove the business outcome</div><div class="g-d">Define what the user must achieve and what acceptable behaviour looks like.</div></div>
-        <div class="goal-card"><div class="g-t">Inspect the decision path</div><div class="g-d">Verify topic and action selection, grounding and the resulting response.</div></div>
-        <div class="goal-card"><div class="g-t">Challenge boundaries and recovery</div><div class="g-d">Cover permissions, ambiguity, edge cases, refusal, escalation and dependency failure.</div></div>
-        <div class="goal-card"><div class="g-t">Use the intended context</div><div class="g-d">Test the representative persona, runtime identity, data state and channel.</div></div>
-        <div class="goal-card"><div class="g-t">Make evidence executable</div><div class="g-d">Treat scenarios and expected outcomes as a repeatable, understandable design specification.</div></div>
-      </div>
-    </div>
-    <div class="pagenum">8</div>
-  </section>
-
-  <!-- =================== SLIDE 9 — WHY TESTING MATTERS IN AGENTIC AI =================== -->
+  <!-- =================== SLIDE 8 — WHY TESTING MATTERS IN AGENTIC AI =================== -->
   <section class="slide ref-adlc stakes-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1013,10 +996,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>    
     </div>
-    <div class="pagenum">9</div>
+    <div class="pagenum">8</div>
   </section>
 
-  <!-- =================== SLIDE 10 — TRADITIONAL TESTING DOESN'T WORK FOR NON-DETERMINISTIC AGENTS =================== -->
+  <!-- =================== SLIDE 9 — TRADITIONAL TESTING DOESN'T WORK FOR NON-DETERMINISTIC AGENTS =================== -->
   <section class="slide ref-adlc tdt-slide trust-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1055,10 +1038,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>      
       </div> 
     </div>    
-    <div class="pagenum">10</div>
+    <div class="pagenum">9</div>
   </section>
 
-  <!-- =================== SLIDE 11 — AGENTS AREN'T APEX =================== -->
+  <!-- =================== SLIDE 10 — AGENTS AREN'T APEX =================== -->
   <section class="slide ref-adlc apex-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1081,15 +1064,14 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <span id="whyMsg" class="apex-msg"></span>
       </div>
     </div>
-    <div class="pagenum">11</div>
+    <div class="pagenum">10</div>
   </section>
 
-  <!-- =================== SLIDE 12 — SIX LAYERS OF AGENT TESTING =================== -->
+  <!-- =================== SLIDE 11 — SIX LAYERS OF AGENT TESTING =================== -->
   <section class="slide ref-adlc layers-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
-      <h2>Six layers of agent testing</h2>
-      <p class="lede">Cheap and deterministic first, rich and realistic last — each layer catches what the one below misses. Select a layer.</p>
+      <h2>Six layers of agent testing</h2>      
       <div class="layers">
         <div class="layer-list" role="tablist" aria-label="Testing layers">
           <button role="tab" data-l="unit" style="--lc:var(--l-teal)">Unit <span>Apex, flows, prompts</span></button>
@@ -1102,21 +1084,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <div class="layer-panel" id="layerPanel" aria-live="polite"></div>
       </div>
     </div>
-    <div class="pagenum">12</div>
-  </section>
+    <div class="pagenum">11</div>
+  </section> 
 
-  <!-- =================== SLIDE 13 — SUBSECTION: TOOLS =================== -->
-  <section class="slide section">
-    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
-    <div class="wrap" style="top:188px">
-      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2.1</div>      
-      <h1>Agentforce <span class="test">Toolbox</span></h1>
-      <div class="lede">The Agentforce testing ecosystem — and where each tool fits.</div>
-    </div>
-    <div class="pagenum">13</div>
-  </section>
-
-  <!-- =================== SLIDE 14 — MANUAL EXPLORATION =================== -->
+  <!-- =================== SLIDE 12 — MANUAL EXPLORATION =================== -->
   <section class="slide tdt-slide ref-adlc">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1156,10 +1127,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">14</div>
+    <div class="pagenum">12</div>
   </section>
 
-  <!-- =================== SLIDE 15 — BATCH / BULK =================== -->
+  <!-- =================== SLIDE 13 — BATCH / BULK =================== -->
   <section class="slide tdt-slide ref-adlc">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1197,10 +1168,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">15</div>
+    <div class="pagenum">13</div>
   </section>
 
-  <!-- =================== SLIDE 16 — ACT =================== -->   
+  <!-- =================== SLIDE 14 — ACT =================== -->   
   <section class="slide tdt-slide ref-adlc act-slide trust-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1239,10 +1210,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>      
         <div class="note" style="margin-top:25px; border-left:4px solid var(--deploy); padding-left:12px"><span class="k">ℹ️ FDE only</span> Built by our FDE colleague <strong>Giuseppe Cardace</strong> — an intended for FDE use only. Not an official Salesforce product.</div>
     </div>
-    <div class="pagenum">16</div>
+    <div class="pagenum">14</div>
   </section>
 
-  <!-- =================== SLIDE 17 — PLAYWRIGHT =================== -->
+  <!-- =================== SLIDE 15 — PLAYWRIGHT =================== -->
   <section class="slide tdt-slide ref-adlc pw-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1296,10 +1267,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">17</div>
+    <div class="pagenum">15</div>
   </section>
 
-  <!-- =================== SLIDE 18 — AUTOMATED TESTING (PYTHON + YAML) =================== -->
+  <!-- =================== SLIDE 16 — AUTOMATED TESTING (PYTHON + YAML) =================== -->
   <section class="slide tdt-slide ref-adlc pw-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1341,21 +1312,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">18</div>
-  </section>
+    <div class="pagenum">16</div>
+  </section>  
 
-  <!-- =================== SLIDE 19 — SUBSECTION: DESIGNING =================== -->
-  <section class="slide section">
-    <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
-    <div class="wrap" style="top:188px">
-      <div style="font-size:120px; font-weight:800; line-height:1; letter-spacing:-.05em; color:#F2A64A;">2.2</div>      
-      <h1>Designing <span class="test">effective tests</span></h1>
-      <div class="lede">From running tools to designing meaningful coverage.</div>
-    </div>
-    <div class="pagenum">19</div>
-  </section>
-
-  <!-- =================== SLIDE 20 — DESIGNING SCENARIOS (INTERACTIVE) =================== -->
+  <!-- =================== SLIDE 17 — DESIGNING SCENARIOS (INTERACTIVE) =================== -->
   <section class="slide ref-adlc scn-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1371,10 +1331,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <div class="scn-panel" id="dimPanel" aria-live="polite"></div>
       </div>
     </div>
-    <div class="pagenum">20</div>
+    <div class="pagenum">17</div>
   </section>
 
-  <!-- =================== SLIDE 21 — FOUR-QUESTION KNOWLEDGE CHECK (MCQ) =================== -->
+  <!-- =================== SLIDE 18 — FOUR-QUESTION KNOWLEDGE CHECK (MCQ) =================== -->
   <section class="slide ref-adlc mcq-slide">
     <div class="refcard2">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1388,10 +1348,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <button class="mcq-btn" id="q1reveal" type="button" style="margin-left:auto">Reveal answer</button>
       </div>
     </div>
-    <div class="pagenum">21</div>
+    <div class="pagenum">18</div>
   </section>
 
-  <!-- =================== SLIDE 22 — SECTION: DEPLOYMENT =================== -->
+  <!-- =================== SLIDE 19 — SECTION: DEPLOYMENT =================== -->
   <section class="slide section">
     <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
     <div class="wrap" style="top:188px">
@@ -1399,10 +1359,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
       <h1>Agentforce <span class="deploy">Deployment</span></h1>
       <div class="lede">Deployment starts with metadata. <span style="color:#F2A64A;">Ship metadata, not surprises</span></div>
     </div>
-    <div class="pagenum">22</div>
+    <div class="pagenum">19</div>
   </section>
 
-  <!-- =================== SLIDE 23 — AN AGENT IS A BUNDLE OF METADATA =================== -->
+  <!-- =================== SLIDE 20 — AN AGENT IS A BUNDLE OF METADATA =================== -->
   <section class="slide ref-adlc bundle-slide">
     <div class="refcard3">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1425,10 +1385,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">23</div>
+    <div class="pagenum">20</div>
   </section>
 
-  <!-- =================== SLIDE 24 — WHERE YOUR METADATA LIVES =================== -->
+  <!-- =================== SLIDE 21 — WHERE YOUR METADATA LIVES =================== -->
   <section class="slide ref-adlc metaloc-slide">
     <div class="refcard3">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1458,10 +1418,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">24</div>
+    <div class="pagenum">21</div>
   </section>
 
-  <!-- =================== SLIDE 25 — PACKAGE.XML (interactive builder) =================== -->
+  <!-- =================== SLIDE 22 — PACKAGE.XML (interactive builder) =================== -->
   <section class="slide ref-adlc pxb-slide">
     <div class="refcard3">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1486,10 +1446,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">25</div>
+    <div class="pagenum">22</div>
   </section>
 
-  <!-- =================== SLIDE 26 — CLI: RETRIEVE, VALIDATE, DEPLOY (interactive) =================== -->
+  <!-- =================== SLIDE 23 — CLI: RETRIEVE, VALIDATE, DEPLOY (interactive) =================== -->
   <section class="slide ref-adlc fd-slide">
     <div class="refcard3">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1516,10 +1476,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">26</div>
+    <div class="pagenum">23</div>
   </section>
 
-  <!-- =================== SLIDE 27 — SUBSECTION: DEPLOYMENT TOOLING =================== -->
+  <!-- =================== SLIDE 24 — SUBSECTION: DEPLOYMENT TOOLING =================== -->
   <section class="slide section">
     <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
     <div class="wrap" style="top:188px">
@@ -1527,10 +1487,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
       <h1>Deployment <span class="deploy">Tooling</span></h1>
       <div class="lede">We rarely pick the tool — the customer usually has one. <br/>Be fluent enough to plug the agent into whatever exists, and never skip the Data 360 path.</div>
     </div>
-    <div class="pagenum">27</div>
+    <div class="pagenum">24</div>
   </section>
 
-  <!-- =================== SLIDE 28 — DEPLOYMENT OPTIONS (tabs) =================== -->
+  <!-- =================== SLIDE 25 — DEPLOYMENT OPTIONS (tabs) =================== -->
   <section class="slide ref-adlc dopt-slide">
     <div class="refcard3">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1547,10 +1507,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <div class="dopt-panel" id="doptPanel" aria-live="polite"></div>
       </div>
     </div>
-    <div class="pagenum">28</div>
+    <div class="pagenum">25</div>
   </section>
 
-  <!-- =================== SLIDE 29 — ENTERPRISE CI/CD PATHWAY =================== -->
+  <!-- =================== SLIDE 26 — ENTERPRISE CI/CD PATHWAY =================== -->
   <section class="slide ref-adlc cicd-slide">
     <div class="refcard3">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1562,10 +1522,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         </div>
       </div>
     </div>
-    <div class="pagenum">29</div>
+    <div class="pagenum">26</div>
   </section>
 
-  <!-- =================== SLIDE 30 — RELEASE RUN SHEET =================== -->   
+  <!-- =================== SLIDE 27 — RELEASE RUN SHEET =================== -->   
   <section class="slide ref-adlc rsheet-slide trust-slide">
     <div class="refcard3">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1610,10 +1570,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <div class="rs-foot"><b>Make every manual step executable:</b> document the full path, every click, each value, the expected result and recovery.</div>
       </div>
     </div>
-    <div class="pagenum">30</div>
+    <div class="pagenum">27</div>
   </section>
 
-  <!-- =================== SLIDE 31 — DATA 360 / DATA KITS COVERAGE =================== -->
+  <!-- =================== SLIDE 28 — DATA 360 / DATA KITS COVERAGE =================== -->
   <section class="slide ref-adlc d360-slide">
     <div class="refcard3">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1642,10 +1602,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <div class="d360-foot"><b>Check current coverage:</b> support varies by release, Data Kit type, connector and feature; activation targets and other unsupported types need a separate path.</div>
       </div>
     </div>
-    <div class="pagenum">31</div>
+    <div class="pagenum">28</div>
   </section>
 
-  <!-- =================== SLIDE 32 — DEPLOYMENT KNOWLEDGE CHECK (MCQ) =================== -->
+  <!-- =================== SLIDE 29 — DEPLOYMENT KNOWLEDGE CHECK (MCQ) =================== -->
   <section class="slide ref-adlc mcq-slide">
     <div class="refcard3">
       <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
@@ -1659,10 +1619,10 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
         <button class="mcq-btn" id="q2reveal" type="button" style="margin-left:auto">Reveal answer</button>
       </div>
     </div>
-    <div class="pagenum">32</div>
+    <div class="pagenum">29</div>
   </section>
 
-  <!-- =================== SLIDE 33 — THANK YOU =================== -->
+  <!-- =================== SLIDE 30 — THANK YOU =================== -->
   <section class="slide section thanks">
     <div class="brand"><img src="images/Salesforce.png" alt="Salesforce"></div>
     <span class="spark s1">✦</span><span class="spark s2">✦</span><span class="spark s3">✦</span><span class="spark s4">✦</span>
@@ -1670,7 +1630,7 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
       <h1>Thank&nbsp;you</h1>
       <div class="thx-sub">Prove it, then ship it.</div>
     </div>
-    <div class="pagenum">33</div>
+    <div class="pagenum">30</div>
   </section>
 
   </div><!-- /stage -->
@@ -1838,11 +1798,11 @@ document.addEventListener('mousemove', ()=>{
 
 /* ADLC ring interactivity (ported from onboarding reference) */
 const ADLC = {
-  ideate:{t:"Ideate and design",d:"Define the agent's job, persona, boundaries and measurable success criteria (for example, deflection above 50%, escalation below 25%). Collect a corpus of real utterances. This is where your test scenarios are born.",tools:"Workshops, journey maps, utterance corpus"},
+  ideate:{t:"Discover and design",d:"Define the agent's job, persona, boundaries and measurable success criteria (for example, deflection above 50%, escalation below 25%). Collect a corpus of real utterances. This is where your test scenarios are born.",tools:"Workshops, journey maps, utterance corpus"},
   build:{t:"Build (inner loop)",d:"Configure subagents, actions and instructions in Agentforce Builder, or write Agent Script in your IDE with Agentforce DX. Iterate quickly with preview.",tools:"Agentforce Builder, Agent Script, Agentforce DX, Prompt Builder"},
   test:{t:"Test and validate",d:"Prove routing, actions, response quality and safety at scale, before customers see anything. Combine deterministic unit tests with probabilistic batch, conversation, UI and adversarial testing.",tools:"Builder preview, Testing Center, sf agent test, Python, Playwright, red-team tools"},
   deploy:{t:"Deploy and release",d:"Move metadata through environments, publish and activate versions, connect channels and keep a rollback path. Gate releases on test results.",tools:"Salesforce CLI, package.xml, DevOps Center, CI/CD, Copado, Gearset, AutoRABIT, Flosum"},
-  monitor:{t:"Monitor and tune (outer loop)",d:"Watch real sessions for drift, failed intents and escalations. Feed every bad session back into the test suite and the next version.",tools:"Agentforce analytics and observability, session tracing, Trust Layer audit, feedback"}
+  monitor:{t:"Operate and Monitor",d:"Watch real sessions for drift, failed intents and escalations. Feed every bad session back into the test suite and the next version.",tools:"Agentforce analytics and observability, session tracing, Trust Layer audit, feedback"}
 };
 function showPhase(k){
   document.querySelectorAll('.adlc .node').forEach(n=>n.classList.toggle('sel', n.dataset.k===k));

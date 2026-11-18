@@ -1,0 +1,9 @@
+# Files Heroku should NOT include in the deployed slug.
+# Keep only the field guide, server, images/, and assets/.
+Agentforce-Testing-and-Deployment.html
+Code-actionscript.gs
+CLAUDE.md
+talk-track
+readme-prompt
+.cursor
+.DS_Store
