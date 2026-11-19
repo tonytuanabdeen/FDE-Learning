@@ -7,44 +7,45 @@
 <title>Agentforce Testing &amp; Deployment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Questrial&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 /* ============================= THEME TOKENS ============================= */
 :root{
-  --font: "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font: "Salesforce Sans", "Inter", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --display: "Questrial", "Avant Garde Demi SFDC", "Century Gothic", var(--font);
   --mono: "SF Mono", "Consolas", "Courier New", monospace;
 }
 html[data-theme="light"]{
   color-scheme:light;
-  --bg:#EEF3FC; --bg2:#E7EEFB;
-  --card:#FFFFFF; --card2:#F6F9FE;
-  --head:#13124A; --text:#2A2A4A; --muted:#5E6192;
-  --purple:#4A17C4; --purple2:#6A2BD8; --blue:#1B96FF; --bluemid:#2E6BE6; --sky:#4A9BFF;
-  --overview:#3E4D63; --test:#B25E06; --deploy:#2347C6;
-  --navy:#13124A; --line:#DCE3F2; --green:#1F8F5F;
-  --shadow:0 10px 30px rgba(22,30,70,.10), 0 2px 8px rgba(22,30,70,.06);
-  --grad: linear-gradient(135deg,#272EC6 0%, #3C27C0 55%, #5822B4 100%);
-  --grad-glow: radial-gradient(60% 70% at 78% 26%, rgba(255,255,255,.22), transparent 70%);
-  --code-bg:#0E1A3A; --code-tx:#D6E2FF; --code-cmt:#8FB0E0; --code-kw:#79E8C0; --code-str:#FFD98A;
-  --chip-tx:#fff; --soft:#F4F0FF; --soft-line:#D9CBF5; --soft-head:#4A17C4;
-  --warn-bg:#FFF4E8; --warn-line:#F3D6AE; --warn-tx:#B56A00;
-  --tbl-head:#13124A; --tbl-col0:#E4EAF8; --hud:rgba(255,255,255,.9); --hud-line:#DCE3F2;
+  --bg:#EAF3FE; --bg2:#DFEDFC;
+  --card:#FFFFFF; --card2:#F2F8FF;
+  --head:#001E5B; --text:#1A2748; --muted:#56658C;
+  --purple:#022AC0; --purple2:#066AFE; --blue:#00B3FF; --bluemid:#066AFE; --sky:#00B3FF;
+  --overview:#001E5B; --test:#A5730A; --deploy:#022AC0;
+  --navy:#001E5B; --line:#CFE0F5; --green:#04A88F;
+  --shadow:0 10px 30px rgba(0,30,91,.12), 0 2px 8px rgba(0,30,91,.07);
+  --grad: linear-gradient(135deg,#001E5B 0%, #022AC0 55%, #0A86F5 100%);
+  --grad-glow: radial-gradient(60% 70% at 78% 26%, rgba(144,208,254,.32), transparent 70%);
+  --code-bg:#0E1A3A; --code-tx:#D6E2FF; --code-cmt:#8FB0E0; --code-kw:#04E1CB; --code-str:#FCC003;
+  --chip-tx:#fff; --soft:#EAF1FF; --soft-line:#CBD9F5; --soft-head:#022AC0;
+  --warn-bg:#FFF7E2; --warn-line:#F3DDA0; --warn-tx:#A5730A;
+  --tbl-head:#001E5B; --tbl-col0:#E2ECFB; --hud:rgba(255,255,255,.9); --hud-line:#CFE0F5;
 }
 html[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#070B22; --bg2:#0B1030;
-  --card:#141A3C; --card2:#111735;
-  --head:#F3F5FF; --text:#D6DEF2; --muted:#9AA3C8;
-  --purple:#9B82F5; --purple2:#B49BFF; --blue:#5FB0FF; --bluemid:#5B86E8; --sky:#6FB4FF;
-  --overview:#A9B6C9; --test:#F2A64A; --deploy:#86A2FF;
-  --navy:#C9D2F2; --line:#2A3358; --green:#3FD598;
+  --bg:#04103A; --bg2:#071646;
+  --card:#0C2152; --card2:#0A1C47;
+  --head:#EAF2FF; --text:#CDDCF5; --muted:#92A6D0;
+  --purple:#5FA8FF; --purple2:#8CC3FF; --blue:#38B8FF; --bluemid:#5B9BF0; --sky:#6FC4FF;
+  --overview:#AEC2E6; --test:#FCC003; --deploy:#8CB4FF;
+  --navy:#CEDCF7; --line:#214079; --green:#2FD5B0;
   --shadow:0 12px 34px rgba(0,0,0,.45), 0 2px 10px rgba(0,0,0,.35);
-  --grad: linear-gradient(135deg,#1A1E6E 0%, #2A1C78 55%, #3A1480 100%);
-  --grad-glow: radial-gradient(60% 70% at 78% 26%, rgba(120,140,255,.28), transparent 70%);
-  --code-bg:#060A1E; --code-tx:#CBD8F5; --code-cmt:#7E90C6; --code-kw:#67E6C0; --code-str:#FFD98A;
-  --chip-tx:#fff; --soft:#1C1A44; --soft-line:#3A2E6E; --soft-head:#B49BFF;
-  --warn-bg:#2A2212; --warn-line:#5A4A1E; --warn-tx:#F2C66A;
-  --tbl-head:#1C2248; --tbl-col0:#1A2046; --hud:rgba(14,20,48,.9); --hud-line:#2A3358;
+  --grad: linear-gradient(135deg,#02103F 0%, #061C5E 55%, #0A3A8C 100%);
+  --grad-glow: radial-gradient(60% 70% at 78% 26%, rgba(120,180,255,.30), transparent 70%);
+  --code-bg:#060A1E; --code-tx:#CBD8F5; --code-cmt:#7E90C6; --code-kw:#04E1CB; --code-str:#FCC003;
+  --chip-tx:#fff; --soft:#0D1E4E; --soft-line:#26407A; --soft-head:#8CC3FF;
+  --warn-bg:#2A2410; --warn-line:#5A4E1E; --warn-tx:#FCC003;
+  --tbl-head:#0C2152; --tbl-col0:#0D1E4E; --hud:rgba(6,16,48,.9); --hud-line:#214079;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{height:100%; background:#000; font-family:var(--font); overflow:hidden;}
@@ -67,20 +68,20 @@ html,body{height:100%; background:#000; font-family:var(--font); overflow:hidden
 .pagenum{position:absolute; bottom:35px; right:35px; font-size:14px; color:var(--muted); z-index:4;}
 .slide.cover .pagenum,.slide.section .pagenum{color:rgba(255,255,255,.75);}
 
-h1.title{font-size:40px; color:var(--head); font-weight:800; letter-spacing:-.5px; line-height:1.05;}
+h1.title{font-family:var(--display); font-size:40px; color:var(--head); font-weight:800; letter-spacing:-.5px; line-height:1.05;}
 p.sub{font-size:20px; color:var(--bluemid); margin-top:10px; font-weight:500;}
 html[data-theme="dark"] p.sub{color:var(--sky);}
 
 /* ============================= COVER ============================= */
 .cover .wrap{position:absolute; left:84px; top:250px; z-index:3;}
-.cover h1{font-size:80px; font-weight:800; letter-spacing:-1px; line-height:1.02;}
-.wrap h1 .test {background: linear-gradient(100deg, #F2A64A, #FFC98A);-webkit-background-clip: text;background-clip: text;color: transparent;}
-.wrap h1 .deploy {background: linear-gradient(100deg, #8FA9FF, #5B86E8);-webkit-background-clip: text;background-clip: text;color: transparent;}
+.cover h1{font-family:var(--display); font-size:80px; font-weight:800; letter-spacing:-1px; line-height:1.02;}
+.wrap h1 .test {background: linear-gradient(100deg, #FCC003, #FFE07A);-webkit-background-clip: text;background-clip: text;color: transparent;}
+.wrap h1 .deploy {background: linear-gradient(100deg, #90D0FE, #2E8BFF);-webkit-background-clip: text;background-clip: text;color: transparent;}
 .cover .lede{font-size:22px; color:#D9E2FF; margin-top:26px; max-width:900px;}
 .cover .tagline{margin-top:60px;}
 .cover .tagline span{font-size:48px; font-weight:800; letter-spacing:-.5px; line-height:1.18;}
-.cover .tagline .t{background: linear-gradient(100deg, #F2A64A, #FFC98A); -webkit-background-clip: text; background-clip: text; color: transparent;}           /* mirrors reference --test accent */
-.cover .tagline .d{background: linear-gradient(100deg, #8FA9FF, #5B86E8); -webkit-background-clip: text; background-clip: text; color: transparent;}           /* mirrors reference --deploy accent */
+.cover .tagline .t{background: linear-gradient(100deg, #FCC003, #FFE07A); -webkit-background-clip: text; background-clip: text; color: transparent;}           /* DF26 gold --test accent */
+.cover .tagline .d{background: linear-gradient(100deg, #90D0FE, #2E8BFF); -webkit-background-clip: text; background-clip: text; color: transparent;}           /* DF26 blue --deploy accent */
 .cover .presenter{display:flex; align-items:center; gap:16px; margin-top:48px;}
 .cover .presenter .pf-avatar{width:66px; height:66px; border-radius:50%; object-fit:cover;
   border:2px solid rgba(255,255,255,.55); box-shadow:0 6px 18px rgba(0,0,0,.35);}
@@ -94,7 +95,7 @@ html[data-theme="dark"] p.sub{color:var(--sky);}
 /* ============================= SECTION DIVIDER ============================= */
 .section .wrap{position:absolute; left:86px; top:250px; z-index:3; max-width:1000px;}
 .section .kick{font-size:22px; color:var(--sky); font-weight:800; margin-bottom:10px;}
-.section h1{font-size:60px; font-weight:800; letter-spacing:-1px;}
+.section h1{font-family:var(--display); font-size:60px; font-weight:800; letter-spacing:-1px;}
 .section .lede{font-size:21px; color:#D9E2FF; margin-top:14px;}
 
 /* ============================= CONTENT PRIMITIVES ============================= */
@@ -130,20 +131,20 @@ ul.bul li::before{content:"•"; color:var(--purple); position:absolute; left:2p
 .k{color:var(--head); font-weight:800;}
 
 /* ============================= SLIDE 4 — ADLC (reference branding) ============================= */
-/* Mirrors the onboarding deck: Schibsted Grotesk, surface card with left accent bar,
-   slate/orange/blue palette, surface-2 box. Scoped so the rest of the deck is untouched. */
+/* DF26 "the mew salesforce" template branding: Questrial/Inter, surface card with left accent bar,
+   navy/gold/blue palette, surface-2 box. Scoped so the rest of the deck is untouched. */
 .slide.ref-adlc{
-  --r-bg:#EEF1F4; --r-surface:#FFFFFF; --r-surface-2:#F6F8FA; --r-ink:#16202E; --r-muted:#566273; --r-line:#D3DAE3;
-  --r-overview:#3E4D63; --r-test:#B25E06; --r-deploy:#2347C6; --r-overview2:#F2A64A; --r-overview3:#86A2FF;
+  --r-bg:#EAF3FE; --r-surface:#FFFFFF; --r-surface-2:#F2F8FF; --r-ink:#001E5B; --r-muted:#56658C; --r-line:#CFE0F5;
+  --r-overview:#001E5B; --r-test:#A5730A; --r-deploy:#022AC0; --r-overview2:#FCC003; --r-overview3:#90D0FE;
   --r-chip-tx:#FFFFFF;
-  --r-shadow:0 1px 2px rgba(22,32,46,.06),0 8px 24px rgba(22,32,46,.06);
+  --r-shadow:0 1px 2px rgba(0,30,91,.07),0 8px 24px rgba(0,30,91,.07);
   background:var(--r-bg);
-  font-family:"Schibsted Grotesk", system-ui, sans-serif;
+  font-family:var(--font);
 }
 html[data-theme="dark"] .slide.ref-adlc{
-  --r-bg:#0F1623; --r-surface:#172131; --r-surface-2:#1C2839; --r-ink:#E6EBF2; --r-muted:#9BA6B6; --r-line:#2A3749;
-  --r-overview:#A9B6C9; --r-test:#F2A64A; --r-deploy:#86A2FF; --r-overview2:#F2A64A;
-  --r-chip-tx:#0F1623;
+  --r-bg:#04103A; --r-surface:#0C2152; --r-surface-2:#0D1E4E; --r-ink:#EAF2FF; --r-muted:#92A6D0; --r-line:#214079;
+  --r-overview:#AEC2E6; --r-test:#FCC003; --r-deploy:#8CB4FF; --r-overview2:#FCC003;
+  --r-chip-tx:#04103A;
   --r-shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
 }
 .ref-adlc .refcard{
@@ -522,15 +523,35 @@ html[data-theme="dark"] .metaloc-slide .ml-callout{background:#1A2248; border:1p
 .rsheet-slide .rs-card.hl{border:2px solid var(--r-deploy);}
 .rsheet-slide .rs-ico{position:absolute; top:-26px; left:50%; transform:translateX(-50%); width:56px; height:56px; border-radius:50%;
   display:grid; place-items:center; box-shadow:0 8px 20px rgba(74,23,196,.30);}
-.rsheet-slide .rs-ico.p1,.rsheet-slide .rs-ico.p3{background:linear-gradient(135deg,#4A17C4,#6A2BD8);}
-.rsheet-slide .rs-ico.p2{background:linear-gradient(135deg,#3C6FE6,#2E6BE6);}
+.rsheet-slide .rs-ico.p1,.rsheet-slide .rs-ico.p3{background:linear-gradient(135deg,#022AC0,#066AFE);}
+.rsheet-slide .rs-ico.p2{background:linear-gradient(135deg,#066AFE,#00B3FF);}
 .rsheet-slide .rs-h{font-size:21px; font-weight:800; letter-spacing:-.01em; color:var(--r-ink); margin-bottom:12px; text-align: center;}
 .rsheet-slide .rs-card.hl .rs-h{color:var(--r-deploy);}
 .rsheet-slide .rs-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
 .rsheet-slide .rs-list li{position:relative; padding-left:20px; font-size:14.5px; line-height:1.35; color:var(--r-ink);}
 .rsheet-slide .rs-list li::before{content:""; position:absolute; left:3px; top:8px; width:7px; height:7px; border-radius:50%; background:var(--r-deploy);}
-.rsheet-slide .rs-foot{margin-top:16px; font-size:13.5px; color:var(--r-muted); line-height:1.45;}
+.rsheet-slide .rs-foot{margin-top:16px; display:flex; align-items:center; justify-content:space-between; gap:20px; font-size:13.5px; color:var(--r-muted); line-height:1.45;}
+.rsheet-slide .rs-foot-tx{flex:1; min-width:0;}
 .rsheet-slide .rs-foot b{color:var(--r-ink);}
+/* slide 27 — trigger button + accessible modal for the reference release run sheet */
+.rsheet-slide .rs-doc-btn{flex:none; display:inline-flex; align-items:center; gap:8px; background:var(--r-deploy); color:#fff; border:0; border-radius:10px; padding:10px 16px; font-family:inherit; font-weight:800; font-size:13px; letter-spacing:.01em; cursor:pointer; box-shadow:var(--r-shadow); transition:filter .15s ease, transform .15s ease;}
+.rsheet-slide .rs-doc-btn:hover{filter:brightness(1.08); transform:translateY(-1px);}
+.rsheet-slide .rs-doc-btn:focus-visible{outline:3px solid var(--r-overview3); outline-offset:2px;}
+/* inline overlay — contained to the slide, not a browser window */
+.rsheet-slide .rs-modal{position:absolute; inset:0; z-index:20; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(6,16,48,.55); border-radius:14px;}
+.rsheet-slide .rs-modal.open{display:flex; animation:rsModalIn .18s ease;}
+@keyframes rsModalIn{from{opacity:0;} to{opacity:1;}}
+.rsheet-slide .rs-modal-panel{width:min(760px,94%); max-height:100%; display:flex; flex-direction:column; background:var(--r-surface); color:var(--r-ink); border:1px solid var(--r-line); border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,.42); overflow:hidden;}
+.rsheet-slide .rs-modal-head{flex:none; display:flex; align-items:center; gap:12px; padding:14px 18px; background:var(--r-surface); border-bottom:1px solid var(--r-line);}
+.rsheet-slide .rs-modal-head h3{margin:0; font-size:16px; font-weight:800; color:var(--r-ink);}
+.rsheet-slide .rs-modal-head .rs-modal-sub{font-size:11.5px; color:var(--r-muted);}
+.rsheet-slide .rs-modal-x{margin-left:auto; width:32px; height:32px; flex:none; border:1px solid var(--r-line); background:var(--r-surface-2); color:var(--r-ink); border-radius:9px; font-size:16px; line-height:1; cursor:pointer;}
+.rsheet-slide .rs-modal-x:hover{background:var(--r-line);}
+.rsheet-slide .rs-modal-body{flex:1; min-height:0; overflow:auto; padding:18px; display:flex; flex-direction:column; gap:18px; background:var(--r-surface-2);}
+.rsheet-slide .rs-modal figure{margin:0; background:var(--r-surface); border:1px solid var(--r-line); border-radius:12px; box-shadow:var(--r-shadow); overflow:hidden;}
+.rsheet-slide .rs-modal figure img{display:block; width:100%; height:auto;}
+.rsheet-slide .rs-modal figcaption{font-size:12px; font-weight:800; letter-spacing:.02em; color:#fff; background:var(--r-deploy); padding:6px 13px;}
+.rsheet-slide .rs-modal .rs-gif{align-self:center; width:100%; max-width:520px;}
 /* slide 33 — thank you */
 .thanks{display:grid; place-items:center;}
 .thanks .thx{text-align:center; z-index:3;}
@@ -543,18 +564,23 @@ html[data-theme="dark"] .metaloc-slide .ml-callout{background:#1A2248; border:1p
 .thanks .s4{font-size:26px; left:32%; bottom:20%; animation-delay:1.7s;}
 @keyframes sparkle{0%,100%{opacity:.5; transform:scale(.85) rotate(0deg);} 50%{opacity:1; transform:scale(1.1) rotate(15deg);}}
 @media (prefers-reduced-motion: reduce){ .thanks .spark{animation:none;} }
-/* slide 31 — Data 360 / Data Kits coverage */
+/* slide 28 — Data 360 / Data Kits coverage (consolidated left panel + recorded demo) */
 .d360-slide .body{display:flex; flex-direction:column;}
 .d360-slide .d360-grid{flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:6px;}
-.d360-slide .d360-card{background:var(--r-surface); border:1px solid var(--r-line); border-radius:18px; box-shadow:var(--r-shadow); padding:26px 30px; display:flex; flex-direction:column;}
-.d360-slide .d360-card.hl{border:2px solid var(--r-deploy); background:color-mix(in srgb, var(--r-deploy) 5%, var(--r-surface));}
-.d360-slide .d360-h{font-size:24px; font-weight:800; letter-spacing:-.01em; margin-bottom:16px; color:var(--r-ink);}
-.d360-slide .d360-card.hl .d360-h{color:var(--r-deploy);}
-.d360-slide .d360-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:13px;}
-.d360-slide .d360-list li{position:relative; padding-left:24px; font-size:17px; line-height:1.6; color:var(--r-ink);}
+.d360-slide .d360-left{background:var(--r-surface); border:1px solid var(--r-line); border-left:6px solid var(--r-deploy); border-radius:18px; box-shadow:var(--r-shadow); padding:24px 28px; display:flex; flex-direction:column; gap:20px; overflow:auto;}
+.d360-slide .d360-sec{display:flex; flex-direction:column;}
+.d360-slide .d360-h{font-size:22px; font-weight:800; letter-spacing:-.01em; margin-bottom:14px; color:var(--r-deploy);}
+.d360-slide .d360-h.sub{font-size:19px; color:var(--r-ink);}
+.d360-slide .d360-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px;}
+.d360-slide .d360-list li{position:relative; padding-left:24px; font-size:16px; line-height:1.55; color:var(--r-ink);}
 .d360-slide .d360-list li::before{content:""; position:absolute; left:3px; top:9px; width:8px; height:8px; border-radius:50%; background:var(--r-deploy);}
-.d360-slide .d360-list.warn li::before{background:var(--r-test);}
+.d360-slide .d360-sec.warn .d360-list li::before{background:var(--r-test);}
 .d360-slide .d360-list .dim{color:var(--r-muted); font-style:italic;}
+.d360-slide .d360-demo{display:flex; flex-direction:column; min-height:0;}
+.d360-slide .d360-video{flex:1; min-height:0; border:1px solid var(--r-line); border-radius:12px; overflow:hidden; background:#000;}
+.d360-slide .d360-video video{display:block; width:100%; height:100%; object-fit:contain;}
+.d360-slide .res-vcap{font-size:12px; color:var(--r-muted); margin:10px 2px 0; line-height:1.4;}
+.d360-slide .res-vcap code{font-family:var(--mono); font-size:11px; color:var(--r-deploy);}
 .d360-slide .d360-foot{margin-top:16px; font-size:13.5px; color:var(--r-muted); line-height:1.45;}
 .d360-slide .d360-foot b{color:var(--r-ink);}
 /* slide 6 — architecture flow cards */
@@ -604,9 +630,9 @@ html[data-theme="dark"] .metaloc-slide .ml-callout{background:#1A2248; border:1p
 .ref-adlc .node[data-k="deploy"] circle{stroke:var(--r-deploy);}
 .ref-adlc .node.sel circle{fill:var(--r-ink);}
 .ref-adlc .node.sel text{fill:var(--r-bg);}
-.ref-adlc .node text{fill:var(--r-ink); font:600 13px "Schibsted Grotesk",sans-serif; text-anchor:middle; pointer-events:none;}
+.ref-adlc .node text{fill:var(--r-ink); font:600 13px "Inter","Salesforce Sans",sans-serif; text-anchor:middle; pointer-events:none;}
 .ref-adlc .ring{fill:none; stroke:var(--r-line); stroke-width:2; stroke-dasharray:4 6;}
-.ref-adlc .center{fill:var(--r-muted); font:500 13px "Schibsted Grotesk",sans-serif; text-anchor:middle;}
+.ref-adlc .center{fill:var(--r-muted); font:500 13px "Inter","Salesforce Sans",sans-serif; text-anchor:middle;}
 .ref-adlc .adlc-panel{min-height:220px; background:var(--r-surface-2); border:1px solid var(--r-line); border-radius:10px; padding:18px 20px;}
 .ref-adlc .adlc-panel h3{margin:0 0 10px; font-size:24px; font-weight:700; letter-spacing:-.02em; color:var(--r-ink);}
 .ref-adlc .adlc-panel p{font-size:16px; color:var(--r-ink); line-height:1.5; margin:0 0 10px;}
@@ -1567,7 +1593,22 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
             </ul>
           </div>
         </div>
-        <div class="rs-foot"><b>Make every manual step executable:</b> document the full path, every click, each value, the expected result and recovery.</div>
+        <div class="rs-foot">
+          <div class="rs-foot-tx"><b>Make every manual step executable:</b> document the full path, every click, each value, the expected result and recovery.</div>
+          <button type="button" class="rs-doc-btn" aria-haspopup="dialog" aria-controls="rsDocModal" onclick="event.stopPropagation(); document.getElementById('rsDocModal').classList.add('open')">📄&nbsp; View reference run sheet</button>
+        </div>
+      </div>
+      <div id="rsDocModal" class="rs-modal" role="dialog" aria-modal="true" aria-labelledby="rsDocTitle" onclick="event.stopPropagation(); if(event.target===this)this.classList.remove('open')">
+        <div class="rs-modal-panel" onclick="event.stopPropagation()">
+          <div class="rs-modal-head">
+            <h3 id="rsDocTitle">Reference release run sheet</h3>
+            <span class="rs-modal-sub">the three phases, captured as one versioned document</span>
+            <button type="button" class="rs-modal-x" aria-label="Close" onclick="event.stopPropagation(); document.getElementById('rsDocModal').classList.remove('open')">✕</button>
+          </div>
+          <div class="rs-modal-body">
+            <figure class="rs-gif"><img src="images/release-runsheet.gif" alt="Reference release run sheet auto-scrolling through the Pre-deployment, Deployment and Post-deployment sections"></figure>
+          </div>
+        </div>
       </div>
     </div>
     <div class="pagenum">27</div>
@@ -1580,23 +1621,35 @@ html[data-theme="dark"] .takeaway{background:#1C2248; border:1px solid var(--lin
       <h1 class="title">Data 360 — what Data Kits move</h1>
       <p class="sub">Data Kits move definitions, not operational readiness — plan the state as a separate path</p>
       <div class="body">
-        <div class="d360-grid">          
-          <div class="d360-card">
-            <div class="d360-h">Common dependencies</div>
-            <ul class="d360-list">
-              <li>Some dependencies need extra sequencing, target setup or verification.</li>
-              <li>Package and automate them wherever possible.</li>  
-            </ul>
+        <div class="d360-grid">
+          <div class="d360-left">
+            <div class="d360-sec">
+              <div class="d360-h">Commonly supported definitions</div>
+              <ul class="d360-list">
+                <li>Data streams, DLOs and stream bundles</li>
+                <li>DMOs, mappings and relationships</li>
+                <li>Transforms and calculated insights</li>
+                <li>Identity rules, data graphs and segments <span class="dim">(where supported)</span></li>
+                <li>Search index and retriever definitions <span class="dim">(where supported)</span></li>
+              </ul>
+            </div>
+            <div class="d360-sec warn">
+              <div class="d360-h sub">Common dependencies</div>
+              <ul class="d360-list">
+                <li>Some dependencies need extra sequencing, target setup or verification.</li>
+                <li>Package and automate them wherever possible.</li>
+              </ul>
+            </div>
           </div>
-          <div class="d360-card hl">
-            <div class="d360-h">Commonly supported definitions</div>
-            <ul class="d360-list">
-              <li>Data streams, DLOs and stream bundles</li>
-              <li>DMOs, mappings and relationships</li>
-              <li>Transforms and calculated insights</li>
-              <li>Identity rules, data graphs and segments <span class="dim">(where supported)</span></li>
-              <li>Search index and retriever definitions <span class="dim">(where supported)</span></li>
-            </ul>
+          <div class="d360-demo">
+            <div class="ex-dhead"><h3>▶️ &nbsp; Data Kit deploy</h3><span class="ex-live">RECORDED DEMO</span></div>
+            <div class="d360-video">
+              <video controls autoplay muted loop playsinline preload="metadata">
+                <source src="assets/datakits.mp4" type="video/mp4" />
+                Your browser can’t play this recording — <a href="assets/datakits.mp4">download it ↗</a>.
+              </video>
+            </div>
+            <p class="res-vcap">▶ A Data Kit moving <b>definitions</b> between orgs — streams, DMOs and mappings deploy; connection state, records and index contents don’t.</p>
           </div>
         </div>
         <div class="d360-foot"><b>Check current coverage:</b> support varies by release, Data Kit type, connector and feature; activation targets and other unsupported types need a separate path.</div>
@@ -1769,6 +1822,8 @@ document.addEventListener('webkitfullscreenchange', ()=>{
 /* keyboard */
 document.addEventListener('keydown', e=>{
   if(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;   // don't hijack keys while typing in an input/editor
+  const openModal = document.querySelector('.rs-modal.open');
+  if(openModal){ if(e.key==='Escape'){ openModal.classList.remove('open'); e.preventDefault(); } return; }   // modal traps keys; Esc closes
   switch(e.key){
     case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': go(1); e.preventDefault(); break;
     case 'ArrowLeft':  case 'ArrowUp':   case 'PageUp': go(-1); e.preventDefault(); break;
@@ -1782,7 +1837,8 @@ document.addEventListener('keydown', e=>{
 
 /* click navigation (left third = prev, rest = next); ignore clicks on interactive cards */
 stage.addEventListener('click', e=>{
-  if(e.target.closest('.q, .s-chat, .s-trace, .layers, .apex-row, .apex-ctrl, .ex-demo, .pw-res, .scn-grid, .mcq, .mcq-ctrl, .ml-chain, .pxb, .fd-grid, .dopt-tabs')) return;   // interactive widgets handle their own clicks
+  if(e.target.closest('.q, .s-chat, .s-trace, .layers, .apex-row, .apex-ctrl, .ex-demo, .pw-res, .scn-grid, .mcq, .mcq-ctrl, .ml-chain, .pxb, .fd-grid, .dopt-tabs, .rs-doc-btn, .rs-modal')) return;   // interactive widgets handle their own clicks
+  if(document.querySelector('.rs-modal.open')) return;   // don't navigate while the inline modal is open
   const x = e.clientX / window.innerWidth;
   go(x < 0.28 ? -1 : 1);
 });
