@@ -1260,9 +1260,67 @@ sf project deploy start --source-dir force-app --target-org client-uat --test-le
 <div class="footer">Salesforce FDE Field Guide · Learning path and examples are illustrative. Follow current internal policies and project standards. (© Tuan Abdeen)</div>
 </div>
 
+<style>
+.review-modal{position:fixed;inset:0;z-index:60;display:none;place-items:center;background:rgba(5,8,20,.72);padding:20px;animation:fade .3s}
+.review-modal.show{display:grid}
+.review-card{position:relative;width:min(520px,100%);background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:0 30px 80px rgba(5,8,20,.45);padding:30px 32px;animation:slam .5s cubic-bezier(.2,1.4,.4,1)}
+.review-x{position:absolute;top:16px;right:16px;width:34px;height:34px;border:0;background:transparent;color:var(--muted);font-size:19px;line-height:1;cursor:pointer;border-radius:9px}
+.review-x:hover{background:var(--surface2);color:var(--text)}
+.review-card h3{margin:0;font-size:26px;font-weight:900;letter-spacing:-.02em;color:var(--text)}
+.review-sub{margin:5px 0 0;font-size:13px;color:var(--muted)}
+.review-stars{display:flex;gap:8px;margin:20px 0 4px}
+.review-stars .star{font-size:46px;line-height:1;background:none;border:0;padding:0;cursor:pointer;color:var(--line);transition:transform .08s ease,color .12s ease}
+.review-stars .star:hover{transform:scale(1.08)}
+.review-stars .star.on{color:#f5b301}
+.review-stars .star:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.review-clabel{display:block;margin:18px 0 7px;font-size:13px;font-weight:800;color:var(--text)}
+.review-comment{width:100%;min-height:92px;border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--text);font:inherit;font-size:14px;line-height:1.5;padding:12px 14px;resize:vertical;box-sizing:border-box}
+.review-comment:focus{outline:2px solid var(--accent);border-color:var(--accent);background:var(--surface)}
+.review-comment::placeholder{color:var(--muted)}
+.review-actions{display:flex;justify-content:space-between;gap:14px;margin-top:22px}
+.review-btn{border:0;border-radius:12px;padding:13px 22px;font:inherit;font-weight:800;font-size:14px;cursor:pointer}
+.review-btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--line)}
+.review-btn.secondary:hover{background:var(--line)}
+.review-btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 10px 24px color-mix(in srgb,var(--accent) 35%,transparent)}
+.review-btn.primary:hover{filter:brightness(1.06)}
+.review-btn.primary:disabled{opacity:.5;cursor:not-allowed;filter:none;box-shadow:none}
+.review-thanks{display:none;text-align:center;padding:8px 0 2px}
+.review-card.done .review-body{display:none}
+.review-card.done .review-thanks{display:block}
+.review-thanks .rt-emoji{font-size:52px;line-height:1}
+.review-thanks h3{margin:12px 0 4px}
+</style>
 <div class="celebrate" id="celebration" role="dialog" aria-modal="true" aria-label="Stage completed">
   <div class="confetti" id="confetti"></div>
   <div class="celebrate-inner"><div class="eyebrow">STAGE COMPLETE</div><div class="spray" id="celebrateTitle">BEGINNER<br>UNLOCKED!</div><div class="sub" id="celebrateSub">YOU'RE READY FOR THE FIELD.</div><button class="close-celebrate" onclick="closeCelebration()">LET'S GO →</button></div>
+</div>
+<div class="review-modal" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
+  <div class="review-card">
+    <button class="review-x" type="button" aria-label="Close" onclick="closeReview()">✕</button>
+    <div class="review-body">
+      <h3 id="reviewTitle">Leave a review</h3>
+      <p class="review-sub">How was your experience today?</p>
+      <div class="review-stars" id="reviewStars" role="radiogroup" aria-label="Rating out of 5 stars">
+        <button type="button" class="star" data-v="1" role="radio" aria-checked="false" aria-label="1 star">★</button>
+        <button type="button" class="star" data-v="2" role="radio" aria-checked="false" aria-label="2 stars">★</button>
+        <button type="button" class="star" data-v="3" role="radio" aria-checked="false" aria-label="3 stars">★</button>
+        <button type="button" class="star" data-v="4" role="radio" aria-checked="false" aria-label="4 stars">★</button>
+        <button type="button" class="star" data-v="5" role="radio" aria-checked="false" aria-label="5 stars">★</button>
+      </div>
+      <label class="review-clabel" for="reviewComment">Your comment</label>
+      <textarea id="reviewComment" class="review-comment" placeholder="Tell us what worked and what could be better…"></textarea>
+      <div class="review-actions">
+        <button type="button" class="review-btn secondary" onclick="closeReview()">Not now</button>
+        <button type="button" class="review-btn primary" id="reviewPublish" onclick="publishReview()" disabled>Publish review</button>
+      </div>
+    </div>
+    <div class="review-thanks">
+      <div class="rt-emoji">🎉</div>
+      <h3>Thank you!</h3>
+      <p class="review-sub" id="reviewThanksSub">Your review has been saved.</p>
+      <button type="button" class="review-btn primary" style="margin-top:18px" onclick="closeReview()">Done</button>
+    </div>
+  </div>
 </div>
 <script>
 const stages={
@@ -1274,7 +1332,7 @@ const tasks={beginner:["w1-discovering","w1-hm","w1-trailguide","w34-amex","w34-
 const required={beginner:["w1-discovering","w1-hm","w1-trailguide","w34-amex","w34-ou-meetings","w34-slack-channels","w34-bootcamp","w34-act","w34-trailmix","a-fde-git","a-qbranch-org","a-nextgen-ai","a-gitsoma-devbar","a-gus","b-node","b-java","b-git","b-gh","b-sf-cli","i-install","i-ext","g-config","ai-tool-install","s-skills","s-plugins"],intermediate:["l-dx","d-gen","d-sdo","d-auth","d-baseline","d-validate","s-ignore","c-md","c-habits","c-launch","v-run"],advanced:["sh-video","sh-rate","ad-harness","ad-session","ad-faiulure","ad-test-str","ad-unit-int","ad-agent-eval","ad-pw","ad-HITL","ad-CRUD","ad-threat","ad-prod-prep","ad-observ","ad-delivery"]};
 // Per-user state. These start empty and are loaded by loadState() once we know who is
 // signed in — each learner's data is stored under email-scoped keys (see uk()).
-let completed={},celebrated={},feedback={};
+let completed={},celebrated={},feedback={},review={},currentCelebrationStage=null;
 function stamp(on){return on?new Date().toISOString():false}
 function save(reason){if(learnerEmail){localStorage.setItem(uk("progress"),JSON.stringify(completed));localStorage.setItem(uk("celebrated"),JSON.stringify(celebrated));}if(typeof queueSync==="function")queueSync(reason);}
 function isDone(id){return !!completed[id]}
@@ -1317,10 +1375,20 @@ function maybeCelebrate(s){
 document.querySelectorAll("[data-task]").forEach(el=>el.addEventListener("change",()=>{completed[el.dataset.task]=stamp(el.checked);save();renderProgress();const s=Object.keys(tasks).find(k=>tasks[k].includes(el.dataset.task));maybeCelebrate(s)}));
 document.querySelectorAll("[data-done]").forEach(el=>el.addEventListener("change",()=>{completed[el.dataset.done]=stamp(el.checked);save();renderProgress();const s=Object.keys(tasks).find(k=>tasks[k].includes(el.dataset.done));maybeCelebrate(s)}));
 function checkStage(s){if(stageDone(s)){maybeCelebrate(s);if(celebrated[s])showCelebration(s)}else{const left=required[s].filter(id=>!isDone(id)).length;alert(`Almost there! ${left} required task(s) remain in this stage. Complete the required checklist items to unlock the celebration.`)}}
-function showCelebration(s){const data=stages[s];document.getElementById("celebrateTitle").innerHTML=data.title+"<br>UNLOCKED!";document.getElementById("celebrateSub").textContent=data.sub;const conf=document.getElementById("confetti");conf.innerHTML="";for(let i=0;i<70;i++){let p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"%");p.style.setProperty("--h",Math.floor(Math.random()*360));p.style.setProperty("--r",Math.random()*360+"deg");p.style.setProperty("--d",2+Math.random()*3+"s");p.style.setProperty("--delay",-Math.random()*4+"s");p.style.setProperty("--drift",(Math.random()*240-120)+"px");conf.appendChild(p)}document.getElementById("celebration").classList.add("show")}
-function closeCelebration(){document.getElementById("celebration").classList.remove("show")}
+function showCelebration(s){currentCelebrationStage=s;const data=stages[s];document.getElementById("celebrateTitle").innerHTML=data.title+"<br>UNLOCKED!";document.getElementById("celebrateSub").textContent=data.sub;const conf=document.getElementById("confetti");conf.innerHTML="";for(let i=0;i<70;i++){let p=document.createElement("i");p.style.setProperty("--x",Math.random()*100+"%");p.style.setProperty("--h",Math.floor(Math.random()*360));p.style.setProperty("--r",Math.random()*360+"deg");p.style.setProperty("--d",2+Math.random()*3+"s");p.style.setProperty("--delay",-Math.random()*4+"s");p.style.setProperty("--drift",(Math.random()*240-120)+"px");conf.appendChild(p)}document.getElementById("celebration").classList.add("show")}
+function closeCelebration(){document.getElementById("celebration").classList.remove("show");if(currentCelebrationStage==="advanced"&&!review.submitted&&!review.dismissed){setTimeout(openReview,260);}}
 document.getElementById("celebration").addEventListener("click",e=>{if(e.target.id==="celebration")closeCelebration()});
-document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("Reset all onboarding checklists and stage celebrations in this browser? This also resets the progress record your onboarding leads see.")){completed={};celebrated={};milestones={};if(learnerEmail)localStorage.setItem(uk("milestones"),"{}");save("reset");renderProgress()}});
+/* ---- Advanced-stage review popup (1–5 stars + comment) ---- */
+let selectedRating=0;
+function renderStars(){document.querySelectorAll("#reviewStars .star").forEach(st=>{const v=+st.dataset.v;st.classList.toggle("on",v<=selectedRating);st.setAttribute("aria-checked",String(v===selectedRating));});const pub=document.getElementById("reviewPublish");if(pub)pub.disabled=selectedRating===0;}
+(function setupStars(){const wrap=document.getElementById("reviewStars");if(!wrap)return;const stars=[...wrap.querySelectorAll(".star")];stars.forEach(st=>{const v=+st.dataset.v;st.addEventListener("mouseenter",()=>stars.forEach(s=>s.classList.toggle("on",+s.dataset.v<=v)));st.addEventListener("click",()=>{selectedRating=v;renderStars();});});wrap.addEventListener("mouseleave",renderStars);})();
+function openReview(){const card=document.querySelector("#reviewModal .review-card");if(card)card.classList.remove("done");selectedRating=review.rating||0;const c=document.getElementById("reviewComment");if(c)c.value=review.comment||"";renderStars();document.getElementById("reviewModal").classList.add("show");setTimeout(()=>{const f=document.querySelector("#reviewStars .star");if(f)f.focus();},60);}
+function closeReview(){document.getElementById("reviewModal").classList.remove("show");if(!review.submitted){review.dismissed=true;saveReview();}}
+function publishReview(){if(selectedRating===0)return;review={rating:selectedRating,comment:(document.getElementById("reviewComment").value||"").trim(),submitted:true,ts:new Date().toISOString()};saveReview();const sub=document.getElementById("reviewThanksSub");if(sub)sub.textContent="Your "+selectedRating+"-star review has been saved.";document.querySelector("#reviewModal .review-card").classList.add("done");}
+function saveReview(){if(typeof learnerEmail!=="undefined"&&learnerEmail)localStorage.setItem(uk("review"),JSON.stringify(review));if(typeof queueSync==="function")queueSync("review");}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("reviewModal").classList.contains("show"))closeReview();});
+function maybePromptReviewOnLoad(){if(!learnerEmail)return;if(typeof stageDone!=="function"||!stageDone("advanced"))return;if(review.submitted||review.dismissed)return;setTimeout(()=>{if(review.submitted||review.dismissed)return;if(document.getElementById("celebration").classList.contains("show"))return;if(document.body.classList.contains("gated"))return;openReview();},800);}
+document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("Reset all onboarding checklists and stage celebrations in this browser? This also resets the progress record your onboarding leads see.")){completed={};celebrated={};milestones={};review={};if(learnerEmail){localStorage.setItem(uk("milestones"),"{}");localStorage.removeItem(uk("review"));}save("reset");renderProgress()}});
 document.getElementById("lightMode").onclick=()=>setTheme("light");document.getElementById("darkMode").onclick=()=>setTheme("dark");
 function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem("fde-field-guide-theme",t);document.getElementById("lightMode").classList.toggle("active",t==="light");document.getElementById("darkMode").classList.toggle("active",t==="dark")}
 setTheme(localStorage.getItem("fde-field-guide-theme")||"light");
@@ -1350,7 +1418,7 @@ document.querySelectorAll(".sec-fold-head").forEach(h=>{
  });
 })();
 (function(){const sec=document.getElementById("beginner");if(!sec)return;function setOS(os){sec.dataset.os=os;document.querySelectorAll("#os-select button").forEach(b=>{const on=b.dataset.os===os;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on));});try{localStorage.setItem("fde-field-guide-os",os);}catch(e){}}document.querySelectorAll("#os-select button").forEach(b=>b.addEventListener("click",()=>setOS(b.dataset.os)));let saved="mac";try{saved=localStorage.getItem("fde-field-guide-os")||"mac";}catch(e){}setOS(saved);})();document.querySelectorAll(".navitem").forEach(b=>b.addEventListener("click",()=>{if(b.classList.contains("locked"))return;document.querySelectorAll(".navitem").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.target).scrollIntoView({behavior:"smooth"})}));
-function exportProgress(){const all=Object.values(tasks).flat(),done=all.filter(isDone);let out="Salesforce FDE Field Guide — Progress Summary\n";for(const s of Object.keys(stages)){out+=`\n${s.toUpperCase()}: ${stageDone(s)?"COMPLETE":"IN PROGRESS"}\n`;out+=required[s].map(id=>`${isDone(id)?"[x]":"[ ]"} ${id}`).join("\n")+"\n"}out+=`\nOverall: ${done.length}/${all.length} tasks checked\n`;out+=`\n---\n\nFeedback by stage\n`;for(const s of Object.keys(stages)){const note=(feedback[s]||"").trim();out+=`\n${s.toUpperCase()}:\n${note?note:"(no feedback)"}\n`}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out],{type:"text/plain"}));a.download="fde-onboarding-progress.txt";a.click();URL.revokeObjectURL(a.href)}
+function exportProgress(){const all=Object.values(tasks).flat(),done=all.filter(isDone);let out="Salesforce FDE Field Guide — Progress Summary\n";for(const s of Object.keys(stages)){out+=`\n${s.toUpperCase()}: ${stageDone(s)?"COMPLETE":"IN PROGRESS"}\n`;out+=required[s].map(id=>`${isDone(id)?"[x]":"[ ]"} ${id}`).join("\n")+"\n"}out+=`\nOverall: ${done.length}/${all.length} tasks checked\n`;out+=`\n---\n\nFeedback by stage\n`;for(const s of Object.keys(stages)){const note=(feedback[s]||"").trim();out+=`\n${s.toUpperCase()}:\n${note?note:"(no feedback)"}\n`}out+=`\n---\n\nOverall review\n${review.rating?review.rating+"/5 stars":"(not rated)"}\n${(review.comment||"").trim()||"(no comment)"}\n`;const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out],{type:"text/plain"}));a.download="fde-onboarding-progress.txt";a.click();URL.revokeObjectURL(a.href)}
 /* Sequentially animated terminal demos (content sourced from references/terminal-screens/*.png) */
 function initTermDemo(screenId,replayId,steps,opts){
   const screen=document.getElementById(screenId),replay=document.getElementById(replayId);
@@ -1576,7 +1644,7 @@ function applyFeedback(){document.querySelectorAll("textarea[data-feedback]").fo
 function migrateLegacy(){let any=false;for(const base of Object.keys(LEGACY)){if(localStorage.getItem(uk(base))===null){const old=localStorage.getItem(LEGACY[base]);if(old!==null){localStorage.setItem(uk(base),old);any=true;}}}if(any)Object.values(LEGACY).forEach(k=>localStorage.removeItem(k));}
 // Load the signed-in user's own saved state. A brand-new email has no keys → everything is
 // empty (0%). Called at startup and right after sign-in.
-function loadState(){if(!learnerEmail)return;migrateLegacy();completed=JSON.parse(localStorage.getItem(uk("progress"))||"{}");celebrated=JSON.parse(localStorage.getItem(uk("celebrated"))||"{}");feedback=JSON.parse(localStorage.getItem(uk("feedback"))||"{}");milestones=JSON.parse(localStorage.getItem(uk("milestones"))||"{}");applyFeedback();}
+function loadState(){if(!learnerEmail)return;migrateLegacy();completed=JSON.parse(localStorage.getItem(uk("progress"))||"{}");celebrated=JSON.parse(localStorage.getItem(uk("celebrated"))||"{}");feedback=JSON.parse(localStorage.getItem(uk("feedback"))||"{}");review=JSON.parse(localStorage.getItem(uk("review"))||"{}");milestones=JSON.parse(localStorage.getItem(uk("milestones"))||"{}");applyFeedback();}
 let syncTimer=null,retryTimer=null,syncing=false,pendingReason="change";
 // Stage attribution for the sheet's Events tab. Optional tasks that aren't in `tasks`
 // (so they don't affect the progress count) can still be pinned to a stage here.
@@ -1593,7 +1661,8 @@ function buildPayload(reason){
  const requestId=(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+"_"+Math.random().toString(36).slice(2));
  return{action:"sync",requestId,reason,email:learnerEmail,sentAt:new Date().toISOString(),progress,
   stats:{done:doneCount,total:all.length,overallPct:all.length?doneCount/all.length:0,currentStage:currentStage(),stages:st},
-  feedback:{beginner:feedback.beginner||"",intermediate:feedback.intermediate||"",advanced:feedback.advanced||""}};
+  feedback:{beginner:feedback.beginner||"",intermediate:feedback.intermediate||"",advanced:feedback.advanced||""},
+  rating:review.rating||"",overallFeedback:review.comment||""};
 }
 function setSync(state,msg){const dot=document.getElementById("syncDot");if(!dot)return;dot.dataset.state=state;document.getElementById("syncText").textContent=msg}
 function renderLearner(){const chip=document.getElementById("learnerChip");chip.hidden=!learnerEmail;document.getElementById("learnerEmailText").textContent=learnerEmail;document.getElementById("learnerEmailText").title=learnerEmail}
@@ -1689,6 +1758,7 @@ async function pullRemote(){
   Object.entries(d.milestones||{}).forEach(([s,at])=>{if(at&&(!milestones[s]||at<milestones[s])){milestones[s]=at;changed=true}});
   const rfb=d.feedback||{};
   Object.keys(rfb).forEach(k=>{if(rfb[k]&&!feedback[k]){feedback[k]=rfb[k];fbChanged=true}}); // restore stage notes
+  if(!review.submitted&&(d.rating||d.overallFeedback)){if(d.rating)review.rating=+d.rating;if(d.overallFeedback)review.comment=d.overallFeedback;review.submitted=true;localStorage.setItem(uk("review"),JSON.stringify(review));} // restore overall review across devices
   if(changed){
    Object.keys(stages).forEach(s=>{if(stageDone(s))celebrated[s]=true}); // don't replay old celebrations
    localStorage.setItem(uk("progress"),JSON.stringify(completed));
@@ -1762,7 +1832,7 @@ document.getElementById("gateForm").addEventListener("submit",e=>{
  const local=normalizeLocal(document.getElementById("gateUser").value),err=validateLocal(local);
  document.getElementById("gateError").textContent=err;if(err)return;
  learnerEmail=local+"@"+TRACKING.emailDomain;localStorage.setItem(LS.email,learnerEmail);
- loadState();renderProgress(); // show this user's own saved data (0% if brand new on this browser)
+ loadState();renderProgress();maybePromptReviewOnLoad(); // show this user's own saved data (0% if brand new on this browser)
  document.getElementById("learnerGate").hidden=true;document.body.classList.remove("gated");
  startSession(true);
 });
@@ -1781,7 +1851,7 @@ window.addEventListener("pagehide",()=>{
 });
 function initIdentity(){if(learnerEmail)startSession(false);else showGate()}
 if(learnerEmail)loadState(); // restore the signed-in user's own data before first paint
-renderProgress();initIdentity();
+renderProgress();initIdentity();maybePromptReviewOnLoad();
 </script>
 </body>
 </html>

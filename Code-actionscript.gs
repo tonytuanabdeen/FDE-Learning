@@ -32,13 +32,14 @@ const L = {
   email: 1, firstSeen: 2, lastActive: 3, stage: 4, overall: 5,
   beginner: 6, intermediate: 7, advanced: 8,
   begDone: 9, intDone: 10, advDone: 11, tasksDone: 12,
-  fbBeg: 13, fbInt: 14, fbAdv: 15, snapshot: 16
+  fbBeg: 13, fbInt: 14, fbAdv: 15, rating: 16, overallFeedback: 17, snapshot: 18
 };
 const LEARNER_HEADERS = [
   'Email', 'First seen', 'Last active', 'Current stage', 'Overall %',
   'Beginner % (required)', 'Intermediate % (required)', 'Advanced % (required)',
   'Beginner completed', 'Intermediate completed', 'Advanced completed', 'Tasks done',
-  'Beginner feedback', 'Intermediate feedback', 'Advanced feedback', 'Snapshot (do not edit)'
+  'Beginner feedback', 'Intermediate feedback', 'Advanced feedback',
+  'Rating', 'Overall Feedback', 'Snapshot (do not edit)'
 ];
 const EVENT_HEADERS = ['Timestamp', 'Email', 'Event', 'Task / stage', 'Stage'];
 
@@ -46,10 +47,12 @@ const EVENT_HEADERS = ['Timestamp', 'Email', 'Event', 'Task / stage', 'Stage'];
 
 function setup() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  migrateLearners_(ss);
   const learners = ensureSheet_(ss, SHEETS.learners, LEARNER_HEADERS);
   learners.hideColumns(L.snapshot);
   learners.setColumnWidth(L.email, 240);
-  [L.fbBeg, L.fbInt, L.fbAdv].forEach(c => learners.setColumnWidth(c, 280));
+  [L.fbBeg, L.fbInt, L.fbAdv, L.overallFeedback].forEach(c => learners.setColumnWidth(c, 280));
+  learners.setColumnWidth(L.rating, 70);
   const events = ensureSheet_(ss, SHEETS.events, EVENT_HEADERS);
   events.setColumnWidth(1, 160);
   events.setColumnWidth(2, 240);
@@ -63,6 +66,19 @@ function ensureSheet_(ss, name, headers) {
   sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
   sh.setFrozenRows(1);
   return sh;
+}
+
+// Upgrade an existing Learners tab (16-column layout) in place: insert the new
+// "Rating" and "Overall Feedback" columns BEFORE the hidden Snapshot column so the
+// snapshot JSON and its data shift right intact. Safe to run repeatedly — it no-ops
+// once the columns exist, and does nothing on a fresh sheet (ensureSheet_ handles that).
+function migrateLearners_(ss) {
+  const sh = ss.getSheetByName(SHEETS.learners);
+  if (!sh || sh.getLastColumn() === 0) return;
+  const hdr = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  if (hdr.indexOf('Rating') >= 0) return;                // already migrated
+  const snapCol = hdr.indexOf('Snapshot (do not edit)') + 1;
+  if (snapCol > 0) sh.insertColumnsBefore(snapCol, 2);   // moves Snapshot + its data to col 18
 }
 
 function buildDashboard_(ss) {
@@ -232,6 +248,7 @@ function upsert_(email, body) {
     stagesDone.advanced ? toDate_(ms.advanced) : '',
     Object.keys(progress).length,
     safeText_(fb.beginner), safeText_(fb.intermediate), safeText_(fb.advanced),
+    cleanRating_(body.rating), safeText_(body.overallFeedback),
     JSON.stringify({ progress: progress, stagesDone: stagesDone, milestones: ms })
   ];
   sh.getRange(rowNum, 1, 1, row.length).setValues([row]);
@@ -286,6 +303,12 @@ function safeText_(v) {
 function pct_(v) {
   const n = Number(v);
   return isFinite(n) ? Math.max(0, Math.min(1, n)) : 0;
+}
+
+// Clamp the star rating to a whole 1–5, or blank if not rated yet.
+function cleanRating_(v) {
+  const n = Math.round(Number(v));
+  return (isFinite(n) && n >= 1 && n <= 5) ? n : '';
 }
 
 function toDate_(v) {
